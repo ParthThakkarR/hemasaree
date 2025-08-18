@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+model User {
+   id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  firstName String
+  lastName  String?    // optional
+  address   String?    // optional
+  email     String    @unique
+  phone     String?    // optional
+  isAdmin   Boolean   @default(false)
+  password  String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  products  Product[]  @relation("UserProducts")
+  orders    Order[]
+  payments  Payment[]
+  carts     Cart[]
+}
+
+model Category {
+  id          String    @id @map("_id") @default(auto()) @db.ObjectId
+  name        String    @unique
+  description String?
+  image       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  products    Product[]
+}
+model Product {
+  id          String    @id @map("_id") @default(auto()) @db.ObjectId
+  name        String
+  description String?
+  price       Float     // was Decimal
+  stock       Int
+  images      String[]
+  categoryId  String    @db.ObjectId
+  category    Category  @relation(fields: [categoryId], references: [id])
+  userId      String    @db.ObjectId
+  user        User      @relation("UserProducts", fields: [userId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  cartItems   CartItem[]
+  orderItems  OrderItem[]
+}
+
+model Cart {
+  id          String     @id @map("_id") @default(auto()) @db.ObjectId
+  userId      String     @db.ObjectId
+  user        User       @relation(fields: [userId], references: [id])
+  items       CartItem[]
+  totalPrice  Float      @default(0)   // was Decimal
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model CartItem {
+  id           String    @id @map("_id") @default(auto()) @db.ObjectId
+  cartId       String    @db.ObjectId
+  cart         Cart      @relation(fields: [cartId], references: [id])
+  productId    String    @db.ObjectId
+  product      Product   @relation(fields: [productId], references: [id])
+  productName  String
+  productImage String?
+  quantity     Int       @default(1)
+  price        Float     // was Decimal
+}
+
+model Order {
+  id          String     @id @map("_id") @default(auto()) @db.ObjectId
+  userId      String     @db.ObjectId
+  user        User       @relation(fields: [userId], references: [id])
+  orderItems  OrderItem[]
+  totalAmount Float      // was Decimal
+  status      String     @default("pending")
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  payment     Payment?
+}
+
+model OrderItem {
+  id           String    @id @map("_id") @default(auto()) @db.ObjectId
+  orderId      String    @db.ObjectId
+  order        Order     @relation(fields: [orderId], references: [id])
+  productId    String    @db.ObjectId
+  product      Product   @relation(fields: [productId], references: [id])
+  productName  String
+  productImage String?
+  quantity     Int
+  price        Float     // was Decimal
+}
+
+model Payment {
+  id          String    @id @map("_id") @default(auto()) @db.ObjectId
+  userId      String    @db.ObjectId
+  user        User      @relation(fields: [userId], references: [id])
+  orderId     String    @db.ObjectId @unique  // added @unique here for one-to-one relation
+  order       Order     @relation(fields: [orderId], references: [id])
+  amount      Float     // was Decimal
+  method      String
+  status      String    @default("pending")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
