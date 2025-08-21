@@ -99,7 +99,8 @@ export default async function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <nav className="p-3 border-bottom d-flex gap-3">
           <Link href="/">Home</Link>
-          <Link href="/pages/cart">cart</Link>
+          
+         
           {isAdmin && <Link href="/admin">Admin</Link>}
 
           {!isLoggedIn ? (
@@ -108,13 +109,20 @@ export default async function RootLayout({
               <Link href="/signup">Signup</Link>
               
             </>
-          ) : (
+          ) : (<>
+              <Link href="/pages/cart">Cart</Link>      
+              <Link href="/pages/orders">Order</Link>
+              
             <form action="/api/logout" method="POST">
+              
+
+              
+               
               <button className="btn btn-danger btn-sm" type="submit">
                 Logout
               </button>
             </form>
-          )}
+          </>)}
         </nav>
 
         <main>{children}</main>
