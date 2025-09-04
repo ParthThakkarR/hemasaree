@@ -1,375 +1,104 @@
-// 'use client';
-
-// import React, { useState, useRef, useEffect } from 'react';
-
-// // --- Helper Icons (FIXED) ---
-// const SendIcon = () => (
-//   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-//     <path d="m22 2-7 20-4-9-9-4Z" />
-//     <path d="m22 2-11 11" />
-//   </svg>
-// );
-
-// const ArrowLeftIcon = () => (
-//   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-//     <path d="m12 19-7-7 7-7" />
-//     <path d="M19 12H5" />
-//   </svg>
-// );
-
-
-// export default function SignupPage() {
-//   // --- STATE MANAGEMENT ---
-//   const [step, setStep] = useState('email'); // 'email', 'otp', 'details'
-//   const [isLoading, setIsLoading] = useState(false);
-//   const [error, setError] = useState('');
-//   const [success, setSuccess] = useState('');
-
-//   // State for all form data
-//   const [formData, setFormData] = useState({
-//     firstName: '',
-//     lastName: '',
-//     email: '',
-//     phone: '',
-//     password: '',
-//     streetAddress: '',
-//     city: '',
-//     state: '',
-//     zipCode: '',
-//     country: 'United States',
-//   });
-  
-//   // State for OTP
-//   const [otp, setOtp] = useState(['', '', '', '']);
-//   const [verificationOtp, setVerificationOtp] = useState(''); // Stores the "correct" OTP from backend
-//   const otpInputs = useRef<(HTMLInputElement | null)[]>([]);
-
-
-//   // --- EVENT HANDLERS ---
-//   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-//     const { name, value } = e.target;
-//     setFormData(prev => ({ ...prev, [name]: value }));
-//   };
-
-//   const handleEmailSubmit = async (e: React.FormEvent) => {
-//     e.preventDefault();
-//     setError('');
-//     if (!formData.email.includes('@')) {
-//       setError("Please enter a valid email address.");
-//       return;
-//     }
-//     setIsLoading(true);
-//     try {
-//       // MODIFIED: Call the new email OTP route
-//       const res = await fetch('/api/send-email-otp', {
-//         method: 'POST',
-//         headers: { 'Content-Type': 'application/json' },
-//         body: JSON.stringify({ email: formData.email }),
-//       });
-//       const data = await res.json();
-//       if (!res.ok) throw new Error(data.message || 'Failed to send OTP.');
-      
-//       setVerificationOtp(data.otp); 
-//       setStep('otp');
-      
-//     } catch (err: any) {
-//       setError(err.message);
-//     } finally {
-//       setIsLoading(false);
-//     }
-//   };
-
-//   const handleOtpSubmit = (e: React.FormEvent) => {
-//     e.preventDefault();
-//     setError('');
-//     const enteredOtp = otp.join('');
-//     if (enteredOtp !== verificationOtp) {
-//       setError("The OTP entered is incorrect. Please try again.");
-//       return;
-//     }
-//     setStep('details'); // OTP is correct, show the rest of the form
-//   };
-
-//   const handleDetailsSubmit = async (e: React.FormEvent) => {
-//     e.preventDefault();
-//     setError('');
-//     setSuccess('');
-//     setIsLoading(true);
-
-//     const fullAddress = `${formData.streetAddress}, ${formData.city}, ${formData.state} ${formData.zipCode}, ${formData.country}`;
-//     const payload = {
-//       firstName: formData.firstName,
-//       lastName: formData.lastName,
-//       email: formData.email,
-//       phone: formData.phone,
-//       password: formData.password,
-//       address: fullAddress,
-//     };
-
-//     try {
-//       const res = await fetch('/api/signup', {
-//         method: 'POST',
-//         headers: { 'Content-Type': 'application/json' },
-//         body: JSON.stringify(payload),
-//       });
-//       const data = await res.json();
-//       if (!res.ok) throw new Error(data.message || 'Signup failed.');
-      
-//       // Set success message and then redirect
-//       setSuccess('Account created successfully! Redirecting to login...');
-      
-//       // Redirect to login page after 2 seconds
-//       setTimeout(() => {
-//         window.location.href = 'http://localhost:3000/login';
-//       }, 2000);
-
-//     } catch (err: any) {
-//       setError(err.message);
-//     } finally {
-//       // We keep isLoading true during redirect to prevent further actions
-//       // If there's an error, it will be set to false.
-//       if (!success) {
-//           setIsLoading(false);
-//       }
-//     }
-//   };
-  
-//   // --- OTP Input Logic ---
-//   const handleOtpChange = (index: number, value: string) => {
-//     if (!/^\d*$/.test(value)) return;
-//     const newOtp = [...otp];
-//     newOtp[index] = value.slice(-1);
-//     setOtp(newOtp);
-//     if (value && index < otp.length - 1) {
-//       otpInputs.current[index + 1]?.focus();
-//     }
-//   };
-  
-//   const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-//       if (e.key === 'Backspace' && !otp[index] && index > 0) {
-//           otpInputs.current[index - 1]?.focus();
-//       }
-//   };
-
-//   const goBack = () => {
-//     setError('');
-//     setOtp(['', '', '', '']);
-//     setStep('email');
-//   };
-
-//   useEffect(() => {
-//     if (step === 'otp') otpInputs.current[0]?.focus();
-//   }, [step]);
-
-
-//   return (
-//     <div className="bg-gray-50 min-h-screen flex items-center justify-center p-4 font-sans">
-//       <div className="w-full max-w-4xl bg-white rounded-lg shadow-md p-8">
-        
-//         {step === 'otp' && (
-//             <button onClick={goBack} className="mb-4 text-gray-600 flex items-center gap-2 hover:text-gray-900">
-//                 <ArrowLeftIcon /> Back
-//             </button>
-//         )}
-
-//         <h1 className="text-2xl font-bold text-gray-800 mb-6">
-//           {step === 'details' ? 'Complete Your Account' : 'Create an Account'}
-//         </h1>
-        
-//         {/* --- STEP 1: EMAIL INPUT --- */}
-//         {step === 'email' && (
-//           <form onSubmit={handleEmailSubmit}>
-//             <label className="block text-sm font-medium text-gray-700 mb-1">Email Address *</label>
-//             <p className="text-xs text-gray-500 mb-2">We'll send a verification code to this email.</p>
-//             <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="you@example.com" className="w-full md:w-1/2 px-4 py-2 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500" required />
-//             <div className="mt-6">
-//               <button type="submit" disabled={isLoading} className="w-full md:w-1/2 bg-red-500 text-white font-bold py-3 px-4 rounded-md hover:bg-red-600 disabled:bg-red-300 transition-colors">
-//                 {isLoading ? 'Sending OTP...' : 'Send Verification Code'}
-//               </button>
-//             </div>
-//           </form>
-//         )}
-
-//         {/* --- STEP 2: OTP VERIFICATION --- */}
-//         {step === 'otp' && (
-//           <form onSubmit={handleOtpSubmit}>
-//             <label className="block text-sm font-medium text-gray-700 mb-1">Verification Code *</label>
-//             <p className="text-xs text-gray-500 mb-2">Enter the 4-digit code sent to {formData.email}.</p>
-//             <div className="flex justify-start gap-3 md:gap-4 mb-6">
-//               {otp.map((digit, index) => (
-//                 <input
-//                   key={index}
-//                   ref={el => {otpInputs.current[index] = el}}
-//                   type="tel" maxLength={1} value={digit}
-//                   onChange={(e) => handleOtpChange(index, e.target.value)}
-//                   onKeyDown={(e) => handleOtpKeyDown(index, e)}
-//                   className="w-14 h-14 text-center text-2xl font-semibold border-2 bg-gray-100 border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-500 transition" required
-//                 />
-//               ))}
-//             </div>
-//             <div className="mt-6">
-//               <button type="submit" className="w-full md:w-1/2 bg-red-500 text-white font-bold py-3 px-4 rounded-md hover:bg-red-600 transition-colors">
-//                 Verify
-//               </button>
-//             </div>
-//           </form>
-//         )}
-
-//         {/* --- STEP 3: FULL DETAILS FORM --- */}
-//         {step === 'details' && (
-//           <form onSubmit={handleDetailsSubmit}>
-//             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-//               {/* Verified Email (disabled) */}
-//               <div className="md:col-span-2">
-//                 <label className="block text-sm font-medium text-gray-700 mb-1">Verified Email</label>
-//                 <div className="relative">
-//                   <input type="email" name="email" value={formData.email} className="w-full px-4 py-2 bg-gray-200 border border-gray-300 rounded-md cursor-not-allowed" readOnly disabled />
-//                   <div className="absolute right-3 top-2.5 text-gray-400"><SendIcon /></div>
-//                 </div>
-//               </div>
-              
-//               {/* Personal Information */}
-//               <div>
-//                 <label className="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
-//                 <input type="text" name="firstName" value={formData.firstName} onChange={handleChange} className="w-full px-4 py-2 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500" required />
-//               </div>
-              
-//               <div>
-//                 <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-//                 <input type="text" name="lastName" value={formData.lastName} onChange={handleChange} className="w-full px-4 py-2 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500" />
-//               </div>
-
-//               <div>
-//                 <label className="block text-sm font-medium text-gray-700 mb-1">Password *</label>
-//                 <input type="password" name="password" value={formData.password} onChange={handleChange} className="w-full px-4 py-2 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500" required minLength={6} />
-//               </div>
-
-//               <div>
-//                 <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-//                 <input type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="+1 234 567 8900" className="w-full px-4 py-2 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500" />
-//               </div>
-              
-//               {/* Address Information */}
-//               <div className="md:col-span-2 mt-4">
-//                 <h2 className="text-lg font-semibold text-gray-800">Address Information</h2>
-//                 <p className="text-sm text-red-600">(*Must make sure address is verified)</p>
-//               </div>
-
-//               <div className="md:col-span-2">
-//                 <label className="block text-sm font-medium text-gray-700 mb-1">Street Address *</label>
-//                 <input type="text" name="streetAddress" value={formData.streetAddress} onChange={handleChange} className="w-full px-4 py-2 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500" required />
-//               </div>
-//               <div>
-//                 <label className="block text-sm font-medium text-gray-700 mb-1">City *</label>
-//                 <input type="text" name="city" value={formData.city} onChange={handleChange} className="w-full px-4 py-2 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500" required />
-//               </div>
-//               <div>
-//                 <label className="block text-sm font-medium text-gray-700 mb-1">State *</label>
-//                 <input type="text" name="state" value={formData.state} onChange={handleChange} className="w-full px-4 py-2 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500" required />
-//               </div>
-//               <div>
-//                 <label className="block text-sm font-medium text-gray-700 mb-1">ZIP Code *</label>
-//                 <input type="text" name="zipCode" value={formData.zipCode} onChange={handleChange} className="w-full px-4 py-2 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500" required />
-//               </div>
-//               <div>
-//                 <label className="block text-sm font-medium text-gray-700 mb-1">Country *</label>
-//                 <input type="text" name="country" value={formData.country} onChange={handleChange} className="w-full px-4 py-2 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500" required />
-//               </div>
-//             </div>
-//             <div className="mt-6">
-//               <button type="submit" disabled={isLoading} className="w-full bg-red-500 text-white font-bold py-3 px-4 rounded-md hover:bg-red-600 disabled:bg-red-300 transition-colors">
-//                 {isLoading ? 'Creating Account...' : 'Create Account'}
-//               </button>
-//             </div>
-//           </form>
-//         )}
-
-//         {/* --- Universal Error/Success Messages & Login Link --- */}
-//         {error && <p className="text-red-500 text-center mt-4">{error}</p>}
-//         {success && <p className="text-green-500 text-center mt-4">{success}</p>}
-        
-//         <p className="text-center text-sm text-gray-600 mt-4">
-//           Already have an account? <a href="/login" className="font-medium text-red-500 hover:underline">Sign in</a>
-//         </p>
-//       </div>
-//     </div>
-//   );
-// }
-
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import { State, City } from 'country-state-city';
+import { useRouter } from 'next/navigation';
+import './page.css'; 
 
-// --- Helper Icons (FIXED) ---
+// --- Helper Icons ---
 const SendIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="m22 2-7 20-4-9-9-4Z" />
     <path d="m22 2-11 11" />
   </svg>
 );
 
 const ArrowLeftIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="m12 19-7-7 7-7" />
     <path d="M19 12H5" />
   </svg>
 );
 
+const EyeIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+);
+
+const EyeOffIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
+    <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
+    <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
+    <line x1="2" x2="22" y1="2" y2="22" />
+  </svg>
+);
 
 export default function SignupPage() {
-  // --- STATE MANAGEMENT ---
-  const [step, setStep] = useState('email'); // 'email', 'otp', 'details'
+  const router = useRouter();
+  const [step, setStep] = useState('email');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // State for all form data
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    password: '',
-    streetAddress: '',
-    city: '',
-    state: '',
-    zipCode: '',
-    country: 'United States',
+    firstName: '', lastName: '', email: '', phone: '',
+    password: '', streetAddress: '', city: '',
+    state: '', zipCode: '', country: 'India',
   });
-  
-  // State for OTP
-  const [otp, setOtp] = useState(['', '', '', '']);
-  const [verificationOtp, setVerificationOtp] = useState(''); // Stores the "correct" OTP from backend
+
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const otpInputs = useRef<(HTMLInputElement | null)[]>([]);
+  const [states, setStates] = useState<any[]>([]);
+  const [cities, setCities] = useState<any[]>([]);
+  const [countdown, setCountdown] = useState(180);
+  const [showResend, setShowResend] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
+  useEffect(() => {
+    setStates(State.getStatesOfCountry('IN'));
+  }, []);
 
-  // --- EVENT HANDLERS ---
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  useEffect(() => {
+    if (step === 'otp') otpInputs.current[0]?.focus();
+  }, [step]);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (step === 'otp' && countdown > 0) {
+      timer = setInterval(() => setCountdown(prev => prev - 1), 1000);
+    } else if (countdown === 0 && step === 'otp') {
+      setShowResend(true);
+    }
+    return () => clearInterval(timer);
+  }, [step, countdown]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    if (name === 'state') {
+      const selectedStateData = State.getStatesOfCountry('IN').find(s => s.name === value);
+      if (selectedStateData) {
+        setCities(City.getCitiesOfState('IN', selectedStateData.isoCode));
+        setFormData(prev => ({ ...prev, city: '' }));
+      }
+    }
   };
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (!formData.email.includes('@')) {
-      setError("Please enter a valid email address.");
-      return;
-    }
     setIsLoading(true);
     try {
-      // MODIFIED: Call the new email OTP route
-      const res = await fetch('/api/send-email-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch('/api/send-otp', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: formData.email }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Failed to send OTP.');
-      
-      setVerificationOtp(data.otp); 
-      setStep('otp');
-      
+      setStep('otp'); setCountdown(180); setShowResend(false);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -377,15 +106,24 @@ export default function SignupPage() {
     }
   };
 
-  const handleOtpSubmit = (e: React.FormEvent) => {
+  const handleOtpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
     const enteredOtp = otp.join('');
-    if (enteredOtp !== verificationOtp) {
-      setError("The OTP entered is incorrect. Please try again.");
-      return;
+    try {
+      const res = await fetch('/api/verify-otp', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email, otp: enteredOtp }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'OTP verification failed.');
+      setStep('details');
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
     }
-    setStep('details'); // OTP is correct, show the rest of the form
   };
 
   const handleDetailsSubmit = async (e: React.FormEvent) => {
@@ -393,190 +131,140 @@ export default function SignupPage() {
     setError('');
     setSuccess('');
     setIsLoading(true);
-
     const fullAddress = `${formData.streetAddress}, ${formData.city}, ${formData.state} ${formData.zipCode}, ${formData.country}`;
-    const payload = {
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      email: formData.email,
-      phone: formData.phone,
-      password: formData.password,
-      address: fullAddress,
-    };
-
+    const payload = { ...formData, address: fullAddress };
     try {
       const res = await fetch('/api/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Signup failed.');
-      setSuccess('Account created successfully! You can now sign in.');
+      setSuccess('Account created! Redirecting to login...');
+      setTimeout(() => router.push('/login'), 2000);
     } catch (err: any) {
       setError(err.message);
-    } finally {
       setIsLoading(false);
     }
   };
-  
-  // --- OTP Input Logic ---
-  const handleOtpChange = (index: number, value: string) => {
-    if (!/^\d*$/.test(value)) return;
-    const newOtp = [...otp];
-    newOtp[index] = value.slice(-1);
-    setOtp(newOtp);
-    if (value && index < otp.length - 1) {
-      otpInputs.current[index + 1]?.focus();
-    }
-  };
-  
-  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === 'Backspace' && !otp[index] && index > 0) {
-          otpInputs.current[index - 1]?.focus();
-      }
-  };
 
-  const goBack = () => {
-    setError('');
-    setOtp(['', '', '', '']);
-    setStep('email');
-  };
-
-  useEffect(() => {
-    if (step === 'otp') otpInputs.current[0]?.focus();
-  }, [step]);
-
+  const togglePasswordVisibility = () => setShowPassword(prev => !prev);
+  const goBack = () => { setError(''); setOtp(['', '', '', '', '', '']); setStep('email'); };
 
   return (
-    <div className="bg-gray-50 min-h-screen flex items-center justify-center p-4 font-sans">
-      <div className="w-full max-w-4xl bg-white rounded-lg shadow-md p-8">
+    <div className="container d-flex align-items-center justify-content-center min-vh-100">
+      <div className="signup-box card shadow-lg p-4 w-100">
         
         {step === 'otp' && (
-            <button onClick={goBack} className="mb-4 text-gray-600 flex items-center gap-2 hover:text-gray-900">
-                <ArrowLeftIcon /> Back
-            </button>
+          <button onClick={goBack} className="btn btn-link d-flex align-items-center mb-3">
+            <ArrowLeftIcon /> <span className="ms-1">Back</span>
+          </button>
         )}
 
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">
-          {step === 'details' ? 'Complete Your Account' : 'Create an Account'}
-        </h1>
-        
-        {/* --- STEP 1: EMAIL INPUT --- */}
+        <h1 className="h4 fw-bold mb-4">{step === 'details' ? 'Complete Your Account' : 'Create an Account'}</h1>
+
+        {/* --- Step 1: Email --- */}
         {step === 'email' && (
           <form onSubmit={handleEmailSubmit}>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email Address *</label>
-            <p className="text-xs text-gray-500 mb-2">We'll send a verification code to this email.</p>
-            <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="you@example.com" className="w-full md:w-1/2 px-4 py-2 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500" required />
-            <div className="mt-6">
-              <button type="submit" disabled={isLoading} className="w-full md:w-1/2 bg-red-500 text-white font-bold py-3 px-4 rounded-md hover:bg-red-600 disabled:bg-red-300 transition-colors">
-                {isLoading ? 'Sending OTP...' : 'Send Verification Code'}
-              </button>
-            </div>
+            <label className="form-label">Email Address *</label>
+            <p className="small text-muted mb-2">We'll send a verification code to this email.</p>
+            <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="you@example.com" className="form-control mb-3" required />
+            <button type="submit" disabled={isLoading} className="btn btn-danger w-100">
+              {isLoading ? 'Sending OTP...' : 'Send Verification Code'}
+            </button>
           </form>
         )}
 
-        {/* --- STEP 2: OTP VERIFICATION --- */}
+        {/* --- Step 2: OTP --- */}
         {step === 'otp' && (
           <form onSubmit={handleOtpSubmit}>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Verification Code *</label>
-            <p className="text-xs text-gray-500 mb-2">Enter the 4-digit code sent to {formData.email}.</p>
-            <div className="flex justify-start gap-3 md:gap-4 mb-6">
+            <label className="form-label">Verification Code *</label>
+            <p className="small text-muted mb-2">Enter the 6-digit code sent to {formData.email}.</p>
+            <div className="d-flex gap-2 mb-3">
               {otp.map((digit, index) => (
-                <input
-                  key={index}
-                  ref={el => {otpInputs.current[index] = el}}
-                  type="tel" maxLength={1} value={digit}
-                  onChange={(e) => handleOtpChange(index, e.target.value)}
-                  onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                  className="w-14 h-14 text-center text-2xl font-semibold border-2 bg-gray-100 border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-500 transition" required
-                />
+                <input key={index} ref={el => { otpInputs.current[index] = el }} type="tel" maxLength={1} value={digit}
+                  onChange={(e) => {
+                    const newOtp = [...otp]; newOtp[index] = e.target.value.slice(-1); setOtp(newOtp);
+                    if (e.target.value && index < otp.length - 1) otpInputs.current[index + 1]?.focus();
+                  }}
+                  className="form-control text-center fs-4 otp-input"
+                  required />
               ))}
             </div>
-            <div className="mt-6">
-              <button type="submit" className="w-full md:w-1/2 bg-red-500 text-white font-bold py-3 px-4 rounded-md hover:bg-red-600 transition-colors">
-                Verify
-              </button>
+            <button type="submit" disabled={isLoading} className="btn btn-danger w-100">
+              {isLoading ? 'Verifying...' : 'Verify'}
+            </button>
+            <div className="mt-3 small text-muted">
+              {!showResend ? (
+                <>Resend available in {countdown}s</>
+              ) : (
+                <button type="button" onClick={() => {}} className="btn btn-link p-0">Resend OTP</button>
+              )}
             </div>
           </form>
         )}
 
-        {/* --- STEP 3: FULL DETAILS FORM --- */}
+        {/* --- Step 3: Details --- */}
         {step === 'details' && (
           <form onSubmit={handleDetailsSubmit}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-              {/* Verified Email (disabled) */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Verified Email</label>
-                <div className="relative">
-                  <input type="email" name="email" value={formData.email} className="w-full px-4 py-2 bg-gray-200 border border-gray-300 rounded-md cursor-not-allowed" readOnly disabled />
-                  <div className="absolute right-3 top-2.5 text-gray-400"><SendIcon /></div>
+            <div className="row g-3">
+              <div className="col-12">
+                <label className="form-label">Verified Email</label>
+                <input type="email" value={formData.email} className="form-control" disabled />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">First Name *</label>
+                <input type="text" name="firstName" value={formData.firstName} onChange={handleChange} className="form-control" required />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Last Name</label>
+                <input type="text" name="lastName" value={formData.lastName} onChange={handleChange} className="form-control" />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Password *</label>
+                <div className="input-group">
+                  <input type={showPassword ? "text" : "password"} name="password" value={formData.password} onChange={handleChange} className="form-control" required minLength={8} />
+                  <button type="button" className="btn btn-outline-secondary" onClick={togglePasswordVisibility}>
+                    {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                  </button>
                 </div>
               </div>
-              
-              {/* Personal Information */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
-                <input type="text" name="firstName" value={formData.firstName} onChange={handleChange} className="w-full px-4 py-2 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500" required />
+              <div className="col-md-6">
+                <label className="form-label">Phone Number</label>
+                <input type="tel" name="phone" value={formData.phone} onChange={handleChange} className="form-control" placeholder="+91..." />
               </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-                <input type="text" name="lastName" value={formData.lastName} onChange={handleChange} className="w-full px-4 py-2 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500" />
+              <div className="col-12">
+                <label className="form-label">Street Address *</label>
+                <input type="text" name="streetAddress" value={formData.streetAddress} onChange={handleChange} className="form-control" required />
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Password *</label>
-                <input type="password" name="password" value={formData.password} onChange={handleChange} className="w-full px-4 py-2 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500" required minLength={6} />
+              <div className="col-md-6">
+                <label className="form-label">State *</label>
+                <select name="state" value={formData.state} onChange={handleChange} className="form-select" required>
+                  <option value="">Select a state</option>
+                  {states.map((s) => <option key={s.isoCode} value={s.name}>{s.name}</option>)}
+                </select>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                <input type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="+1 234 567 8900" className="w-full px-4 py-2 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500" />
+              <div className="col-md-6">
+                <label className="form-label">City *</label>
+                <select name="city" value={formData.city} onChange={handleChange} className="form-select" required disabled={!formData.state}>
+                  <option value="">Select a city</option>
+                  {cities.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}
+                </select>
               </div>
-              
-              {/* Address Information */}
-              <div className="md:col-span-2 mt-4">
-                <h2 className="text-lg font-semibold text-gray-800">Address Information</h2>
-                <p className="text-sm text-red-600">(*Must make sure address is verified)</p>
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Street Address *</label>
-                <input type="text" name="streetAddress" value={formData.streetAddress} onChange={handleChange} className="w-full px-4 py-2 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500" required />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">City *</label>
-                <input type="text" name="city" value={formData.city} onChange={handleChange} className="w-full px-4 py-2 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500" required />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">State *</label>
-                <input type="text" name="state" value={formData.state} onChange={handleChange} className="w-full px-4 py-2 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500" required />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">ZIP Code *</label>
-                <input type="text" name="zipCode" value={formData.zipCode} onChange={handleChange} className="w-full px-4 py-2 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500" required />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Country *</label>
-                <input type="text" name="country" value={formData.country} onChange={handleChange} className="w-full px-4 py-2 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500" required />
+              <div className="col-md-6">
+                <label className="form-label">ZIP Code *</label>
+                <input type="text" name="zipCode" value={formData.zipCode} onChange={handleChange} className="form-control" required />
               </div>
             </div>
-            <div className="mt-6">
-              <button type="submit" disabled={isLoading} className="w-full bg-red-500 text-white font-bold py-3 px-4 rounded-md hover:bg-red-600 disabled:bg-red-300 transition-colors">
-                {isLoading ? 'Creating Account...' : 'Create Account'}
-              </button>
-            </div>
+            <button type="submit" disabled={isLoading} className="btn btn-danger w-100 mt-3">
+              {isLoading ? 'Creating Account...' : 'Create Account'}
+            </button>
           </form>
         )}
 
-        {/* --- Universal Error/Success Messages & Login Link --- */}
-        {error && <p className="text-red-500 text-center mt-4">{error}</p>}
-        {success && <p className="text-green-500 text-center mt-4">{success}</p>}
-        
-        <p className="text-center text-sm text-gray-600 mt-4">
-          Already have an account? <a href="/login" className="font-medium text-red-500 hover:underline">Sign in</a>
-        </p>
+        {error && <p className="text-danger text-center mt-3">{error}</p>}
+        {success && <p className="text-success text-center mt-3">{success}</p>}
+        <p className="text-center small mt-3">Already have an account? <a href="/login" className="text-danger fw-bold">Sign in</a></p>
       </div>
     </div>
   );

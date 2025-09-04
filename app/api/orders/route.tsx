@@ -30,9 +30,8 @@ export async function GET(req: Request) {
       include: {
         orderItems: true, // Include the items for each order
       },
-      orderBy: {
-        createdAt: 'desc', // Show the most recent orders first
-      }
+      // 👇 REMOVED: The orderBy clause that was causing the error.
+      // We will now sort this on the client-side.
     });
 
     return NextResponse.json({ orders });

@@ -15,6 +15,7 @@
     "bootstrap": "^5.3.7",
     "bson": "^6.10.4",
     "cookie": "^1.0.2",
+    "country-state-city": "^3.2.1",
     "init": "^0.1.2",
     "jose": "^6.0.12",
     "jsonwebtoken": "^9.0.2",
