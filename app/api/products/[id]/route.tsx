@@ -6,6 +6,7 @@ const prisma = new PrismaClient();
 // GET /api/products/[id] -> Fetch a single product by its ID
 export async function GET(
   req: Request,
+  // This is the correct, modern way to access route parameters in Next.js
   { params }: { params: { id: string } }
 ) {
   try {

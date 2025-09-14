@@ -23,9 +23,7 @@ export default function RootLayout({
       <head>
         {/* You can keep your bootstrap link here if you use it sitewide */}
         <link
-          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css"
-          rel="stylesheet"
-        />
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossOrigin="anonymous"/>
       </head>
       <body className={inter.className}>
         {/* 3. WRAP EVERYTHING IN THE AUTH PROVIDER */}
@@ -33,6 +31,8 @@ export default function RootLayout({
           <Navbar /> {/* 👈 4. RENDER THE NAVBAR */}
           <main className="container mt-4">{children}</main>
         </AuthProvider>
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossOrigin="anonymous"></script>
+
       </body>
     </html>
   );
