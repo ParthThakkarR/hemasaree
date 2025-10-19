@@ -1,7 +1,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@/app/generated/prisma";
-import { verifyAdminToken } from "@/app/utils/route";
+import { verifyAdminToken } from "@/app/utils/auth";
 
 const prisma = new PrismaClient();
 

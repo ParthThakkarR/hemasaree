@@ -1,5 +1,5 @@
 
-// /app/api/categories/[id]/route.ts
+// /app/api/admin/categories/[id]/route.ts
 import { PrismaClient } from "@/app/generated/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
