@@ -3,38 +3,17 @@
 import React, { useEffect, useState } from 'react';
 import { Bar, Doughnut, Line } from 'react-chartjs-2';
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  Tooltip,
-  Legend,
-  Filler, // ✅ Add this
+  Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement,
+  BarElement, ArcElement, Tooltip, Legend, Filler,
 } from 'chart.js';
+import Link from 'next/link';
+import { Package, Tag, ClipboardList, RefreshCw, AlertTriangle, TrendingUp, BarChart3, IndianRupee } from 'lucide-react';
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  Tooltip,
-  Legend,
-  Filler // ✅ Register this to fix fill warning
-);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Tooltip, Legend, Filler);
 
 type Product = {
-  id: string;
-  name: string;
-  color: string;
-  ocassion: string;
-  price: number;
-  stock: number;
-  category: { id: string; name: string };
+  id: string; name: string; color: string; ocassion: string;
+  price: number; stock: number; category: { id: string; name: string };
 };
 
 export default function AdminDashboard() {
@@ -42,215 +21,199 @@ export default function AdminDashboard() {
   const [salesData, setSalesData] = useState<{ labels: string[]; revenueData: number[]; orderData: number[] } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-useEffect(() => {
-  async function loadSales() {
-    try {
-      const res = await fetch("/api/analytics/sales");
-      if (res.ok) {
-        const data = await res.json();
-        setSalesData(data);
-      }
-    } catch (err) {
-      console.error("Failed to fetch sales data", err);
-    }
-  }
-  loadSales();
-}, []);
+
   useEffect(() => {
-    async function loadData() {
+    async function loadAll() {
       try {
-        const res = await fetch('/api/products?page=1&limit=100');
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        setProducts(data.products || []);
-      } catch (err: any) {
+        const [prodRes, salesRes] = await Promise.all([
+          fetch('/api/admin/products'),
+          fetch('/api/analytics/sales'),
+        ]);
+        if (prodRes.ok) {
+          const data = await prodRes.json();
+          setProducts(Array.isArray(data) ? data : data.products || []);
+        }
+        if (salesRes.ok) {
+          setSalesData(await salesRes.json());
+        }
+      } catch (err) {
         console.error(err);
-        setError('Failed to fetch products.');
+        setError('Failed to load dashboard data.');
       } finally {
         setLoading(false);
       }
     }
-    loadData();
+    loadAll();
   }, []);
 
-  if (loading)
-    return <p className="text-center mt-20 text-gray-500">Loading dashboard...</p>;
-  if (error)
-    return <p className="text-center mt-20 text-red-500 font-medium">{error}</p>;
-  if (!products.length)
-    return <p className="text-center mt-20 text-gray-500">No products found.</p>;
-
-  // === KPI Calculations ===
   const totalProducts = products.length;
   const lowStock = products.filter((p) => p.stock < 5).length;
   const totalStock = products.reduce((a, b) => a + (b.stock || 0), 0);
   const totalValue = products.reduce((a, b) => a + (b.price * b.stock), 0);
 
-  // === Category Distribution ===
   const categoryCounts = products.reduce<Record<string, number>>((acc, p) => {
     const cat = p.category?.name || 'Uncategorized';
     acc[cat] = (acc[cat] || 0) + 1;
     return acc;
   }, {});
 
-  // === Charts Data ===
+  const brandColors = ['#e76f51', '#d85a40', '#f4a261', '#e9c46a', '#2a9d8f', '#264653'];
+
   const stockChart = {
-    labels: products.map((p) => p.name),
-    datasets: [
-      {
-        label: 'Stock',
-        data: products.map((p) => p.stock),
-        backgroundColor: '#7c3aed',
-      },
-    ],
+    labels: products.slice(0, 20).map((p) => p.name.length > 15 ? p.name.slice(0, 15) + '\u2026' : p.name),
+    datasets: [{
+      label: 'Stock',
+      data: products.slice(0, 20).map((p) => p.stock),
+      backgroundColor: '#e76f51',
+      borderRadius: 6,
+    }],
   };
 
   const categoryDonut = {
     labels: Object.keys(categoryCounts),
-    datasets: [
-      {
-        data: Object.values(categoryCounts),
-        backgroundColor: ['#7c3aed', '#9333ea', '#a855f7', '#c084fc', '#ddd6fe'],
-      },
-    ],
-  };
-
-  const salesTrend = {
-    labels: Array.from({ length: 14 }, (_, i) => `Day ${i + 1}`),
-    datasets: [
-      {
-        label: 'Sales (mock)',
-        data: Array.from({ length: 14 }, () => Math.floor(Math.random() * 900) + 200),
-        borderColor: '#7c3aed',
-        fill: true,
-        tension: 0.3,
-      },
-    ],
+    datasets: [{
+      data: Object.values(categoryCounts),
+      backgroundColor: brandColors,
+      borderWidth: 0,
+    }],
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <header className="flex flex-col sm:flex-row justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-semibold">Admin Dashboard</h1>
-          <p className="text-gray-500 text-sm">Product & Stock Overview</p>
-        </div>
-        <button
-          onClick={() => window.location.reload()}
-          className="mt-4 sm:mt-0 bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700"
-        >
-          Refresh
-        </button>
-      </header>
+    <>
+      <style jsx>{`
+        .admin-header { background: linear-gradient(135deg, #1e293b, #334155); color: white; border-radius: 16px; padding: 1.5rem 2rem; margin-bottom: 1.5rem; }
+        .kpi-card { background: #fff; border-radius: 14px; padding: 1.25rem; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; transition: transform 0.2s; }
+        .kpi-card:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.08); }
+        .kpi-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+        .kpi-value { font-size: 1.5rem; font-weight: 800; color: #0f172a; }
+        .kpi-label { font-size: 0.82rem; color: #94a3b8; font-weight: 500; }
+        .chart-card { background: #fff; border-radius: 14px; padding: 1.25rem; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; }
+        .chart-title { font-weight: 600; font-size: 1rem; margin-bottom: 0.75rem; color: #1e293b; }
+        .quick-link { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 10px; text-decoration: none; color: #334155; font-weight: 500; transition: all 0.2s; border: 1px solid #e2e8f0; }
+        .quick-link:hover { background: #fdf6f0; border-color: #e76f51; color: #e76f51; }
+        .stock-low { color: #dc2626; font-weight: 700; }
+      `}</style>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white shadow rounded-lg p-4">
-          <p className="text-gray-500 text-sm">Total Products</p>
-          <p className="text-2xl font-bold">{totalProducts}</p>
+      <div className="container-fluid py-4 px-md-4">
+        <div className="admin-header d-flex flex-wrap justify-content-between align-items-center">
+          <div>
+            <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>Admin Dashboard</h1>
+            <p style={{ margin: 0, opacity: 0.7, fontSize: '0.88rem' }}>Hema Sarees - Product & Sales Overview</p>
+          </div>
+          <button className="btn btn-light btn-sm d-flex align-items-center gap-2" style={{ borderRadius: 10 }} onClick={() => window.location.reload()}>
+            <RefreshCw size={15} /> Refresh
+          </button>
         </div>
-        <div className="bg-white shadow rounded-lg p-4">
-          <p className="text-gray-500 text-sm">Total Stock</p>
-          <p className="text-2xl font-bold">{totalStock}</p>
-        </div>
-        <div className="bg-white shadow rounded-lg p-4">
-          <p className="text-gray-500 text-sm">Low Stock</p>
-          <p className="text-2xl font-bold text-red-500">{lowStock}</p>
-        </div>
-        <div className="bg-white shadow rounded-lg p-4">
-          <p className="text-gray-500 text-sm">Inventory Value</p>
-          <p className="text-2xl font-bold">₹ {totalValue.toLocaleString()}</p>
-        </div>
+
+        {loading && <div className="text-center py-5"><div className="spinner-border" style={{ color: '#e76f51' }} /></div>}
+        {error && <div className="alert alert-danger">{error}</div>}
+
+        {!loading && !error && (
+          <>
+            {/* KPI Cards */}
+            <div className="row g-3 mb-4">
+              <div className="col-6 col-lg-3">
+                <div className="kpi-card">
+                  <div className="d-flex align-items-center gap-3">
+                    <div className="kpi-icon" style={{ background: '#fdf6f0', color: '#e76f51' }}><Package size={22} /></div>
+                    <div><div className="kpi-value">{totalProducts}</div><div className="kpi-label">Total Products</div></div>
+                  </div>
+                </div>
+              </div>
+              <div className="col-6 col-lg-3">
+                <div className="kpi-card">
+                  <div className="d-flex align-items-center gap-3">
+                    <div className="kpi-icon" style={{ background: '#f0fdf4', color: '#16a34a' }}><BarChart3 size={22} /></div>
+                    <div><div className="kpi-value">{totalStock}</div><div className="kpi-label">Total Stock</div></div>
+                  </div>
+                </div>
+              </div>
+              <div className="col-6 col-lg-3">
+                <div className="kpi-card">
+                  <div className="d-flex align-items-center gap-3">
+                    <div className="kpi-icon" style={{ background: '#fef2f2', color: '#dc2626' }}><AlertTriangle size={22} /></div>
+                    <div><div className="kpi-value stock-low">{lowStock}</div><div className="kpi-label">Low Stock Items</div></div>
+                  </div>
+                </div>
+              </div>
+              <div className="col-6 col-lg-3">
+                <div className="kpi-card">
+                  <div className="d-flex align-items-center gap-3">
+                    <div className="kpi-icon" style={{ background: '#eff6ff', color: '#2563eb' }}><IndianRupee size={22} /></div>
+                    <div><div className="kpi-value">{'\u20B9'}{totalValue.toLocaleString()}</div><div className="kpi-label">Inventory Value</div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Links */}
+            <div className="row g-3 mb-4">
+              <div className="col-md-4"><Link href="/admin/product" className="quick-link"><Package size={18} /> Manage Products</Link></div>
+              <div className="col-md-4"><Link href="/admin/categories" className="quick-link"><Tag size={18} /> Manage Categories</Link></div>
+              <div className="col-md-4"><Link href="/admin/order" className="quick-link"><ClipboardList size={18} /> Manage Orders</Link></div>
+            </div>
+
+            {/* Charts Row */}
+            <div className="row g-3 mb-4">
+              <div className="col-md-8">
+                <div className="chart-card">
+                  <div className="chart-title">Stock by Product</div>
+                  <Bar data={stockChart} options={{ responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true }, x: { ticks: { maxRotation: 45, minRotation: 45 } } } }} />
+                </div>
+              </div>
+              <div className="col-md-4">
+                <div className="chart-card">
+                  <div className="chart-title">Products by Category</div>
+                  <Doughnut data={categoryDonut} options={{ plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 10 } } } }} />
+                </div>
+              </div>
+            </div>
+
+            {/* Sales Trend */}
+            {salesData && (
+              <div className="chart-card mb-4">
+                <div className="chart-title d-flex align-items-center gap-2"><TrendingUp size={18} /> Sales Trend (Last 30 Days)</div>
+                <Line
+                  data={{
+                    labels: salesData.labels,
+                    datasets: [
+                      { label: 'Revenue (\u20B9)', data: salesData.revenueData, borderColor: '#e76f51', backgroundColor: 'rgba(231,111,81,0.1)', fill: true, tension: 0.3 },
+                      { label: 'Orders', data: salesData.orderData, borderColor: '#2a9d8f', backgroundColor: 'rgba(42,157,143,0.1)', fill: true, tension: 0.3 },
+                    ],
+                  }}
+                  options={{ responsive: true, interaction: { mode: 'index' as const, intersect: false }, plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true }, x: { ticks: { maxRotation: 45, minRotation: 45 } } } }}
+                />
+              </div>
+            )}
+
+            {/* Product Table */}
+            <div className="chart-card">
+              <div className="chart-title">Product Overview</div>
+              <div className="table-responsive">
+                <table className="table table-hover align-middle mb-0">
+                  <thead className="table-light">
+                    <tr>
+                      <th>Product</th><th>Category</th><th>Color</th><th>Occasion</th><th>Price</th><th>Stock</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {products.map((p) => (
+                      <tr key={p.id}>
+                        <td className="fw-medium">{p.name}</td>
+                        <td>{p.category?.name || '\u2014'}</td>
+                        <td>{p.color || '\u2014'}</td>
+                        <td>{p.ocassion || '\u2014'}</td>
+                        <td>{'\u20B9'}{p.price.toLocaleString()}</td>
+                        <td className={p.stock < 5 ? 'stock-low' : ''}>{p.stock}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
+        )}
       </div>
-
-      {/* Charts */}
-      <div className="grid md:grid-cols-2 gap-6 mb-10">
-        <div className="bg-white shadow rounded-lg p-4">
-          <h2 className="font-semibold mb-2">Stock by Product</h2>
-          <Bar data={stockChart} options={{ responsive: true, plugins: { legend: { display: false } } }} />
-        </div>
-        <div className="bg-white shadow rounded-lg p-4">
-          <h2 className="font-semibold mb-2">Products by Category</h2>
-          <Doughnut data={categoryDonut} />
-        </div>
-      </div>
-
-    {/* Sales Trend */}
-<div className="bg-white shadow rounded-lg p-4 mb-10">
-  <h2 className="font-semibold mb-2">Sales Trend (Last 30 Days)</h2>
-  {!salesData ? (
-    <p className="text-gray-500 text-sm">Loading sales data...</p>
-  ) : (
-    <Line
-      data={{
-        labels: salesData.labels,
-        datasets: [
-          {
-            label: "Revenue (₹)",
-            data: salesData.revenueData,
-            borderColor: "#7c3aed",
-            backgroundColor: "rgba(124, 58, 237, 0.2)",
-            fill: true,
-            tension: 0.3,
-          },
-          {
-            label: "Orders",
-            data: salesData.orderData,
-            borderColor: "#9333ea",
-            backgroundColor: "rgba(147, 51, 234, 0.2)",
-            fill: true,
-            tension: 0.3,
-          },
-        ],
-      }}
-      options={{
-        responsive: true,
-        interaction: { mode: "index" as const, intersect: false },
-        plugins: { legend: { position: "bottom" } },
-        scales: {
-          y: { beginAtZero: true },
-          x: { ticks: { maxRotation: 45, minRotation: 45 } },
-        },
-      }}
-    />
-  )}
-</div>
-
-
-      {/* Product Table */}
-      <div className="bg-white shadow rounded-lg p-4">
-        <h2 className="font-semibold mb-3">Product Overview</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm border-collapse">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="p-2 text-left">Product</th>
-                <th className="p-2 text-left">Category</th>
-                <th className="p-2 text-left">Color</th>
-                <th className="p-2 text-left">Occasion</th>
-                <th className="p-2 text-left">Price</th>
-                <th className="p-2 text-left">Stock</th>
-              </tr>
-            </thead>
-            <tbody>
-              {products.map((p) => (
-                <tr key={p.id} className="border-b hover:bg-gray-50">
-                  <td className="p-2">{p.name}</td>
-                  <td className="p-2">{p.category?.name || '—'}</td>
-                  <td className="p-2">{p.color || '—'}</td>
-                  <td className="p-2">{p.ocassion || '—'}</td>
-                  <td className="p-2">₹ {p.price.toLocaleString()}</td>
-                  <td className={`p-2 ${p.stock < 5 ? 'text-red-600 font-semibold' : ''}`}>{p.stock}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <footer className="mt-10 text-center text-gray-500 text-sm">
-        © {new Date().getFullYear()} Saree Bazaar Admin Dashboard — powered by Prisma & Next.js
-      </footer>
-    </div>
+    </>
   );
 }

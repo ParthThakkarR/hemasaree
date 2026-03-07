@@ -1,47 +1,170 @@
-/* Category Cards */
+/* ===== Hero Section ===== */
+.hero-section {
+  position: relative;
+  background: linear-gradient(135deg, #fdf6f0 0%, #f7c6c7 40%, #fde8d0 100%);
+  padding: 5rem 0 4rem;
+  overflow: hidden;
+  min-height: 420px;
+  display: flex;
+  align-items: center;
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><path d="M0 10 Q25 5 50 10 T100 10" stroke="%23e76f5115" stroke-width="1" fill="none"/></svg>');
+  background-size: 200px 30px;
+  opacity: 0.5;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--primary);
+  background: rgba(231, 111, 81, 0.1);
+  border-radius: 50px;
+  border: 1px solid rgba(231, 111, 81, 0.2);
+}
+
+.hero-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2.2rem, 5vw, 3.5rem);
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.15;
+  margin-bottom: 1.25rem;
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #e76f51, #d85a40);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-description {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  max-width: 520px;
+  line-height: 1.7;
+  margin-bottom: 2rem;
+}
+
+.min-vh-50 {
+  min-height: 50vh;
+}
+
+/* ===== Category Cards ===== */
 .category-card {
   position: relative;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  min-width: 220px;
   cursor: pointer;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: all 0.3s ease;
+  aspect-ratio: 4/3;
 }
-.category-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
-}
+
 .category-card.active {
-  border: 2px solid #dc3545;
-  transform: scale(1.05);
+  box-shadow: 0 0 0 3px var(--primary), var(--shadow-lg);
+  transform: translateY(-4px);
 }
+
 .category-img {
   width: 100%;
-  height: 160px;
+  height: 100%;
   object-fit: cover;
+  transition: transform 0.4s ease;
 }
+
+.category-card:hover .category-img {
+  transform: scale(1.08);
+}
+
 .category-overlay {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 10px;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent);
+  padding: 1.25rem;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, transparent 100%);
   color: white;
 }
 
-/* Product Cards */
-.image-container {
-  position: relative;
-  overflow: hidden;
-  border-radius: 10px;
+.category-overlay h5 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.1rem;
+  font-weight: 600;
 }
+
+.category-cta {
+  font-size: 0.8rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0.85;
+}
+
+/* ===== Product Cards ===== */
+.product-card {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.product-img-wrap {
+  overflow: hidden;
+  aspect-ratio: 3/4;
+}
+
 .product-image {
   width: 100%;
-  height: 220px;
+  height: 100%;
   object-fit: cover;
-  transition: transform 0.3s ease;
+  transition: transform 0.4s ease;
 }
+
 .product-card:hover .product-image {
-  transform: scale(1.08);
+  transform: scale(1.06);
+}
+
+.product-info {
+  padding: 1rem;
+  text-align: center;
+}
+
+.product-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  margin-bottom: 0.35rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.product-price {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--primary);
+  margin-bottom: 0;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .hero-section {
+    padding: 3rem 0;
+  }
+
+  .hero-title {
+    font-size: 2rem;
+  }
+
+  .hero-description {
+    font-size: 0.95rem;
+  }
 }
