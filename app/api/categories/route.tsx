@@ -1,30 +1,20 @@
-// import { PrismaClient } from "@/app/generated/prisma";
-// import { NextResponse } from "next/server";
-
-// const Prisma = new PrismaClient
-
-// export async function GET(){
-//     const categories= await Prisma.categories.findMany();
-//     return NextResponse.json(categories);
-// }
 // /app/api/categories/route.ts
-import { PrismaClient } from "@/app/generated/prisma";
-import { NextResponse } from "next/server";
-
-const prisma = new PrismaClient();
+import { NextResponse } from 'next/server';
+import { prisma } from '@/app/lib/prisma'; // 1. Use Prisma singleton
 
 export async function GET() {
   try {
     const categories = await prisma.category.findMany({
       include: {
-        products: true, // ✅ Include products if you need them on category
+        products: true,
       },
     });
     return NextResponse.json(categories);
   } catch (error) {
-    console.error("Failed to fetch categories", error);
+    // 2. Add specific logging
+    console.error('[CATEGORIES_GET_PUBLIC_ERROR]', error);
     return NextResponse.json(
-      { error: "Failed to fetch categories" },
+      { error: 'Failed to fetch categories' },
       { status: 500 }
     );
   }

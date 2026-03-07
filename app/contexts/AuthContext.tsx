@@ -2,16 +2,8 @@
 
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
+import { User } from '@/app/lib/getUserFromToken';
 
-// This interface defines the shape of our user object
-interface User {
-  id: string;
-  email: string;
-  firstName: string;
-  isAdmin: boolean;
-}
-
-// This defines the values that our context will provide
 interface AuthContextType {
   user: User | null;
   login: (userData: User) => void;
@@ -19,51 +11,60 @@ interface AuthContextType {
   isLoading: boolean;
 }
 
-// Create the context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// The AuthProvider component wraps our app and provides the auth state
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  // On initial app load, check if the user is already logged in via cookie
   useEffect(() => {
-    const verifyUser = async () => {
+    let active = true;
+
+    const fetchUser = async () => {
       try {
-        const res = await fetch('/api/me');
+        const res = await fetch('/api/me', {
+          method: 'GET',
+          credentials: 'include',
+          cache: 'no-store',
+        });
+
+        if (!active) return;
+
         if (res.ok) {
           const data = await res.json();
-          setUser(data.user);
+          setUser(data.user || null);
+        } else {
+          setUser(null);
         }
-      } catch (error) {
-        // This is expected if the user is not logged in
+      } catch (err) {
+        console.error('[AUTH_FETCH_ERROR]', err);
+        if (active) setUser(null);
       } finally {
-        setIsLoading(false);
+        if (active) setIsLoading(false);
       }
     };
-    verifyUser();
+
+    fetchUser();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
-  // The login function, called from the login page
   const login = (userData: User) => {
     setUser(userData);
-    if (userData.isAdmin) {
-      router.push('/admin');
-    } else {
-      router.push('/');
-    }
+    router.push(userData.isAdmin ? '/admin' : '/');
   };
 
-  // The logout function, called from the navbar
   const logout = async () => {
     try {
-      await fetch('/api/logout', { method: 'POST' });
+      await fetch('/api/logout', { method: 'POST', credentials: 'include' });
+    } catch (err) {
+      console.error('[LOGOUT_ERROR]', err);
+    } finally {
       setUser(null);
       router.push('/login');
-    } catch (error) {
-      console.error("Logout failed", error);
     }
   };
 
@@ -74,11 +75,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// Custom hook to easily access the auth context in any component
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within AuthProvider');
   return context;
 }

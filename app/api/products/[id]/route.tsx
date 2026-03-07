@@ -1,32 +1,35 @@
-import { NextResponse } from "next/server";
-import { PrismaClient } from "@/app/generated/prisma";
+// /app/api/products/[id]/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/app/lib/prisma'; // 1. Use Prisma singleton
+import { IdParamSchema } from '@/app/lib/validators'; // 2. Import Zod schema
 
-const prisma = new PrismaClient();
-
-// GET /api/products/[id] -> Fetch a single product by its ID
 export async function GET(
-  req: Request,
-  // This is the correct, modern way to access route parameters in Next.js
+  req: NextRequest, // 3. Use NextRequest for consistency
   { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = params;
-
-    if (!id) {
-      return NextResponse.json({ error: "Product ID is required" }, { status: 400 });
+    // 4. Validate the ID from the URL
+    const validation = IdParamSchema.safeParse({ id: params.id });
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: validation.error.issues[0].message },
+        { status: 400 }
+      );
     }
+    const { id } = validation.data;
 
     const product = await prisma.product.findUnique({
       where: { id },
     });
 
     if (!product) {
-      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
     return NextResponse.json(product);
   } catch (error) {
-    console.error("❌ Error fetching product:", error);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    // 5. Add specific logging
+    console.error('[PRODUCT_GET_BY_ID_PUBLIC_ERROR]', error);
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

@@ -1,64 +1,90 @@
-import { NextResponse } from "next/server";
-import { PrismaClient, OrderStatus, OrderItemStatus } from "@/app/generated/prisma";
-import jwt from "jsonwebtoken";
+// /app/api/orders/[id]/cancel/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/app/lib/prisma";
+import { OrderStatus, OrderItemStatus } from "@/app/generated/prisma";
+import { getUserFromToken } from "@/app/lib/getUserFromToken";
 
-const prisma = new PrismaClient();
-
-// Helper to get user ID from token
-async function getUserIdFromToken(req: Request): Promise<string | null> {
-    try {
-        const cookieHeader = req.headers.get("cookie") || "";
-        const token = cookieHeader.split(';').map(c => c.trim()).find(c => c.startsWith('token='))?.split('=')[1];
-        if (!token) return null;
-        const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { id: string };
-        return decoded.id;
-    } catch (error) {
-        return null;
-    }
-}
-
-// POST /api/orders/[id]/cancel
 export async function POST(
-  req: Request,
+  req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-    const userId = await getUserIdFromToken(req);
-    if (!userId) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    // 1️⃣ Authenticate the user
+    const decodedUser = await getUserFromToken(req);
+    if (!decodedUser) {
+      console.log("❌ [CANCEL_ORDER] Unauthorized attempt.");
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const userId = decodedUser.id;
     const orderId = params.id;
 
-    try {
-        // 1. Find the order and verify it belongs to the user AND is still pending
-        const orderToCancel = await prisma.order.findFirst({
-            where: {
-                id: orderId,
-                userId: userId,
-                status: OrderStatus.PENDING // Crucial check
-            }
-        });
-
-        if (!orderToCancel) {
-            return NextResponse.json({ error: "Order not found or cannot be cancelled." }, { status: 404 });
-        }
-
-        // 2. Use a transaction to update the status of the order and all its items
-        await prisma.$transaction([
-            prisma.order.update({
-                where: { id: orderId },
-                data: { status: OrderStatus.CANCELLED }
-            }),
-            prisma.orderItem.updateMany({
-                where: { orderId: orderId },
-                data: { status: OrderItemStatus.CANCELLED }
-            })
-        ]);
-        
-        return NextResponse.json({ message: "Order successfully cancelled." });
-
-    } catch (error) {
-        console.error(`Failed to cancel order ${orderId}:`, error);
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    if (!orderId) {
+      return NextResponse.json({ error: "Order ID is missing." }, { status: 400 });
     }
+
+    // 2️⃣ Find order with orderItems (for restocking)
+    const order = await prisma.order.findFirst({
+      where: {
+        id: orderId,
+        userId,
+        status: OrderStatus.PENDING, // can only cancel pending orders
+      },
+      include: {
+        orderItems: true, // needed for stock update
+      },
+    });
+
+    if (!order) {
+      console.log(`⚠️ [CANCEL_ORDER] Order ${orderId} not found or cannot be cancelled.`);
+      return NextResponse.json(
+        { error: "Order not found or cannot be cancelled." },
+        { status: 404 }
+      );
+    }
+
+    // 3️⃣ Perform transaction: cancel order + restore stock
+    const updatedOrder = await prisma.$transaction(async (tx) => {
+      // Restore stock for each product in this order
+      for (const item of order.orderItems) {
+        await tx.product.update({
+          where: { id: item.productId },
+          data: { stock: { increment: item.quantity } },
+        });
+      }
+
+      // Update order status
+      const cancelledOrder = await tx.order.update({
+        where: { id: orderId },
+        data: {
+          status: OrderStatus.CANCELLED,
+          cancelledAt: new Date(),
+        },
+        include: {
+          orderItems: true,
+        },
+      });
+
+      // Update each order item status
+      await tx.orderItem.updateMany({
+        where: { orderId },
+        data: { status: OrderItemStatus.CANCELLED },
+      });
+
+      return cancelledOrder;
+    });
+
+    console.log(`✅ [CANCEL_ORDER] Order ${orderId} cancelled successfully and stock restored.`);
+    return NextResponse.json({
+      success: true,
+      message: "Order cancelled and product stock restored.",
+      order: updatedOrder,
+    });
+  } catch (error) {
+    console.error("❌ [CANCEL_ORDER_ERROR]", error);
+    return NextResponse.json(
+      { error: "Internal Server Error while cancelling order." },
+      { status: 500 }
+    );
+  }
 }

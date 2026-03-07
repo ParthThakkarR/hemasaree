@@ -1,54 +1,44 @@
-import { PrismaClient } from "@/app/generated/prisma";
-import { NextRequest, NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-
-const prisma = new PrismaClient();
-
-// --- Validation Regular Expressions ---
-// Phone number must be exactly 10 digits
-const phoneRegex = /^\d{10}$/;
-// Standard email format validation
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-// Password: min 8 chars, 1 uppercase, 1 lowercase, 1 digit, 1 special character
-const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/app/lib/prisma';
+import { SignUpSchema } from '@/app/lib/validators';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 export async function POST(req: NextRequest) {
   try {
-    const JWT_SECRET = process.env.JWT_SECRET || "default_secret_key";
+    const JWT_SECRET = process.env.JWT_SECRET;
+    if (!JWT_SECRET) {
+      console.error('JWT_SECRET is missing from environment variables');
+      return NextResponse.json(
+        { message: 'Server configuration error' },
+        { status: 500 }
+      );
+    }
+
     const body = await req.json();
-    
-    const { firstName, lastName, email, phone, password, address } = body;
-
-    // --- NEW: SERVER-SIDE VALIDATION BLOCK ---
-    if (!firstName || !email || !password || !address) {
-      return NextResponse.json({ message: "First name, email, password, and address are required." }, { status: 400 });
+    const validation = SignUpSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { message: validation.error.issues[0].message },
+        { status: 400 }
+      );
     }
 
-    if (!emailRegex.test(email)) {
-        return NextResponse.json({ message: "Please enter a valid email format." }, { status: 400 });
-    }
+    const { firstName, lastName, email, phone, password, address } = validation.data;
 
-    // Phone is optional, but if provided, it must be valid
-    if (phone && !phoneRegex.test(phone)) {
-        return NextResponse.json({ message: "Phone number must be exactly 10 digits." }, { status: 400 });
-    }
-
-    if (!passwordRegex.test(password)) {
-        return NextResponse.json({ message: "Password must be at least 8 characters long and include an uppercase, lowercase, number, and special character." }, { status: 400 });
-    }
-    // --- END OF VALIDATION BLOCK ---
-
-    const existingUser = await prisma.user.findUnique({
-      where: { email }
-    });
+    // ✅ Check if user already exists
+    const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
-      return NextResponse.json({ message: "User with this email already exists." }, { status: 409 });
+      return NextResponse.json(
+        { message: 'User with this email already exists' },
+        { status: 409 }
+      );
     }
 
+    // ✅ Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
-    
+
+    // ✅ Create user (and optional initial address)
     const user = await prisma.user.create({
       data: {
         firstName,
@@ -56,31 +46,59 @@ export async function POST(req: NextRequest) {
         email,
         phone,
         password: hashedPassword,
-        address,
-      }
+        // if address exists in signup, save it as first Address entry
+        addresses: address
+          ? {
+              create: {
+                streetAddress: address.streetAddress || '',
+                city: address.city || '',
+                state: address.state || '',
+                zipCode: address.zipCode || '',
+                label: address.label || 'Home',
+                isDefault: true,
+              },
+            }
+          : undefined,
+      },
+      include: { addresses: true },
     });
 
+    // ✅ Sign token
     const token = jwt.sign(
-      { id: user.id, email: user.email, isAdmin: user.isAdmin },
+      { id: user.id, email: user.email, isAdmin: !!user.isAdmin },
       JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: '7d' }
     );
 
-    const response = NextResponse.json({ message: "User created successfully!" }, { status: 201 });
-    
-    response.cookies.set({
-      name: "token",
-      value: token,
+    // ✅ Set cookie (global)
+    const res = NextResponse.json(
+      {
+        message: 'Signup successful!',
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          isAdmin: !!user.isAdmin,
+          addresses: user.addresses ?? [],
+        },
+      },
+      { status: 201 }
+    );
+
+    res.cookies.set('token', token, {
       httpOnly: true,
-      path: "/",
-      maxAge: 60 * 60,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
     });
 
-    return response;
+    return res;
   } catch (err) {
-    console.error("Error in /api/signup:", err);
-    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+    console.error('[SIGNUP_ERROR]', err);
+    return NextResponse.json(
+      { message: 'Internal Server Error' },
+      { status: 500 }
+    );
   }
 }

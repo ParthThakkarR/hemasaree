@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@/app/generated/prisma";
+import { prisma } from "@/app/lib/prisma";
 import jwt from "jsonwebtoken";
 
-const prisma = new PrismaClient();
+
 
 /**
  * Verifies the JWT from the request cookies.

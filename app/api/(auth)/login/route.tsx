@@ -1,80 +1,61 @@
-import { PrismaClient } from "@/app/generated/prisma";
-import bcrypt from "bcryptjs";
-import { NextRequest, NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
-
-const prisma = new PrismaClient();
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/app/lib/prisma';
+import { LoginSchema } from '@/app/lib/validators';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 export async function POST(req: NextRequest) {
   try {
     const JWT_SECRET = process.env.JWT_SECRET;
     if (!JWT_SECRET) {
-      throw new Error("JWT_SECRET_KEY is not defined in environment variables");
+      console.error('JWT_SECRET not found in env');
+      return NextResponse.json({ message: 'Server configuration error' }, { status: 500 });
     }
 
     const body = await req.json();
-    const { emailfirstname, password } = body;
-
-    if (!emailfirstname || !password) {
-      return NextResponse.json({ message: "Fill all the fields" }, { status: 400 });
+    const validation = LoginSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { message: validation.error.issues[0].message },
+        { status: 400 }
+      );
     }
 
-    const user = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { firstName: emailfirstname },
-          { email: emailfirstname }
-        ]
-      }
-    });
+    const { email, password } = validation.data;
+    const user = await prisma.user.findUnique({ where: { email } });
 
-    if (!user) {
-    return NextResponse.json({ message: "User does not exist" }, { status: 404 });
-  }
-
-  // --- ADD THIS ENTIRE DEBUGGING BLOCK ---
-  console.log('--- LOGIN ROUTE CHECK ---');
-  console.log('Raw user object from DB:', user);
-  console.log('Value of user.isAdmin:', user.isAdmin);
-  console.log('Data type of user.isAdmin:', typeof user.isAdmin);
-  console.log('Value after !! operator:', !!user.isAdmin);
-  console.log('-------------------------');
-    const isPasswordCorrect = await bcrypt.compare(password, user.password);
-    if (!isPasswordCorrect) {
-      return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return NextResponse.json({ message: 'Invalid email or password' }, { status: 401 });
     }
 
- 
-const token = jwt.sign(
-  { id: user.id, email: user.email, isAdmin: !!user.isAdmin }, // <-- The fix is here
-  JWT_SECRET,
-  { expiresIn: "1h" }
-);
-
-    const response = NextResponse.json(
-      {
-        message: "Login successful",
-        user: {
-          id: user.id,
-          email: user.email,
-          firstName: user.firstName,
-          isAdmin:user.isAdmin,
-        },
-      },
-      { status: 200 }
+    const token = jwt.sign(
+      { id: user.id, email: user.email, isAdmin: !!user.isAdmin },
+      JWT_SECRET,
+      { expiresIn: '7d' } // 🔥 Keep user logged in longer
     );
 
-    
-
-    response.cookies.set("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: 60 * 60, 
+    const res = NextResponse.json({
+      message: 'Login successful',
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        isAdmin: !!user.isAdmin,
+      },
     });
 
-    return response;
-  } catch (error: any) {
-    return NextResponse.json({ message: "Server error", error: error.message }, { status: 500 });
+    // ✅ Cookie fix: applies to all routes + works on reload
+    res.cookies.set('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/', // ✅ global cookie
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+    });
+
+    return res;
+  } catch (error) {
+    console.error('[LOGIN_ERROR]', error);
+    return NextResponse.json({ message: 'Server error' }, { status: 500 });
   }
 }

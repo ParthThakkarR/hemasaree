@@ -1,95 +1,130 @@
+// app/api/categories/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/app/lib/prisma'; // 1. Use Prisma singleton
+import { verifyAdminToken } from '@/app/utils/auth';
+import {
+  CategorySchema,
+  UpdateCategorySchema,
+  DeleteCategorySchema,
+} from '@/app/lib/validators'; // 2. Import Zod schemas
 
-
-import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@/app/generated/prisma";
-import { verifyAdminToken } from "@/app/utils/auth";
-
-const prisma = new PrismaClient();
-
-// GET all categories
+// GET all categories (Public)
 export async function GET(req: Request) {
-    try {
-        const categories = await prisma.category.findMany({
-            orderBy: { name: 'asc' }
-        });
-        return NextResponse.json(categories);
-    } catch (error) {
-        console.error("[API_CATEGORIES_GET]", error);
-        return NextResponse.json({ error: "Server error" }, { status: 500 });
-    }
+  try {
+    const categories = await prisma.category.findMany({
+      orderBy: { name: 'asc' },
+    });
+    return NextResponse.json(categories);
+  } catch (error) {
+    console.error('[CATEGORIES_GET_ERROR]', error);
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+  }
 }
 
-// POST a new category
+// POST a new category (Admin Only)
 export async function POST(req: NextRequest) {
-    const adminId = await verifyAdminToken(req);
-    if (!adminId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const adminId = await verifyAdminToken(req);
+  if (!adminId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    try {
-        const body = await req.json();
-        const { name, image } = body;
-        if (!name || !image) {
-            return NextResponse.json({ error: "Name and image are required" }, { status: 400 });
-        }
-        const newCategory = await prisma.category.create({
-            data: { name, image },
-        });
-        return NextResponse.json(newCategory, { status: 201 });
-    } catch (error) {
-        console.error("Error adding category:", error);
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  try {
+    const body = await req.json();
+
+    // 3. Validate with Zod
+    const validation = CategorySchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: validation.error.issues[0].message },
+        { status: 400 }
+      );
     }
+    const { name, image } = validation.data;
+
+    const newCategory = await prisma.category.create({
+      data: { name, image },
+    });
+    return NextResponse.json(newCategory, { status: 201 });
+  } catch (error) {
+    console.error('[CATEGORIES_POST_ERROR]', error);
+    // Handle specific error for unique constraint
+    if ((error as any).code === 'P2002') {
+      return NextResponse.json({ error: 'A category with this name already exists' }, { status: 409 });
+    }
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
 }
 
-// PUT to update a category
-export async function PUT(req: Request) {
-    const adminId = await verifyAdminToken(req);
-    if (!adminId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+// PUT to update a category (Admin Only)
+export async function PUT(req: NextRequest) {
+  const adminId = await verifyAdminToken(req);
+  if (!adminId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    try {
-        const { id, ...data } = await req.json();
-        if (!id) {
-            return NextResponse.json({ error: "Category ID is required for updates" }, { status: 400 });
-        }
-        const updatedCategory = await prisma.category.update({
-            where: { id },
-            data,
-        });
-        return NextResponse.json(updatedCategory);
-    } catch (error) {
-        console.error("Error updating category:", error);
-        return NextResponse.json({ error: "Failed to update category" }, { status: 500 });
+  try {
+    const body = await req.json();
+
+    // 4. Validate with Zod (safer)
+    const validation = UpdateCategorySchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: validation.error.issues[0].message },
+        { status: 400 }
+      );
     }
+    // 5. Explicitly destructure allowed fields
+    const { id, name, image } = validation.data;
+
+    const updatedCategory = await prisma.category.update({
+      where: { id },
+      data: {
+        name, // Prisma handles `undefined` - only updates if a value was passed
+        image,
+      },
+    });
+    return NextResponse.json(updatedCategory);
+  } catch (error) {
+    console.error('[CATEGORIES_PUT_ERROR]', error);
+    return NextResponse.json({ error: 'Failed to update category' }, { status: 500 });
+  }
 }
 
-// DELETE a category
+// DELETE a category (Admin Only)
 export async function DELETE(req: NextRequest) {
-    const adminId = await verifyAdminToken(req);
-    if (!adminId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const adminId = await verifyAdminToken(req);
+  if (!adminId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    try {
-        const id = req.nextUrl.searchParams.get("id");
-        if (!id) {
-            return NextResponse.json({ error: "Category ID is required" }, { status: 400 });
-        }
-
-        // Check for associated products BEFORE attempting to delete.
-        const productCount = await prisma.product.count({
-            where: { categoryId: id },
-        });
-
-        if (productCount > 0) {
-            return NextResponse.json({ error: `Cannot delete. ${productCount} product(s) are still in this category.` }, { status: 409 }); // 409 Conflict
-        }
-
-        // If no products are associated, proceed with deletion.
-        await prisma.category.delete({
-            where: { id },
-        });
-
-        return NextResponse.json({ message: "Category deleted successfully" });
-    } catch (error) {
-        console.error("[API_CATEGORIES_DELETE]", error);
-        return NextResponse.json({ error: "Failed to delete category" }, { status: 500 });
+  try {
+    // 6. Validate search param with Zod
+    const validation = DeleteCategorySchema.safeParse({
+      id: req.nextUrl.searchParams.get('id'),
+    });
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: validation.error.issues[0].message },
+        { status: 400 }
+      );
     }
-}
+    const { id } = validation.data;
 
+    // 7. Your excellent referential integrity check
+    const productCount = await prisma.product.count({
+      where: { categoryId: id },
+    });
+
+    if (productCount > 0) {
+      return NextResponse.json(
+        {
+          error: `Cannot delete. ${productCount} product(s) are still in this category.`,
+        },
+        { status: 409 } // 409 Conflict
+      );
+    }
+
+    await prisma.category.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ message: 'Category deleted successfully' });
+  } catch (error) {
+    console.error('[CATEGORIES_DELETE_ERROR]', error);
+    return NextResponse.json({ error: 'Failed to delete category' }, { status: 500 });
+  }
+}

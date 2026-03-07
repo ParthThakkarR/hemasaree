@@ -1,26 +1,36 @@
-import { NextResponse } from "next/server";
-import { PrismaClient } from "@/app/generated/prisma";
-import crypto from "crypto";
-import bcrypt from "bcryptjs";
+// app/api/reset-password/route.ts
+import { NextResponse } from 'next/server';
+import { prisma } from '@/app/lib/prisma'; // 1. Use Prisma singleton
+import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
+import { z } from 'zod'; // 2. (Optional but cleaner) Use Zod
 
-const prisma = new PrismaClient();
+// 3. Define the password regex and Zod schema
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+const ResetPasswordSchema = z.object({
+  token: z.string().min(1, { message: 'Token is required' }),
+  password: z.string().regex(passwordRegex, {
+    message: 'Password must be at least 8 characters long and include an uppercase, lowercase, number, and special character.',
+  }),
+});
 
 export async function POST(req: Request) {
   try {
-    const { token, password } = await req.json();
+    const body = await req.json();
 
-    if (!token || !password) {
-      return NextResponse.json({ message: "Token and new password are required." }, { status: 400 });
+    // 4. Validate input with Zod
+    const validation = ResetPasswordSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { message: validation.error.issues[0].message },
+        { status: 400 }
+      );
     }
-
-    // Validate new password complexity
-    if (!passwordRegex.test(password)) {
-      return NextResponse.json({ message: "Password must be at least 8 characters long and include an uppercase, lowercase, number, and special character." }, { status: 400 });
-    }
+    const { token, password } = validation.data;
 
     // Hash the token from the URL to match the one in the DB
-    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
 
     // Find the user by the hashed token and check if the token is still valid (not expired)
     const user = await prisma.user.findFirst({
@@ -31,7 +41,10 @@ export async function POST(req: Request) {
     });
 
     if (!user) {
-      return NextResponse.json({ message: "Password reset token is invalid or has expired." }, { status: 400 });
+      return NextResponse.json(
+        { message: 'Password reset token is invalid or has expired.' },
+        { status: 400 }
+      );
     }
 
     // Hash the new password
@@ -47,10 +60,9 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json({ message: "Password has been reset successfully." });
-
+    return NextResponse.json({ message: 'Password has been reset successfully.' });
   } catch (err) {
-    console.error("Error in /api/reset-password:", err);
-    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+    console.error('Error in /api/reset-password:', err);
+    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }

@@ -1,285 +1,212 @@
-// import { NextResponse } from "next/server";
-// import { PrismaClient } from "@/app/generated/prisma";
-// import jwt from "jsonwebtoken";
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/app/lib/prisma";
+import { getUserFromToken } from "@/app/lib/getUserFromToken";
+import { CartAddSchema, CartUpdateSchema, CartDeleteSchema } from "@/app/lib/validators";
 
-// const prisma = new PrismaClient();
+/* ---------------------------------------------
+   🔧 Helper: Always recalculate total cart price
+---------------------------------------------- */
+async function recalcCartTotal(cartId: string) {
+  const items = await prisma.cartItem.findMany({ where: { cartId } });
+  const totalPrice = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
-// // --- Helper: Verify JWT token and get User ID ---
-// async function getUserIdFromToken(req: Request): Promise<string | null> {
-//     try {
-//         const cookieHeader = req.headers.get("cookie") || "";
-//         const token = cookieHeader.split(';').map(c => c.trim()).find(c => c.startsWith('token='))?.split('=')[1];
-//         if (!token) return null;
-//         const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { id: string };
-//         return decoded.id;
-//     } catch (error) {
-//         return null;
-//     }
-// }
-
-// // --- Helper: Recalculate and update the cart's total price ---
-// async function updateCartTotal(cartId: string) {
-//     const cartItems = await prisma.cartItem.findMany({ where: { cartId } });
-//     const newTotalPrice = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
-    
-//     // Return the full cart object with all necessary details
-//     return prisma.cart.update({
-//         where: { id: cartId },
-//         data: { totalPrice: newTotalPrice },
-//         include: { 
-//             items: { 
-//                 include: { product: { select: { stock: true }}},
-//                 // REMOVED: orderBy clause to fix the error
-//             }
-//         }
-//     });
-// }
-
-
-// // --- GET /api/cart ---
-// // Fetches the user's current cart with product stock and polish information
-// export async function GET(req: Request) {
-//     const userId = await getUserIdFromToken(req);
-//     if (!userId) {
-//         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-//     }
-
-//     const cart = await prisma.cart.findFirst({
-//         where: { userId },
-//         include: {
-//             items: {
-//                 include: { product: { select: { stock: true }}},
-//                  // REMOVED: orderBy clause to fix the error
-//             }
-//         }
-//     });
-
-//     return NextResponse.json({ cart });
-// }
-
-// // --- POST /api/cart ---
-// // Adds a new item or updates quantity, handling the 'withPolish' variant
-// export async function POST(req: Request) {
-//     const userId = await getUserIdFromToken(req);
-//     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-//     try {
-//         const { productId, quantity, productName, productImage, price, withPolish } = await req.json();
-
-//         if (!productId || !quantity || !productName || typeof price === 'undefined' || typeof withPolish === 'undefined') {
-//             return NextResponse.json({ error: 'Missing required product data' }, { status: 400 });
-//         }
-
-//         let userCart = await prisma.cart.findFirst({ where: { userId } });
-//         if (!userCart) {
-//             userCart = await prisma.cart.create({ data: { userId } });
-//         }
-
-//         const existingItem = await prisma.cartItem.findFirst({
-//             where: { cartId: userCart.id, productId: productId, withPolish: withPolish },
-//         });
-
-//         if (existingItem) {
-//             await prisma.cartItem.update({
-//                 where: { id: existingItem.id },
-//                 data: { quantity: existingItem.quantity + quantity },
-//             });
-//         } else {
-//             await prisma.cartItem.create({
-//                 data: { cartId: userCart.id, productId, productName, productImage, price, quantity, withPolish },
-//             });
-//         }
-        
-//         const updatedCart = await updateCartTotal(userCart.id);
-//         return NextResponse.json({ message: 'Item added to cart', cart: updatedCart });
-//     } catch (error) {
-//         console.error('Add to cart error:', error);
-//         return NextResponse.json({ error: 'Failed to add item to cart' }, { status: 500 });
-//     }
-// }
-
-// // --- PUT /api/cart ---
-// // Updates the quantity of a specific item in the cart
-// export async function PUT(req: Request) {
-//     const userId = await getUserIdFromToken(req);
-//     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-//     const { cartItemId, quantity } = await req.json();
-//     const newQuantity = Math.max(1, Number(quantity));
-
-//     const cartItem = await prisma.cartItem.findFirst({
-//         where: { id: cartItemId, cart: { userId } },
-//         include: { product: true }
-//     });
-
-//     if (!cartItem) {
-//         return NextResponse.json({ error: "Item not found in your cart" }, { status: 404 });
-//     }
-//     if (newQuantity > cartItem.product.stock) {
-//         return NextResponse.json({ error: `Only ${cartItem.product.stock} items available.` }, { status: 400 });
-//     }
-
-//     await prisma.cartItem.update({
-//         where: { id: cartItemId },
-//         data: { quantity: newQuantity },
-//     });
-    
-//     const finalCart = await updateCartTotal(cartItem.cartId);
-//     return NextResponse.json({ cart: finalCart });
-// }
-
-// // --- DELETE /api/cart ---
-// // Removes an item from the cart
-// export async function DELETE(req: Request) {
-//     const userId = await getUserIdFromToken(req);
-//     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-//     const { cartItemId } = await req.json();
-
-//     const itemToRemove = await prisma.cartItem.findFirst({
-//         where: { id: cartItemId, cart: { userId } }
-//     });
-
-//     if (!itemToRemove) {
-//         return NextResponse.json({ error: "Item not found in your cart" }, { status: 404 });
-//     }
-
-//     await prisma.cartItem.delete({ where: { id: cartItemId } });
-
-//     const finalCart = await updateCartTotal(itemToRemove.cartId);
-//     return NextResponse.json({ cart: finalCart });
-// }
-
-
-
-import { NextResponse } from "next/server";
-import { PrismaClient } from "@/app/generated/prisma";
-import jwt from "jsonwebtoken";
-
-const prisma = new PrismaClient();
-
-async function getUserIdFromToken(req: Request): Promise<string | null> {
-    try {
-        const cookieHeader = req.headers.get("cookie") || "";
-        const token = cookieHeader.split(';').map(c => c.trim()).find(c => c.startsWith('token='))?.split('=')[1];
-        if (!token) return null;
-        const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { id: string };
-        return decoded.id;
-    } catch (error) {
-        return null;
-    }
+  return prisma.cart.update({
+    where: { id: cartId },
+    data: { totalPrice },
+    include: {
+      items: {
+        include: { product: { select: { stock: true, name: true } } },
+        orderBy: { createdAt: "asc" },
+      },
+    },
+  });
 }
 
-async function updateCartTotal(cartId: string) {
-    const cartItems = await prisma.cartItem.findMany({ where: { cartId } });
-    const newTotalPrice = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
-    
-    return prisma.cart.update({
-        where: { id: cartId },
-        data: { totalPrice: newTotalPrice },
-        include: { 
-            items: { 
-                include: { product: { select: { stock: true }}},
-                orderBy: { createdAt: 'asc' }
-            }
-        }
-    });
-}
+/* ---------------------------------------------
+   ✅ GET - Fetch User's Cart
+---------------------------------------------- */
+export async function GET(req: NextRequest) {
+  const user = await getUserFromToken(req);
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-export async function GET(req: Request) {
-    const userId = await getUserIdFromToken(req);
-    if (!userId) {
-        return NextResponse.json({ cart: null });
-    }
+  try {
     const cart = await prisma.cart.findFirst({
-        where: { userId },
-        include: {
-            items: {
-                include: { product: { select: { stock: true }}},
-                orderBy: { createdAt: 'asc' }
-            }
-        }
+      where: { userId: user.id },
+      include: {
+        items: {
+          include: { product: true },
+          orderBy: { createdAt: "asc" },
+        },
+      },
     });
+
     return NextResponse.json({ cart });
+  } catch (err) {
+    console.error("[CART_GET_ERROR]", err);
+    return NextResponse.json({ error: "Failed to load cart" }, { status: 500 });
+  }
 }
 
-export async function POST(req: Request) {
-    const userId = await getUserIdFromToken(req);
-    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+/* ---------------------------------------------
+   🛒 POST - Add Item to Cart
+---------------------------------------------- */
+export async function POST(req: NextRequest) {
+  const user = await getUserFromToken(req);
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    try {
-        const { productId, quantity, productName, productImage, price, withPolish } = await req.json();
-
-        if (!productId || !quantity || !productName || typeof price === 'undefined' || typeof withPolish === 'undefined') {
-            return NextResponse.json({ error: 'Missing required product data' }, { status: 400 });
-        }
-
-        let userCart = await prisma.cart.findFirst({ where: { userId } });
-        if (!userCart) {
-            userCart = await prisma.cart.create({ data: { userId } });
-        }
-
-        const existingItem = await prisma.cartItem.findFirst({
-            where: { cartId: userCart.id, productId: productId, withPolish: withPolish },
-        });
-
-        if (existingItem) {
-            await prisma.cartItem.update({
-                where: { id: existingItem.id },
-                data: { quantity: existingItem.quantity + quantity },
-            });
-        } else {
-            await prisma.cartItem.create({
-                data: { cartId: userCart.id, productId, productName, productImage, price, quantity, withPolish },
-            });
-        }
-        
-        const updatedCart = await updateCartTotal(userCart.id);
-        return NextResponse.json({ message: 'Item added to cart', cart: updatedCart });
-    } catch (error) {
-        console.error('Add to cart error:', error);
-        return NextResponse.json({ error: 'Failed to add item to cart' }, { status: 500 });
+  try {
+    const body = await req.json();
+    const valid = CartAddSchema.safeParse(body);
+    if (!valid.success) {
+      return NextResponse.json({ error: valid.error.issues[0].message }, { status: 400 });
     }
-}
 
-export async function PUT(req: Request) {
-    const userId = await getUserIdFromToken(req);
-    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const { productId, quantity, productName, productImage, price, withPolish } = valid.data;
 
-    const { cartItemId, quantity } = await req.json();
-    const newQuantity = Math.max(1, Number(quantity));
+    // 🧩 Find product
+    const product = await prisma.product.findUnique({ where: { id: productId } });
+    if (!product) return NextResponse.json({ error: "Product not found" }, { status: 404 });
 
-    const cartItem = await prisma.cartItem.findFirst({
-        where: { id: cartItemId, cart: { userId } },
-        include: { product: true }
+    // 🧮 Compute available stock safely
+    const availableStock = typeof product.stock === "number" && product.stock > 0 ? product.stock : Infinity;
+
+    // 🧺 Find or create user's cart
+    let cart = await prisma.cart.findFirst({ where: { userId: user.id } });
+    if (!cart) cart = await prisma.cart.create({ data: { userId: user.id } });
+
+    // 🔍 Find all existing cart items for this product
+    const allItems = await prisma.cartItem.findMany({
+      where: { cartId: cart.id, productId },
     });
 
-    if (!cartItem) return NextResponse.json({ error: "Item not found" }, { status: 404 });
-    if (newQuantity > cartItem.product.stock) return NextResponse.json({ error: `Only ${cartItem.product.stock} items available.` }, { status: 400 });
+    const totalQuantityInCart = allItems.reduce((sum, i) => sum + i.quantity, 0);
+
+    // ✅ Stock check (only if stock is finite)
+    if (availableStock !== Infinity && totalQuantityInCart + quantity > availableStock) {
+      const remaining = Math.max(availableStock - totalQuantityInCart, 0);
+      return NextResponse.json(
+        { error: `Only ${remaining} item(s) available in stock.` },
+        { status: 400 }
+      );
+    }
+
+    // 🧩 Merge with same variant (polish)
+    const existingVariant = allItems.find(i => i.withPolish === withPolish);
+
+    if (existingVariant) {
+      await prisma.cartItem.update({
+        where: { id: existingVariant.id },
+        data: { quantity: existingVariant.quantity + quantity },
+      });
+    } else {
+      await prisma.cartItem.create({
+        data: {
+          cartId: cart.id,
+          productId,
+          productName,
+          productImage,
+          price,
+          quantity,
+          withPolish,
+        },
+      });
+    }
+
+    const updatedCart = await recalcCartTotal(cart.id);
+    return NextResponse.json({ message: "Item added to cart", cart: updatedCart });
+  } catch (err) {
+    console.error("[CART_POST_ERROR]", err);
+    return NextResponse.json({ error: "Failed to add item" }, { status: 500 });
+  }
+}
+
+/* ---------------------------------------------
+   ✏️ PUT - Update Quantity
+---------------------------------------------- */
+export async function PUT(req: NextRequest) {
+  const user = await getUserFromToken(req);
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  try {
+    const body = await req.json();
+    const valid = CartUpdateSchema.safeParse(body);
+    if (!valid.success) {
+      return NextResponse.json({ error: valid.error.issues[0].message }, { status: 400 });
+    }
+
+    const { cartItemId, quantity } = valid.data;
+
+    const item = await prisma.cartItem.findFirst({
+      where: { id: cartItemId, cart: { userId: user.id } },
+      include: { product: true },
+    });
+
+    if (!item) return NextResponse.json({ error: "Item not found" }, { status: 404 });
+
+    const availableStock = typeof item.product.stock === "number" && item.product.stock > 0
+      ? item.product.stock
+      : Infinity;
+
+    // 🧮 Total quantity of this product across cart (excluding this variant)
+    const siblings = await prisma.cartItem.findMany({
+      where: {
+        cartId: item.cartId,
+        productId: item.productId,
+        NOT: { id: cartItemId },
+      },
+    });
+
+    const otherQty = siblings.reduce((s, i) => s + i.quantity, 0);
+
+    // ✅ Allow decreasing freely, block increase beyond stock
+    if (availableStock !== Infinity && quantity + otherQty > availableStock) {
+      const remaining = Math.max(availableStock - otherQty, 0);
+      return NextResponse.json(
+        { error: `Only ${remaining} item(s) available in stock.` },
+        { status: 400 }
+      );
+    }
 
     await prisma.cartItem.update({
-        where: { id: cartItemId },
-        data: { quantity: newQuantity },
+      where: { id: cartItemId },
+      data: { quantity },
     });
-    
-    const finalCart = await updateCartTotal(cartItem.cartId);
-    return NextResponse.json({ cart: finalCart });
+
+    const updatedCart = await recalcCartTotal(item.cartId);
+    return NextResponse.json({ message: "Quantity updated", cart: updatedCart });
+  } catch (err) {
+    console.error("[CART_PUT_ERROR]", err);
+    return NextResponse.json({ error: "Failed to update cart" }, { status: 500 });
+  }
 }
 
-export async function DELETE(req: Request) {
-    const userId = await getUserIdFromToken(req);
-    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+/* ---------------------------------------------
+   ❌ DELETE - Remove Item
+---------------------------------------------- */
+export async function DELETE(req: NextRequest) {
+  const user = await getUserFromToken(req);
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { cartItemId } = await req.json();
+  try {
+    const body = await req.json();
+    const valid = CartDeleteSchema.safeParse(body);
+    if (!valid.success) {
+      return NextResponse.json({ error: valid.error.issues[0].message }, { status: 400 });
+    }
 
-    const itemToRemove = await prisma.cartItem.findFirst({
-        where: { id: cartItemId, cart: { userId } }
+    const { cartItemId } = valid.data;
+
+    const item = await prisma.cartItem.findFirst({
+      where: { id: cartItemId, cart: { userId: user.id } },
     });
-
-    if (!itemToRemove) return NextResponse.json({ error: "Item not found" }, { status: 404 });
+    if (!item) return NextResponse.json({ error: "Item not found" }, { status: 404 });
 
     await prisma.cartItem.delete({ where: { id: cartItemId } });
 
-    const finalCart = await updateCartTotal(itemToRemove.cartId);
-    return NextResponse.json({ cart: finalCart });
+    const updatedCart = await recalcCartTotal(item.cartId);
+    return NextResponse.json({ message: "Item removed", cart: updatedCart });
+  } catch (err) {
+    console.error("[CART_DELETE_ERROR]", err);
+    return NextResponse.json({ error: "Failed to remove item" }, { status: 500 });
+  }
 }

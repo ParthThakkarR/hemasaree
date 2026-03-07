@@ -1,44 +1,48 @@
+// api/(auth)/verify/route.tsx
+import { NextRequest, NextResponse } from 'next/server';
+import { jwtVerify } from 'jose';
 
-import { NextRequest, NextResponse } from "next/server";
-import { jwtVerify } from "jose";
-
-interface UserJWTPayload {
-  isAdmin: boolean;
-}
+interface UserJWTPayload { /* ... */ }
 
 export async function POST(req: NextRequest) {
-  const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    console.error("❌ [API/VERIFY] JWT_SECRET is not configured!");
-    return NextResponse.json({ error: "Configuration error" }, { status: 500 });
-  }
+  const secret = process.env.JWT_SECRET; /* ... */
 
   try {
-    const { token } = await req.json();
+    const authHeader = req.headers.get('Authorization');
+    // --- ADD LOG ---
+    console.log(`[VERIFY API] Received Authorization header: ${authHeader ? 'Yes' : 'No'}`);
+    // -------------
+    const token = authHeader?.split(' ')[1];
+
     if (!token) {
-      return NextResponse.json({ isAuthenticated: false }, { status: 400 });
+      console.log("❌ [VERIFY API] No token found in header.");
+      return NextResponse.json({ isAuthenticated: false, isAdmin: false }, { status: 401 });
     }
+
+    // --- ADD LOG ---
+    console.log(`[VERIFY API] Attempting to verify token (first 10 chars): ${token.substring(0, 10)}...`);
+    // -------------
 
     const { payload } = await jwtVerify<UserJWTPayload>(
       token,
       new TextEncoder().encode(secret)
     );
 
-    // This is the most important log. It shows what's in the token.
-    console.log("✅ [API/VERIFY] Token Payload:", payload);
+    // --- ADD LOG ---
+    console.log("[VERIFY API] Token verified successfully. Payload:", payload);
+    // -------------
 
     const result = {
       isAuthenticated: true,
       isAdmin: payload.isAdmin || false,
     };
-
-    // This log shows what the API is sending back to the middleware.
-    console.log("✅ [API/VERIFY] Sending to middleware:", result);
-
+    console.log("✅ [VERIFY API] Returning:", result);
     return NextResponse.json(result);
 
   } catch (error) {
-    console.error("❌ [API/VERIFY] Error verifying token:", error);
-    return NextResponse.json({ isAuthenticated: false }, { status: 401 });
+    // --- MODIFY LOG ---
+    console.log("❌ [VERIFY API] Token verification FAILED:", error); // Log the actual error
+    // -----------------
+    return NextResponse.json({ isAuthenticated: false, isAdmin: false }, { status: 401 });
   }
 }

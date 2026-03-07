@@ -1,3 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* app/globals.css */
+
+/* Existing styles preserved */
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -29,7 +34,17 @@ body {
   padding: 0;
   margin: 0;
 }
+/* Remove Bootstrap's default container padding on full-bleed pages */
+.container-fluid {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
 
+/* Remove row gutters */
+.row.g-0 {
+  --bs-gutter-x: 0;
+  --bs-gutter-y: 0;
+}
 a {
   color: inherit;
   text-decoration: none;
@@ -41,3 +56,53 @@ a {
   }
 }
 
+/* Additions for enhanced theming and consistency */
+
+
+:root {
+  /* Preserve your existing vars */
+  --background: #ffffff;
+  --foreground: #171717;
+  
+  /* Add new vars for the product page */
+  --primary-color: #667eea;
+  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --secondary-color: #f8fafc;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --border-color: #e2e8f0;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --radius: 12px;
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body {
+  /* Override font-family to use Inter for better UX */
+  font-family: 'Inter', Arial, Helvetica, sans-serif;
+}
+
+/* Dark mode additions */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Preserve your existing dark vars */
+    --background: #0a0a0a;
+    --foreground: #ededed;
+    
+    /* Add dark overrides for new vars */
+    --secondary-color: #0f172a;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --border-color: #334155;
+  }
+}
+
+/* Reduced motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

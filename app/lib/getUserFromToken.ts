@@ -1,61 +1,94 @@
-// import jwt from 'jsonwebtoken';
-// import { NextRequest } from "next/server";
+import { prisma } from './prisma';
+import { jwtVerify } from 'jose';
 
-// export function getUserFromToken(req: NextRequest) {
-//   const token = req.cookies.get("token")?.value;
+export interface Address {
+  id: string;
+  streetAddress: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  label?: string;
+  isDefault?: boolean;
+}
 
-//   if (!token) throw new Error("No token provided");
-
-//   try {
-//     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
-//       id: string;
-//       name: string;
-//       email: string;
-//     };
-
-//     return decoded;
-//   } catch {
-//     throw new Error("Invalid token");
-//   }
-// }
-
-import { NextRequest } from "next/server";
-import jwt from "jsonwebtoken";
-
-interface DecodedToken {
-    id: string;
-    name: string;
-    email: string;
-    isAdmin: boolean;
+export interface User {
+  id: string;
+  email: string;
+  firstName: string;
+  isAdmin: boolean;
+  addresses: Address[];
 }
 
 /**
- * Decodes the JWT from request cookies to get user information.
- * @param req The Next.js request object.
- * @returns The decoded user payload if the token is valid, otherwise null.
+ * Fetches user from JWT token (stored in cookies)
+ * Returns full user object with all saved addresses
  */
-export function getUserFromToken(req: NextRequest): DecodedToken | null {
-  const tokenCookie = req.cookies.get("token");
-
-  if (!tokenCookie) {
-    console.log("No token cookie found in request.");
-    return null;
-  }
-  
-  const token = tokenCookie.value;
-
-  if (!token) {
-    console.log("Token value is empty.");
-    return null;
-  }
-
+export async function getUserFromToken(
+  req: Request | { cookies: Map<string, { value: string }> }
+): Promise<User | null> {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as DecodedToken;
-    return decoded;
-  } catch (error) {
-    console.error("Invalid token:", error);
-    // Invalidate the cookie by throwing, which can be caught to clear it
-    // Or just return null for silent failure
+    // ✅ Extract JWT token
+    const token =
+      'cookies' in req
+        ? req.cookies.get('token')?.value
+        : req.headers
+            ?.get?.('cookie')
+            ?.split(';')
+            ?.find((c) => c.trim().startsWith('token='))
+            ?.split('=')[1];
+
+    if (!token) {
+      console.warn('[getUserFromToken] No token found');
+      return null;
+    }
+
+    // ✅ Verify token
+    const JWT_SECRET = process.env.JWT_SECRET!;
+    const { payload } = await jwtVerify(
+      token,
+      new TextEncoder().encode(JWT_SECRET)
+    );
+
+    const userId = (payload as any).id;
+    if (!userId) {
+      console.warn('[getUserFromToken] Invalid token payload');
+      return null;
+    }
+
+    // ✅ Fetch user with addresses (MongoDB-compatible)
+    const userRecord = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        addresses: {
+          select: {
+            id: true,
+            streetAddress: true,
+            city: true,
+            state: true,
+            zipCode: true,
+            label: true,
+            isDefault: true,
+          },
+        },
+      },
+    });
+
+    if (!userRecord) return null;
+
+    // ✅ Force cast to expected structure (TypeScript-safe)
+    const addresses = (userRecord as any).addresses ?? [];
+
+    const user: User = {
+      id: userRecord.id,
+      email: userRecord.email,
+      firstName: userRecord.firstName,
+      isAdmin: userRecord.isAdmin,
+      addresses: addresses,
+    };
+
+    return user;
+  } catch (err) {
+    console.error('[getUserFromToken ERROR]', err);
     return null;
   }
 }
