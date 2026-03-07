@@ -1,7 +1,7 @@
 // /app/api/orders/[id]/cancel/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma";
-import { OrderStatus, OrderItemStatus } from "@/app/generated/prisma";
+import { OrderStatus, OrderItemStatus } from "@prisma/client";
 import { getUserFromToken } from "@/app/lib/getUserFromToken";
 
 export async function POST(
@@ -12,7 +12,6 @@ export async function POST(
     // 1️⃣ Authenticate the user
     const decodedUser = await getUserFromToken(req);
     if (!decodedUser) {
-      console.log("❌ [CANCEL_ORDER] Unauthorized attempt.");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -36,7 +35,6 @@ export async function POST(
     });
 
     if (!order) {
-      console.log(`⚠️ [CANCEL_ORDER] Order ${orderId} not found or cannot be cancelled.`);
       return NextResponse.json(
         { error: "Order not found or cannot be cancelled." },
         { status: 404 }
@@ -74,14 +72,13 @@ export async function POST(
       return cancelledOrder;
     });
 
-    console.log(`✅ [CANCEL_ORDER] Order ${orderId} cancelled successfully and stock restored.`);
     return NextResponse.json({
       success: true,
       message: "Order cancelled and product stock restored.",
       order: updatedOrder,
     });
   } catch (error) {
-    console.error("❌ [CANCEL_ORDER_ERROR]", error);
+    console.error("[CANCEL_ORDER_ERROR]", error);
     return NextResponse.json(
       { error: "Internal Server Error while cancelling order." },
       { status: 500 }

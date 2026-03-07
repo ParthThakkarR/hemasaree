@@ -83,6 +83,10 @@ import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 import { verifyAdminToken } from '@/app/utils/auth';
 
+export const runtime = 'nodejs';
+
+const ALLOWED_FOLDERS = new Set(['products', 'categories', 'returns']);
+
 export async function POST(req: NextRequest) {
   const adminId = await verifyAdminToken(req);
   if (!adminId) {
@@ -99,7 +103,11 @@ export async function POST(req: NextRequest) {
     }
 
     // ✅ Optional folder name (default: products)
-    const folder = (formData.get('folder') as string) || 'products';
+    const requestedFolder = String(formData.get('folder') || 'products').trim().toLowerCase();
+    const folder = ALLOWED_FOLDERS.has(requestedFolder) ? requestedFolder : null;
+    if (!folder) {
+      return NextResponse.json({ error: 'Invalid upload folder.' }, { status: 400 });
+    }
 
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     const maxSize = 5 * 1024 * 1024; // 5MB
@@ -110,8 +118,18 @@ export async function POST(req: NextRequest) {
     const urls: string[] = [];
 
     for (const file of files) {
-      if (!allowedTypes.includes(file.type)) continue;
-      if (file.size > maxSize) continue;
+      if (!allowedTypes.includes(file.type)) {
+        return NextResponse.json(
+          { error: `Unsupported file type for ${file.name}.` },
+          { status: 400 }
+        );
+      }
+      if (file.size > maxSize) {
+        return NextResponse.json(
+          { error: `${file.name} exceeds the 5MB upload limit.` },
+          { status: 400 }
+        );
+      }
 
       const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
       const filename = `${Date.now()}_${sanitizedName}`;
@@ -121,6 +139,10 @@ export async function POST(req: NextRequest) {
       await writeFile(filePath, buffer);
 
       urls.push(`/uploads/${folder}/${filename}`);
+    }
+
+    if (urls.length === 0) {
+      return NextResponse.json({ error: 'No valid files were uploaded.' }, { status: 400 });
     }
 
     return NextResponse.json({ urls });

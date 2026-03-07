@@ -288,10 +288,10 @@ export default function LoginPage() {
       login(data.user);
 
       // ✅ Redirect by role
-      if (data.user.isAdmin) router.push('/admin');
-      else router.push('/');
-    } catch (err: any) {
-      setError(err.message);
+      if (data.user.isAdmin) router.replace('/admin');
+      else router.replace('/');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed.');
     } finally {
       setIsLoading(false);
     }

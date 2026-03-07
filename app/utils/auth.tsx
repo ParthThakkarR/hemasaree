@@ -1,6 +1,27 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma";
-import jwt from "jsonwebtoken";
+import { jwtVerify } from 'jose';
+
+type AdminTokenPayload = {
+  id?: string;
+  isAdmin?: boolean;
+};
+
+function getTokenFromCookieHeader(cookieHeader: string): string | null {
+  for (const rawCookie of cookieHeader.split(';')) {
+    const [name, ...rest] = rawCookie.trim().split('=');
+    if (name !== 'token' || rest.length === 0) {
+      continue;
+    }
+
+    try {
+      return decodeURIComponent(rest.join('='));
+    } catch {
+      return rest.join('=');
+    }
+  }
+
+  return null;
+}
 
 
 
@@ -11,25 +32,26 @@ import jwt from "jsonwebtoken";
 export async function verifyAdminToken(req: Request): Promise<string | null> {
   try {
     const cookieHeader = req.headers.get("cookie") || "";
-    const tokenCookie = cookieHeader.split(';').map(c => c.trim()).find(c => c.startsWith('token='));
+    const token = getTokenFromCookieHeader(cookieHeader);
+    const secret = process.env.JWT_SECRET;
 
-    if (!tokenCookie) {
-        return null;
+    if (!token || !secret) {
+      return null;
     }
 
-    const token = tokenCookie.split('=')[1];
-    if (!token) {
-        return null;
-    }
-
-    const decoded = jwt.verify(
+    const { payload } = await jwtVerify<AdminTokenPayload>(
       token,
-      process.env.JWT_SECRET as string
-    ) as { id: string; isAdmin?: boolean };
+      new TextEncoder().encode(secret)
+    );
+
+    const userId = typeof payload.id === 'string' ? payload.id : null;
+    if (!userId || !payload.isAdmin) {
+      return null;
+    }
 
     // Find the user in the database to confirm admin status
     const user = await prisma.user.findUnique({
-        where: { id: decoded.id },
+        where: { id: userId },
         select: { isAdmin: true }
     });
 
@@ -39,10 +61,9 @@ export async function verifyAdminToken(req: Request): Promise<string | null> {
     }
 
     // Success: Return the admin's user ID
-    return decoded.id;
+    return userId;
 
-  } catch (error) {
-    console.error("Token verification error:", error);
+  } catch {
     return null;
   }
 }

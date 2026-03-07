@@ -24,10 +24,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { firstName, lastName, email, phone, password, address } = validation.data;
+    const normalizedEmail = validation.data.email.trim().toLowerCase();
+    const { firstName, lastName, phone, password, address } = validation.data;
 
     // ✅ Check if user already exists
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    const existingUser = await prisma.user.findUnique({ where: { email: normalizedEmail } });
     if (existingUser) {
       return NextResponse.json(
         { message: 'User with this email already exists' },
@@ -43,7 +44,7 @@ export async function POST(req: NextRequest) {
       data: {
         firstName,
         lastName,
-        email,
+        email: normalizedEmail,
         phone,
         password: hashedPassword,
         // if address exists in signup, save it as first Address entry

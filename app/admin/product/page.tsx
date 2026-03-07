@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, FormEvent } from 'react';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 
 interface Category { id: string; name: string; }
@@ -40,9 +40,18 @@ export default function ManageProductsPage() {
       const [cats, prods] = await Promise.all([
         fetch('/api/categories'), fetch('/api/admin/products')
       ]);
-      setCategories(await cats.json());
-      setProducts(await prods.json());
-    } catch { toast.error('Failed to load data'); }
+      if (!cats.ok || !prods.ok) {
+        throw new Error('Failed to load products or categories');
+      }
+
+      const categoriesData = await cats.json();
+      const productsData = await prods.json();
+
+      setCategories(Array.isArray(categoriesData) ? categoriesData : []);
+      setProducts(Array.isArray(productsData) ? productsData : productsData.products || []);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to load data');
+    }
     finally { setIsLoading(false); }
   };
   useEffect(() => { fetchData(); }, []);
@@ -51,13 +60,15 @@ export default function ManageProductsPage() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      let finalUrls = [...productImageUrls];
+      const finalUrls = [...productImageUrls];
       if (productImages && productImages.length > 0) {
         const formData = new FormData();
         Array.from(productImages).forEach(f => formData.append('files', f));
         formData.append('folder', 'products');
         const res = await fetch('/api/admin/upload', { method: 'POST', body: formData });
         const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to upload product images');
+        if (!Array.isArray(data.urls)) throw new Error('Upload response did not contain file URLs');
         finalUrls.push(...data.urls);
       }
       const payload = {
@@ -80,7 +91,7 @@ export default function ManageProductsPage() {
       setProductImageUrls([]);
       if (fileRef.current) fileRef.current.value = '';
       fetchData();
-    } catch (e: any) { toast.error(e.message); }
+    } catch (e) { toast.error(e instanceof Error ? e.message : 'Failed to add product'); }
     finally { setIsLoading(false); }
   };
 
@@ -102,6 +113,8 @@ export default function ManageProductsPage() {
         formData.append('folder', 'products');
         const res = await fetch('/api/admin/upload', { method: 'POST', body: formData });
         const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to upload replacement images');
+        if (!Array.isArray(data.urls)) throw new Error('Upload response did not contain file URLs');
         finalUrls.push(...data.urls);
       }
       if (newProductImageUrls.length > 0) finalUrls.push(...newProductImageUrls);
@@ -113,13 +126,28 @@ export default function ManageProductsPage() {
       if (!res.ok) throw new Error('Failed to update product');
       toast.success('Product updated');
       setIsEditModalOpen(false);
+      setNewProductImages(null);
+      setNewProductImageUrls([]);
       fetchData();
-    } catch (err: any) { toast.error(err.message); }
+    } catch (err) { toast.error(err instanceof Error ? err.message : 'Failed to update product'); }
     finally { setIsLoading(false); }
   };
 
   return (
     <div className="container py-4">
+      <style jsx>{`
+        .modal-overlay {
+          background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .image-delete-btn {
+          border-radius: 50%;
+          width: 22px;
+          height: 22px;
+          padding: 0;
+          line-height: 1;
+        }
+      `}</style>
       <Toaster position="top-right" />
       <h2 className="mb-4">Manage Products</h2>
 
@@ -147,14 +175,14 @@ export default function ManageProductsPage() {
               value={productData.stock} onChange={e => setProductData({ ...productData, stock: e.target.value })} />
           </div>
           <div className="col-md-6">
-            <select className="form-select" value={productData.category}
+            <select className="form-select" title="Product category" aria-label="Product category" value={productData.category}
               onChange={e => setProductData({ ...productData, category: e.target.value })}>
               <option value="">Select Category</option>
               {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
           <div className="col-md-6">
-            <input ref={fileRef} type="file" multiple accept="image/*" className="form-control"
+            <input ref={fileRef} type="file" multiple accept="image/*" title="Upload product images" aria-label="Upload product images" className="form-control"
               onChange={e => setProductImages(e.target.files)} />
           </div>
           <div className="col-md-6">
@@ -172,9 +200,9 @@ export default function ManageProductsPage() {
         <tbody>
           {products.map(p => (
             <tr key={p.id}>
-              <td><img src={p.images?.[0] || 'https://placehold.co/60x60'} width={60} height={60} className="rounded" /></td>
+              <td><img src={p.images?.[0] || 'https://placehold.co/60x60'} alt={p.name} width={60} height={60} className="rounded" /></td>
               <td>{p.name}</td><td>{p.color}</td><td>{p.ocassion}</td><td>₹{p.price}</td><td>{p.stock}</td>
-              <td><button onClick={() => { setEditingProduct(p); setIsEditModalOpen(true); }} className="btn btn-sm btn-outline-primary"><Pencil size={16} /></button></td>
+              <td><button type="button" title={`Edit ${p.name}`} aria-label={`Edit ${p.name}`} onClick={() => { setEditingProduct(p); setIsEditModalOpen(true); }} className="btn btn-sm btn-outline-primary"><Pencil size={16} /></button></td>
             </tr>
           ))}
         </tbody>
@@ -182,13 +210,13 @@ export default function ManageProductsPage() {
 
       {/* Edit Modal */}
       {isEditModalOpen && editingProduct && (
-        <div className="modal show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+        <div className="modal show d-block modal-overlay">
           <div className="modal-dialog modal-lg">
             <div className="modal-content">
               <form onSubmit={handleSaveChanges}>
                 <div className="modal-header">
                   <h5>Edit {editingProduct.name}</h5>
-                  <button className="btn-close" onClick={() => setIsEditModalOpen(false)}></button>
+                  <button type="button" title="Close edit dialog" aria-label="Close edit dialog" className="btn-close" onClick={() => setIsEditModalOpen(false)}></button>
                 </div>
                 <div className="modal-body">
   <div className="row g-3">
@@ -197,6 +225,8 @@ export default function ManageProductsPage() {
       <input
         type="text"
         className="form-control"
+        title="Product name"
+        aria-label="Product name"
         value={editingProduct.name}
         onChange={e => setEditingProduct({ ...editingProduct, name: e.target.value })}
       />
@@ -206,6 +236,8 @@ export default function ManageProductsPage() {
       <input
         type="text"
         className="form-control"
+        title="Product color"
+        aria-label="Product color"
         value={editingProduct.color}
         onChange={e => setEditingProduct({ ...editingProduct, color: e.target.value })}
       />
@@ -215,6 +247,8 @@ export default function ManageProductsPage() {
       <input
         type="text"
         className="form-control"
+        title="Product occasion"
+        aria-label="Product occasion"
         value={editingProduct.ocassion}
         onChange={e => setEditingProduct({ ...editingProduct, ocassion: e.target.value })}
       />
@@ -225,6 +259,8 @@ export default function ManageProductsPage() {
       <input
         type="number"
         className="form-control"
+        title="Product price"
+        aria-label="Product price"
         value={editingProduct.price}
         onChange={e => setEditingProduct({ ...editingProduct, price: Number(e.target.value) })}
       />
@@ -235,6 +271,8 @@ export default function ManageProductsPage() {
       <input
         type="number"
         className="form-control"
+        title="Product stock"
+        aria-label="Product stock"
         value={editingProduct.stock}
         onChange={e => setEditingProduct({ ...editingProduct, stock: Number(e.target.value) })}
       />
@@ -244,6 +282,8 @@ export default function ManageProductsPage() {
       <label className="form-label">Category</label>
       <select
         className="form-select"
+        title="Edit product category"
+        aria-label="Edit product category"
         value={editingProduct.categoryId}
         onChange={e => setEditingProduct({ ...editingProduct, categoryId: e.target.value })}
       >
@@ -261,12 +301,13 @@ export default function ManageProductsPage() {
   <div className="d-flex flex-wrap gap-2 mb-3">
     {editingProduct.images.map((img, i) => (
       <div key={i} className="position-relative">
-        <img src={img} width={80} height={80} className="rounded border" />
+        <img src={img} alt={`${editingProduct.name} image ${i + 1}`} width={80} height={80} className="rounded border" />
         <button
           type="button"
+          title="Remove image"
+          aria-label="Remove image"
           onClick={() => handleDeleteImage(img)}
-          className="btn btn-danger btn-sm position-absolute top-0 end-0"
-          style={{ borderRadius: '50%', width: 22, height: 22, padding: 0 }}
+          className="btn btn-danger btn-sm position-absolute top-0 end-0 image-delete-btn"
         >×</button>
       </div>
     ))}
@@ -276,6 +317,8 @@ export default function ManageProductsPage() {
     type="file"
     multiple
     accept="image/*"
+    title="Upload replacement product images"
+    aria-label="Upload replacement product images"
     className="form-control mb-2"
     onChange={e => setNewProductImages(e.target.files)}
   />
@@ -283,6 +326,8 @@ export default function ManageProductsPage() {
     type="text"
     className="form-control"
     placeholder="Add image URLs (comma-separated)"
+    title="Additional image URLs"
+    aria-label="Additional image URLs"
     onChange={e => setNewProductImageUrls(e.target.value.split(',').map(u => u.trim()).filter(Boolean))}
   />
 </div>

@@ -1,9 +1,8 @@
 import { z } from 'zod';
 // Assuming your generated prisma client is here
-import { OrderStatus, OrderItemStatus } from '@/app/generated/prisma'; 
+import { OrderStatus, OrderItemStatus } from '@prisma/client'; 
 
 // --- Reusable Regex & Constants ---
-const phoneRegex = /^\d{10}$/;
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 const passwordError = 'Password must be at least 8 characters long and include an uppercase, lowercase, number, and special character.';
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB

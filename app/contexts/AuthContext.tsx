@@ -54,7 +54,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = (userData: User) => {
     setUser(userData);
-    router.push(userData.isAdmin ? '/admin' : '/');
   };
 
   const logout = async () => {

@@ -404,6 +404,16 @@ type Cart = {
   totalPrice?: number;
 };
 
+type UserAddress = {
+  id: string;
+  streetAddress: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  label?: string | null;
+  isDefault?: boolean;
+};
+
 /* -------------------- CSS -------------------- */
 const customStyles = `
 :root{
@@ -507,6 +517,14 @@ body{
 }
 .btn-outline-secondary{ border-radius:10px; }
 
+.cart-item-image{ object-fit:cover; border-radius:12px; }
+.cart-item-title{ margin:0; }
+.cart-item-polish{ color:#b45309; font-weight:600; margin-top:6px; }
+.cart-item-meta{ color:#64748b; font-size:13px; }
+.cart-item-total{ font-weight:800; font-size:18px; color:#0f172a; }
+.saved-address-card{ border-color:#ccc; cursor:pointer; }
+.saved-address-card.active{ border-color:#e76f51 !important; }
+
 /* responsive */
 @media (max-width:767px){
   .order-summary{ position:static; margin-top:1.5rem; }
@@ -563,14 +581,14 @@ const CartItemCard = memo(function CartItemCard({
     <div className="cart-item-card">
       <div className="row align-items-center">
         <div className="col-4 col-md-2">
-          <Image src={img} alt={item.productName || 'Product'} width={120} height={120} style={{ objectFit: 'cover', borderRadius: 12 }} />
+          <Image src={img} alt={item.productName || 'Product'} width={120} height={120} className="cart-item-image" />
         </div>
         <div className="col-8 col-md-10">
           <div className="row align-items-center">
             <div className="col-12 col-md-5">
-              <h5 style={{ margin: 0 }}>{item.productName}</h5>
-              {item.withPolish && <div style={{ color: '#b45309', fontWeight: 600, marginTop: 6 }}>With Polish</div>}
-              <div style={{ color: '#64748b', fontSize: 13 }}>₹{item.price.toLocaleString()} each</div>
+              <h5 className="cart-item-title">{item.productName}</h5>
+              {item.withPolish && <div className="cart-item-polish">With Polish</div>}
+              <div className="cart-item-meta">₹{item.price.toLocaleString()} each</div>
             </div>
             <div className="col-6 col-md-3">
               <div className="quantity-input-group">
@@ -580,7 +598,7 @@ const CartItemCard = memo(function CartItemCard({
               </div>
             </div>
             <div className="col-6 col-md-4 text-end">
-              <div style={{ fontWeight: 800, fontSize: 18, color: '#0f172a' }}>₹{(item.price * item.quantity).toLocaleString()}</div>
+              <div className="cart-item-total">₹{(item.price * item.quantity).toLocaleString()}</div>
               <button className="btn btn-sm btn-outline-danger mt-2" onClick={() => onRemove(item.id)}>
                 <Trash2 size={14} /> Remove
               </button>
@@ -600,19 +618,20 @@ export default function CartPageClient() {
   const [checkingOut, setCheckingOut] = useState(false);
   const [placing, setPlacing] = useState(false);
   const [selectedAddrMode, setSelectedAddrMode] = useState<'saved' | 'new'>('saved');
-  const [selectedAddress, setSelectedAddress] = useState<any>(null);
+  const [selectedAddress, setSelectedAddress] = useState<UserAddress | null>(null);
   const [newAddr, setNewAddr] = useState({ streetAddress: '', city: '', state: '', zipCode: '', label: '' });
   const [states] = useState(State.getStatesOfCountry('IN'));
-  const [cities, setCities] = useState<any[]>([]);
-  const [addresses, setAddresses] = useState<any[]>([]);
+  const [cities, setCities] = useState<Array<{ name: string }>>([]);
+  const [addresses, setAddresses] = useState<UserAddress[]>([]);
 
   const loadCart = useCallback(async () => {
     setLoading(true);
     try {
       const data = await apiGetCart();
       setCart(data.cart || null);
-    } catch (err: any) {
-      setError(err?.message || 'Failed to load cart');
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load cart');
     } finally {
       setLoading(false);
     }
@@ -624,12 +643,17 @@ export default function CartPageClient() {
     async function fetchUserAddresses() {
       try {
         const res = await fetch('/api/me', { credentials: 'include', cache: 'no-store' });
+        if (!res.ok) {
+          throw new Error('Failed to load saved addresses');
+        }
         const data = await res.json();
-        const addrList = data.user?.addresses ?? [];
+        const addrList: UserAddress[] = data.user?.addresses ?? [];
         setAddresses(addrList);
-        if (addrList.length > 0) setSelectedAddress(addrList[0]);
+        const defaultAddress = addrList.find((addr) => addr.isDefault) || addrList[0] || null;
+        setSelectedAddress(defaultAddress);
       } catch {
         setAddresses([]);
+        setSelectedAddress(null);
       }
     }
     fetchUserAddresses();
@@ -648,19 +672,29 @@ export default function CartPageClient() {
 
   const handleQty = async (id: string, q: number) => {
     if (q < 1) return;
-    const data = await apiUpdateQuantity(id, q);
-    setCart(data.cart);
+    try {
+      const data = await apiUpdateQuantity(id, q);
+      setCart(data.cart);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update quantity');
+    }
   };
 
   const handleRemove = async (id: string) => {
-    const data = await apiRemoveItem(id);
-    setCart(data.cart);
+    try {
+      const data = await apiRemoveItem(id);
+      setCart(data.cart);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to remove item');
+    }
   };
 
   const placeOrder = async () => {
     if (!cart) return;
     const finalAddr = selectedAddrMode === 'saved' ? selectedAddress : newAddr;
-    if (!finalAddr || !finalAddr.streetAddress) {
+    if (!finalAddr?.streetAddress || !finalAddr.city || !finalAddr.state || !finalAddr.zipCode) {
       alert('Please provide a valid shipping address');
       return;
     }
@@ -671,12 +705,13 @@ export default function CartPageClient() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cartId: cart.id, address: finalAddr }),
       });
-      if (!res.ok) throw new Error('Failed to place order');
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Failed to place order');
       alert('Order placed successfully!');
       setCheckingOut(false);
-      loadCart();
-    } catch (err: any) {
-      alert(err.message);
+      await loadCart();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to place order');
     } finally {
       setPlacing(false);
     }
@@ -733,8 +768,8 @@ export default function CartPageClient() {
                   <>
                     <label><input type="radio" checked={selectedAddrMode === 'saved'} onChange={() => setSelectedAddrMode('saved')} /> Use Saved Address</label>
                     <div className="ps-3">
-                      {addresses.map((addr: any) => (
-                        <div key={addr.id} className="border rounded p-2 mt-2" style={{ borderColor: selectedAddress?.id === addr.id ? '#e76f51' : '#ccc' }} onClick={() => setSelectedAddress(addr)}>
+                      {addresses.map((addr) => (
+                        <div key={addr.id} className={`border rounded p-2 mt-2 saved-address-card ${selectedAddress?.id === addr.id ? 'active' : ''}`} onClick={() => setSelectedAddress(addr)}>
                           <div className="fw-bold">{addr.label || 'Address'}</div>
                           <div>{addr.streetAddress}, {addr.city}, {addr.state} - {addr.zipCode}</div>
                         </div>
@@ -749,7 +784,7 @@ export default function CartPageClient() {
                     <input className="form-control mb-2" placeholder="Street Address" value={newAddr.streetAddress} onChange={e => setNewAddr({ ...newAddr, streetAddress: e.target.value })} />
                     <div className="row g-2">
                       <div className="col-md-6">
-                        <select className="form-select" value={newAddr.state} onChange={e => {
+                        <select className="form-select" aria-label="Select state" title="Select state" value={newAddr.state} onChange={e => {
                           const sName = e.target.value;
                           const st = states.find(s => s.name === sName);
                           if (st) setCities(City.getCitiesOfState('IN', st.isoCode));
@@ -760,7 +795,7 @@ export default function CartPageClient() {
                         </select>
                       </div>
                       <div className="col-md-6">
-                        <select className="form-select" value={newAddr.city} onChange={e => setNewAddr({ ...newAddr, city: e.target.value })}>
+                        <select className="form-select" aria-label="Select city" title="Select city" value={newAddr.city} onChange={e => setNewAddr({ ...newAddr, city: e.target.value })}>
                           <option value="">Select City</option>
                           {cities.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
                         </select>

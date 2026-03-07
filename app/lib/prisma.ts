@@ -1,5 +1,5 @@
 // lib/prisma.ts
-import { PrismaClient } from '@/app/generated/prisma';
+import { PrismaClient } from '@prisma/client';
 
 // This prevents Prisma from creating too many connections during
 // development hot-reloads in Next.js.

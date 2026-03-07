@@ -66,21 +66,15 @@ import crypto from 'crypto';
 
 export async function POST(req: Request) {
   try {
-    // parse raw body
     const rawBody = await req.json();
-console.log('🔍 VERIFY-OTP: Raw body received =>', rawBody);
 
-    // Normalize incoming values BEFORE validation to avoid transient-state validation errors
     const body = {
       email: typeof rawBody?.email !== 'undefined' ? String(rawBody.email).trim().toLowerCase() : '',
       otp: typeof rawBody?.otp !== 'undefined' ? String(rawBody.otp).trim() : '',
     };
-console.log('✅ VERIFY-OTP: Normalized body =>', body);
 
-    // Validate with Zod (schema will expect email + otp)
     const validation = VerifyOtpSchema.safeParse(body);
     if (!validation.success) {
-      // return the first issue message for clarity (same behavior as before)
       return NextResponse.json(
         { message: validation.error.issues[0].message },
         { status: 400 }
@@ -88,12 +82,10 @@ console.log('✅ VERIFY-OTP: Normalized body =>', body);
     }
     const { email, otp } = validation.data;
 
-    // Find the verification record (unique by email)
     const verificationRecord = await prisma.verificationToken.findUnique({
       where: { email },
     });
 
-    // Check existence and expiry
     if (!verificationRecord || new Date() > new Date(verificationRecord.expiresAt)) {
       return NextResponse.json(
         { message: 'OTP is invalid or has expired.' },
@@ -101,14 +93,12 @@ console.log('✅ VERIFY-OTP: Normalized body =>', body);
       );
     }
 
-    // Hash the otp exactly the same way it was stored (sha256)
     const hashedOtp = crypto.createHash('sha256').update(otp).digest('hex');
 
     if (hashedOtp !== verificationRecord.token) {
       return NextResponse.json({ message: 'Invalid OTP.' }, { status: 400 });
     }
 
-    // Delete the used verification token
     await prisma.verificationToken.delete({ where: { email } });
 
     return NextResponse.json({ message: 'Email verified successfully!' });

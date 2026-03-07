@@ -1,13 +1,41 @@
 import { prisma } from './prisma';
 import { jwtVerify } from 'jose';
 
+type TokenPayload = {
+  id?: string;
+};
+
+function extractToken(
+  req: Request | { cookies: Map<string, { value: string }> }
+): string | null {
+  if ('cookies' in req) {
+    return req.cookies.get('token')?.value ?? null;
+  }
+
+  const cookieHeader = req.headers?.get?.('cookie') ?? '';
+  for (const cookie of cookieHeader.split(';')) {
+    const [name, ...rest] = cookie.trim().split('=');
+    if (name !== 'token' || rest.length === 0) {
+      continue;
+    }
+
+    try {
+      return decodeURIComponent(rest.join('='));
+    } catch {
+      return rest.join('=');
+    }
+  }
+
+  return null;
+}
+
 export interface Address {
   id: string;
   streetAddress: string;
   city: string;
   state: string;
   zipCode: string;
-  label?: string;
+  label?: string | null;
   isDefault?: boolean;
 }
 
@@ -27,31 +55,20 @@ export async function getUserFromToken(
   req: Request | { cookies: Map<string, { value: string }> }
 ): Promise<User | null> {
   try {
-    // ✅ Extract JWT token
-    const token =
-      'cookies' in req
-        ? req.cookies.get('token')?.value
-        : req.headers
-            ?.get?.('cookie')
-            ?.split(';')
-            ?.find((c) => c.trim().startsWith('token='))
-            ?.split('=')[1];
+    const token = extractToken(req);
+    const secret = process.env.JWT_SECRET;
 
-    if (!token) {
-      console.warn('[getUserFromToken] No token found');
+    if (!token || !secret) {
       return null;
     }
 
-    // ✅ Verify token
-    const JWT_SECRET = process.env.JWT_SECRET!;
-    const { payload } = await jwtVerify(
+    const { payload } = await jwtVerify<TokenPayload>(
       token,
-      new TextEncoder().encode(JWT_SECRET)
+      new TextEncoder().encode(secret)
     );
 
-    const userId = (payload as any).id;
+    const userId = typeof payload.id === 'string' ? payload.id : null;
     if (!userId) {
-      console.warn('[getUserFromToken] Invalid token payload');
       return null;
     }
 
@@ -75,20 +92,16 @@ export async function getUserFromToken(
 
     if (!userRecord) return null;
 
-    // ✅ Force cast to expected structure (TypeScript-safe)
-    const addresses = (userRecord as any).addresses ?? [];
-
     const user: User = {
       id: userRecord.id,
       email: userRecord.email,
       firstName: userRecord.firstName,
       isAdmin: userRecord.isAdmin,
-      addresses: addresses,
+      addresses: userRecord.addresses ?? [],
     };
 
     return user;
-  } catch (err) {
-    console.error('[getUserFromToken ERROR]', err);
+  } catch {
     return null;
   }
 }

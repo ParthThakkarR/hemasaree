@@ -6,7 +6,7 @@ import { CheckoutSchema } from '@/app/lib/validators'; // We defined this before
 
 // 1. --- NEW: Add your delivery logic to the backend ---
 const getDeliveryCharge = (state: string): number => {
-  if (state.toLowerCase() === 'gujarat') {
+  if (state.trim().toLowerCase() === 'gujarat') {
     return 80;
   }
   return 150;
@@ -15,7 +15,7 @@ const getDeliveryCharge = (state: string): number => {
 export async function POST(req: NextRequest) {
   const decodedUser = await getUserFromToken(req);
   if (!decodedUser) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const userId = await decodedUser.id;
+  const userId = decodedUser.id;
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -32,6 +32,13 @@ export async function POST(req: NextRequest) {
       );
     }
     const { address } = validation.data;
+    const normalizedAddress = {
+      streetAddress: address.streetAddress.trim(),
+      city: address.city.trim(),
+      state: address.state.trim(),
+      zipCode: address.zipCode.trim(),
+      country: address.country?.trim(),
+    };
 
     // 3. Fetch the user's cart from the DB (our secure logic)
     const userCart = await prisma.cart.findFirst({
@@ -82,10 +89,10 @@ export async function POST(req: NextRequest) {
     }
 
     // 5. --- FIX: Use the dynamic delivery charge logic ---
-    const deliveryCharge = getDeliveryCharge(address.state);
+    const deliveryCharge = getDeliveryCharge(normalizedAddress.state);
     const finalTotalAmount = serverTotalAmount + deliveryCharge;
-    const formattedAddress = `${address.streetAddress}, ${address.city}, ${address.state} - ${address.zipCode}, ${
-      address.country || 'India'
+    const formattedAddress = `${normalizedAddress.streetAddress}, ${normalizedAddress.city}, ${normalizedAddress.state} - ${normalizedAddress.zipCode}, ${
+      normalizedAddress.country || 'India'
     }`;
 
     // 6. Prepare Order Creation with *server data*
@@ -102,7 +109,7 @@ export async function POST(req: NextRequest) {
     });
 
     // 7. Execute Transaction (your excellent logic)
-    const [_, newOrder] = await prisma.$transaction([
+    const [, newOrder] = await prisma.$transaction([
       ...stockUpdates,
       orderCreation,
     ]);
@@ -118,9 +125,14 @@ export async function POST(req: NextRequest) {
       message: 'Order placed successfully!',
       order: newOrder,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Checkout API Error:', error);
-    if (error.code === 'P2025' || error.code === 'P2034') {
+    if (
+      typeof error === 'object' &&
+      error !== null &&
+      'code' in error &&
+      (error.code === 'P2025' || error.code === 'P2034')
+    ) {
       return NextResponse.json(
         { error: 'One or more items in your cart are out of stock.' },
         { status: 409 }

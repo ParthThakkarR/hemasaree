@@ -8,17 +8,26 @@ import nodemailer from 'nodemailer';
 // 3. (RECOMMENDED) Use a transactional email service
 // const resend = new Resend(process.env.RESEND_API_KEY);
 
-// (Using nodemailer for this example as you had it)
-const transporter = nodemailer.createTransport({
-  // 4. CRITICAL: Replace 'gmail' with a real service
-  host: process.env.EMAIL_HOST, // e.g., 'smtp.resend.com'
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.EMAIL_USER, // e.g., 'apikey'
-    pass: process.env.EMAIL_PASS, // Your API key
-  },
-});
+function createTransporter() {
+  const host = process.env.EMAIL_HOST;
+  const user = process.env.EMAIL_USER;
+  const pass = process.env.EMAIL_PASS;
+  const port = Number(process.env.EMAIL_PORT || 465);
+
+  if (!host || !user || !pass) {
+    return null;
+  }
+
+  return nodemailer.createTransport({
+    host,
+    port,
+    secure: port === 465,
+    auth: {
+      user,
+      pass,
+    },
+  });
+}
 
 export async function POST(req: Request) {
   try {
@@ -32,7 +41,24 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-    const { email } = validation.data;
+    const email = validation.data.email.trim().toLowerCase();
+
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+      return NextResponse.json(
+        { error: 'An account with this email already exists.' },
+        { status: 409 }
+      );
+    }
+
+    const transporter = createTransporter();
+    const emailDomain = process.env.EMAIL_DOMAIN;
+    if (!transporter || !emailDomain) {
+      return NextResponse.json(
+        { error: 'Email service is not configured on this server.' },
+        { status: 500 }
+      );
+    }
 
     // Check for existing OTP to prevent spam
     // 6. Use the 'prisma' singleton (lowercase)
@@ -70,7 +96,7 @@ export async function POST(req: Request) {
 
     // 7. Send email
     await transporter.sendMail({
-      from: `"Your App" <onboarding@${process.env.EMAIL_DOMAIN}>`,
+      from: `"Your App" <onboarding@${emailDomain}>`,
       to: email,
       subject: 'Your Verification Code',
       text: `Your OTP is ${otp}. It is valid for 10 minutes.`,

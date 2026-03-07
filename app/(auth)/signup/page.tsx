@@ -530,6 +530,15 @@ import { State, City } from 'country-state-city';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+type StateOption = {
+  name: string;
+  isoCode: string;
+};
+
+type CityOption = {
+  name: string;
+};
+
 // --- Validation Regexes (Unchanged) ---
 const passwordRegex =
   /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
@@ -772,8 +781,8 @@ export default function SignupPage() {
 
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const otpInputs = useRef<(HTMLInputElement | null)[]>([]);
-  const [states, setStates] = useState<any[]>([]);
-  const [cities, setCities] = useState<any[]>([]);
+  const [states, setStates] = useState<StateOption[]>([]);
+  const [cities, setCities] = useState<CityOption[]>([]);
   const [countdown, setCountdown] = useState(180);
   const [showResend, setShowResend] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -836,8 +845,8 @@ export default function SignupPage() {
       setStep('otp');
       setCountdown(180);
       setShowResend(false);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to send OTP.');
     } finally {
       setIsLoading(false);
     }
@@ -859,16 +868,16 @@ export default function SignupPage() {
       setSuccess('A new OTP has been sent.');
       setCountdown(180);
       setShowResend(false);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to resend OTP.');
     } finally {
       setIsLoading(false);
     }
   };
 
   // --- Step 3: Verify OTP (Unchanged) ---
-  const handleOtpSubmit = async (e: React.FormEvent, autoOtp?: string) => {
-  e.preventDefault();
+  const handleOtpSubmit = async (e?: React.SyntheticEvent, autoOtp?: string) => {
+  e?.preventDefault();
   setError('');
   setIsLoading(true);
 
@@ -888,7 +897,6 @@ export default function SignupPage() {
   }
 
   try {
-    console.log("📤 Sending OTP:", { email: emailValue, otp: enteredOtp });
     const res = await fetch('/api/verify-otp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -901,9 +909,8 @@ export default function SignupPage() {
 
     setSuccess('✅ Email verified successfully!');
     setStep('details');
-  } catch (err: any) {
-    console.error('❌ OTP Verify Error:', err.message);
-    setError(err.message);
+  } catch (err) {
+    setError(err instanceof Error ? err.message : 'OTP verification failed.');
   } finally {
     setIsLoading(false);
   }
@@ -937,8 +944,7 @@ export default function SignupPage() {
     setTimeout(() => {
       const finalOtp = newOtp.join('');
       if (/^\d{6}$/.test(finalOtp)) {
-        console.log("🧩 Auto-submitting OTP:", finalOtp);
-        handleOtpSubmit(e as any, finalOtp); // pass otp explicitly
+        void handleOtpSubmit(undefined, finalOtp);
       }
     }, 200); // 200ms ensures React updates state fully
   }
@@ -990,8 +996,8 @@ export default function SignupPage() {
       if (!res.ok) throw new Error(data.message || 'Signup failed.');
       setSuccess('Account created! Redirecting to login...');
       setTimeout(() => router.push('/login'), 2000);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Signup failed.');
       setIsLoading(false);
     }
   };

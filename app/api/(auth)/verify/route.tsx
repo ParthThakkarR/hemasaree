@@ -2,47 +2,44 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
 
-interface UserJWTPayload { /* ... */ }
+interface UserJWTPayload {
+  id?: string;
+  email?: string;
+  isAdmin?: boolean;
+}
 
 export async function POST(req: NextRequest) {
-  const secret = process.env.JWT_SECRET; /* ... */
+  const secret = process.env.JWT_SECRET;
+
+  if (!secret) {
+    return NextResponse.json(
+      { isAuthenticated: false, isAdmin: false },
+      { status: 500 }
+    );
+  }
 
   try {
-    const authHeader = req.headers.get('Authorization');
-    // --- ADD LOG ---
-    console.log(`[VERIFY API] Received Authorization header: ${authHeader ? 'Yes' : 'No'}`);
-    // -------------
-    const token = authHeader?.split(' ')[1];
+    const authHeader = req.headers.get('authorization');
+    const token = authHeader?.startsWith('Bearer ')
+      ? authHeader.slice(7)
+      : null;
 
     if (!token) {
-      console.log("❌ [VERIFY API] No token found in header.");
       return NextResponse.json({ isAuthenticated: false, isAdmin: false }, { status: 401 });
     }
-
-    // --- ADD LOG ---
-    console.log(`[VERIFY API] Attempting to verify token (first 10 chars): ${token.substring(0, 10)}...`);
-    // -------------
 
     const { payload } = await jwtVerify<UserJWTPayload>(
       token,
       new TextEncoder().encode(secret)
     );
 
-    // --- ADD LOG ---
-    console.log("[VERIFY API] Token verified successfully. Payload:", payload);
-    // -------------
-
     const result = {
       isAuthenticated: true,
-      isAdmin: payload.isAdmin || false,
+      isAdmin: Boolean(payload.isAdmin),
     };
-    console.log("✅ [VERIFY API] Returning:", result);
     return NextResponse.json(result);
 
-  } catch (error) {
-    // --- MODIFY LOG ---
-    console.log("❌ [VERIFY API] Token verification FAILED:", error); // Log the actual error
-    // -----------------
+  } catch {
     return NextResponse.json({ isAuthenticated: false, isAdmin: false }, { status: 401 });
   }
 }

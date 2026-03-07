@@ -3,9 +3,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/prisma';
 import { getUserFromToken } from '@/app/lib/getUserFromToken';
 import { ReturnRequestSchema } from '@/app/lib/validators';
-import { OrderItemStatus } from '@/app/generated/prisma';
+import { OrderItemStatus } from '@prisma/client';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
+
+export const runtime = 'nodejs';
 
 export async function POST(
   req: NextRequest,

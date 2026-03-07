@@ -21,7 +21,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { email, password } = validation.data;
+    const email = validation.data.email.trim().toLowerCase();
+    const { password } = validation.data;
     const user = await prisma.user.findUnique({ where: { email } });
 
     if (!user || !(await bcrypt.compare(password, user.password))) {

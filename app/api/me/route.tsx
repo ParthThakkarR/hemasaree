@@ -52,15 +52,26 @@ export async function POST(req: Request) {
     const { streetAddress, city, state, zipCode, label, isDefault } =
       await req.json();
 
-    if (!streetAddress || !city || !state || !zipCode) {
+    const normalizedStreet = typeof streetAddress === 'string' ? streetAddress.trim() : '';
+    const normalizedCity = typeof city === 'string' ? city.trim() : '';
+    const normalizedState = typeof state === 'string' ? state.trim() : '';
+    const normalizedZipCode = typeof zipCode === 'string' ? zipCode.trim() : '';
+    const normalizedLabel = typeof label === 'string' ? label.trim() : '';
+
+    if (!normalizedStreet || !normalizedCity || !normalizedState || !normalizedZipCode) {
       return NextResponse.json(
         { error: 'All fields required' },
         { status: 400 }
       );
     }
 
+    const existingAddressCount = await prisma.address.count({
+      where: { userId: user.id },
+    });
+    const shouldBeDefault = Boolean(isDefault) || existingAddressCount === 0;
+
     // If a default is being added, unset old default
-    if (isDefault) {
+    if (shouldBeDefault) {
       await prisma.address.updateMany({
         where: { userId: user.id },
         data: { isDefault: false },
@@ -69,12 +80,12 @@ export async function POST(req: Request) {
 
     const newAddress = await prisma.address.create({
       data: {
-        streetAddress,
-        city,
-        state,
-        zipCode,
-        label: label || 'Home',
-        isDefault: isDefault ?? false,
+        streetAddress: normalizedStreet,
+        city: normalizedCity,
+        state: normalizedState,
+        zipCode: normalizedZipCode,
+        label: normalizedLabel || 'Home',
+        isDefault: shouldBeDefault,
         userId: user.id,
       },
     });
