@@ -9,10 +9,11 @@ import jwt from 'jsonwebtoken';
 
 export async function POST(req: NextRequest) {
   try {
-
+    console.log("[SIGNUP] POST request received");
     const body = await req.json();
     const validation = SignUpSchema.safeParse(body);
     if (!validation.success) {
+      console.error("[SIGNUP] Validation failed:", validation.error.format());
       return NextResponse.json(
         { message: validation.error.issues[0].message },
         { status: 400 }
@@ -20,10 +21,13 @@ export async function POST(req: NextRequest) {
     }
 
     const { firstName, lastName, email, phone, password, address } = validation.data;
+    console.log(`[SIGNUP] Attempting signup for: ${email}`);
 
     // ✅ Check if user already exists
+    console.log("[SIGNUP] Checking existing user...");
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
+      console.warn(`[SIGNUP] User already exists: ${email}`);
       return NextResponse.json(
         { message: 'User with this email already exists' },
         { status: 409 }
@@ -31,9 +35,11 @@ export async function POST(req: NextRequest) {
     }
 
     // ✅ Hash password
+    console.log("[SIGNUP] Hashing password...");
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // ✅ Create user (and optional initial address)
+    console.log("[SIGNUP] Creating user in database...");
     const user = await prisma.user.create({
       data: {
         firstName,
@@ -57,6 +63,7 @@ export async function POST(req: NextRequest) {
       },
       include: { addresses: true },
     });
+    console.log(`[SIGNUP] User created: ${user.id}`);
 
     // ✅ Just return success since NextAuth handles session logging in later
     return NextResponse.json(
@@ -72,10 +79,10 @@ export async function POST(req: NextRequest) {
       },
       { status: 201 }
     );
-  } catch (err) {
+  } catch (err: any) {
     console.error('[SIGNUP_ERROR]', err);
     return NextResponse.json(
-      { message: 'Internal Server Error' },
+      { message: err.message || 'Internal Server Error' },
       { status: 500 }
     );
   }
