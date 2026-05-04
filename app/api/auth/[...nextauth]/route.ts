@@ -14,17 +14,18 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
       allowDangerousEmailAccountLinking: true,
+      // Simplified profile mapping to ensure compatibility
       profile(profile) {
-        console.log(`[AUTH] Google Profile received for: ${profile.email}`);
         return {
+          id: profile.sub,
           name: profile.name,
-          firstName: profile.given_name || profile.name,
-          lastName: profile.family_name || "",
           email: profile.email,
           image: profile.picture,
+          firstName: profile.given_name,
+          lastName: profile.family_name,
           isAdmin: false,
-        } as any;
-      }
+        };
+      },
     }),
     CredentialsProvider({
       name: "Credentials",
@@ -37,7 +38,7 @@ export const authOptions: NextAuthOptions = {
         try {
           if (!credentials?.email || !credentials?.password) {
             console.error("[AUTH] Missing email or password in credentials");
-            throw new Error("Invalid credentials");
+            return null;
           }
           
           const user = await prisma.user.findUnique({
@@ -104,9 +105,21 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: "/login",
+    error: "/login", // Redirect to login page on error
   },
   debug: true,
-  secret: process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET,
+  secret: process.env.NEXTAUTH_SECRET,
+  logger: {
+    error(code, metadata) {
+      console.error(`[NEXTAUTH_ERROR] ${code}`, metadata);
+    },
+    warn(code) {
+      console.warn(`[NEXTAUTH_WARN] ${code}`);
+    },
+    debug(code, metadata) {
+      console.log(`[NEXTAUTH_DEBUG] ${code}`, metadata);
+    },
+  },
 };
 
 const handler = NextAuth(authOptions);
