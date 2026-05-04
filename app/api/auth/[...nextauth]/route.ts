@@ -75,6 +75,16 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async signIn({ user, account, profile }) {
+      console.log(`[AUTH] SignIn Attempt: provider=${account?.provider}, email=${user.email}`);
+      
+      if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+        console.error("[AUTH] Google credentials missing in environment!");
+      }
+      
+      if (!process.env.NEXTAUTH_URL && process.env.NODE_ENV === "production") {
+        console.warn("[AUTH] NEXTAUTH_URL is not set in production. This often causes OAuth failures.");
+      }
+
       if (account?.provider === "google") {
         if (!user.email) {
           console.error("[AUTH] Google login failed: No email provided");
@@ -104,6 +114,12 @@ export const authOptions: NextAuthOptions = {
   },
   debug: true,
   secret: process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET,
+  events: {
+    async signIn(message) { console.log("[AUTH_EVENT] Success:", message.user.email); },
+    async linkAccount(message) { console.log("[AUTH_EVENT] Link Account:", message.account.provider); },
+    async createUser(message) { console.log("[AUTH_EVENT] Create User:", message.user.email); },
+    async error(message) { console.error("[AUTH_EVENT] Error:", message); },
+  },
 };
 
 const handler = NextAuth(authOptions);

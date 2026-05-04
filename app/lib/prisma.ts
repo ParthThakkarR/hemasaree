@@ -1,13 +1,22 @@
 // lib/prisma.ts
 import { PrismaClient } from '@prisma/client';
 
-// Clean up DATABASE_URL if it has quotes (common issue in some environments)
-if (process.env.DATABASE_URL && (process.env.DATABASE_URL.startsWith('"') || process.env.DATABASE_URL.startsWith("'"))) {
-  process.env.DATABASE_URL = process.env.DATABASE_URL.slice(1, -1);
+let databaseUrl = process.env.DATABASE_URL || "";
+
+// Aggressive sanitization: remove all quotes, whitespace, and handle common formatting issues
+if (databaseUrl) {
+  databaseUrl = databaseUrl.trim().replace(/^["']+|["']+$/g, '');
+  
+  // Log metadata (not the full URL for security)
+  console.log(`[PRISMA] Initializing with URL: ${databaseUrl.substring(0, 12)}... (Total length: ${databaseUrl.length})`);
+  
+  if (!databaseUrl.startsWith('mongodb')) {
+    console.error(`[PRISMA] CRITICAL: DATABASE_URL does not start with mongo! Current start: ${databaseUrl.substring(0, 10)}`);
+  }
+} else {
+  console.error("[PRISMA] CRITICAL: DATABASE_URL is undefined or empty!");
 }
 
-// This prevents Prisma from creating too many connections during
-// development hot-reloads in Next.js.
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
 export const prisma =
@@ -15,10 +24,10 @@ export const prisma =
   new PrismaClient({
     datasources: {
       db: {
-        url: process.env.DATABASE_URL,
+        url: databaseUrl,
       },
     },
-    // log: ['query', 'info', 'warn', 'error'],
+    log: ['error', 'warn'],
   });
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
