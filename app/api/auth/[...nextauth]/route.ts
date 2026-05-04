@@ -1,9 +1,11 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
-import { PrismaAdapter } from "@auth/prisma-adapter";
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { prisma } from "@/app/lib/prisma";
 import bcrypt from "bcryptjs";
+
+export const dynamic = "force-dynamic";
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as any,
@@ -13,8 +15,7 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
       allowDangerousEmailAccountLinking: true,
       profile(profile) {
-        // For MongoDB, we omit the 'id' field to let Prisma/MongoDB generate a valid ObjectId.
-        // NextAuth still links the account correctly using the providerAccountId from the raw profile.
+        console.log(`[AUTH] Google Profile received for: ${profile.email}`);
         return {
           name: profile.name,
           firstName: profile.given_name || profile.name,
@@ -32,8 +33,10 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
+        console.log(`[AUTH] Authorize call for: ${credentials?.email}`);
         try {
           if (!credentials?.email || !credentials?.password) {
+            console.error("[AUTH] Missing email or password in credentials");
             throw new Error("Invalid credentials");
           }
           
@@ -41,9 +44,14 @@ export const authOptions: NextAuthOptions = {
             where: { email: credentials.email }
           });
           
-          if (!user || !user.password) {
-            console.error(`[AUTH] User not found or no password for: ${credentials.email}`);
-            throw new Error("Invalid email or password");
+          if (!user) {
+            console.error(`[AUTH] User not found: ${credentials.email}`);
+            return null;
+          }
+
+          if (!user.password) {
+            console.error(`[AUTH] User exists but has no password (OAuth user?): ${credentials.email}`);
+            return null;
           }
 
           const isCorrectPassword = await bcrypt.compare(
@@ -53,9 +61,10 @@ export const authOptions: NextAuthOptions = {
 
           if (!isCorrectPassword) {
             console.error(`[AUTH] Incorrect password for: ${credentials.email}`);
-            throw new Error("Invalid email or password");
+            return null;
           }
 
+          console.log(`[AUTH] Successful authorize for: ${user.email}`);
           return {
             id: user.id,
             email: user.email,
@@ -64,7 +73,7 @@ export const authOptions: NextAuthOptions = {
           };
         } catch (error: any) {
           console.error("[AUTH_AUTHORIZE_ERROR]", error);
-          return null; // Returning null triggers a 401 in NextAuth
+          return null;
         }
       }
     })
@@ -75,23 +84,7 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async signIn({ user, account, profile }) {
-      console.log(`[AUTH] SignIn Attempt: provider=${account?.provider}, email=${user.email}`);
-      
-      if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
-        console.error("[AUTH] Google credentials missing in environment!");
-      }
-      
-      if (!process.env.NEXTAUTH_URL && process.env.NODE_ENV === "production") {
-        console.warn("[AUTH] NEXTAUTH_URL is not set in production. This often causes OAuth failures.");
-      }
-
-      if (account?.provider === "google") {
-        if (!user.email) {
-          console.error("[AUTH] Google login failed: No email provided");
-          return false;
-        }
-        return true;
-      }
+      console.log(`[AUTH] signIn callback: provider=${account?.provider}, email=${user.email}`);
       return true;
     },
     async jwt({ token, user }) {
@@ -114,12 +107,6 @@ export const authOptions: NextAuthOptions = {
   },
   debug: true,
   secret: process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET,
-  events: {
-    async signIn(message) { console.log("[AUTH_EVENT] Success:", message.user.email); },
-    async linkAccount(message) { console.log("[AUTH_EVENT] Link Account:", message.account.provider); },
-    async createUser(message) { console.log("[AUTH_EVENT] Create User:", message.user.email); },
-    async error(message) { console.error("[AUTH_EVENT] Error:", message); },
-  },
 };
 
 const handler = NextAuth(authOptions);
