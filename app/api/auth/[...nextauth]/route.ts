@@ -67,6 +67,16 @@ export const authOptions: NextAuthOptions = {
     maxAge: 7 * 24 * 60 * 60, // 7 days
   },
   callbacks: {
+    async signIn({ user, account, profile }) {
+      if (account?.provider === "google") {
+        if (!user.email) {
+          console.error("Google login failed: No email provided");
+          return false;
+        }
+        return true;
+      }
+      return true;
+    },
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
@@ -85,7 +95,7 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: "/login",
   },
-  debug: false,
+  debug: true,
   secret: process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET,
 };
 
