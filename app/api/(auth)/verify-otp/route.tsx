@@ -89,12 +89,13 @@ console.log('✅ VERIFY-OTP: Normalized body =>', body);
     const { email, otp } = validation.data;
 
     // Find the verification record (unique by email)
-    const verificationRecord = await prisma.verificationToken.findUnique({
-      where: { email },
+    const verificationRecord = await prisma.verificationToken.findFirst({
+      where: { identifier: email },
+      orderBy: { expires: 'desc' }
     });
 
     // Check existence and expiry
-    if (!verificationRecord || new Date() > new Date(verificationRecord.expiresAt)) {
+    if (!verificationRecord || new Date() > new Date(verificationRecord.expires)) {
       return NextResponse.json(
         { message: 'OTP is invalid or has expired.' },
         { status: 400 }
@@ -109,7 +110,7 @@ console.log('✅ VERIFY-OTP: Normalized body =>', body);
     }
 
     // Delete the used verification token
-    await prisma.verificationToken.delete({ where: { email } });
+    await prisma.verificationToken.deleteMany({ where: { identifier: email } });
 
     return NextResponse.json({ message: 'Email verified successfully!' });
   } catch (err) {

@@ -6,7 +6,8 @@
     "dev": "next dev ",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.2",
@@ -14,7 +15,6 @@
     "@prisma/client": "^6.18.0",
     "@types/react-bootstrap": "^1.0.1",
     "axios": "^1.11.0",
-    "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
     "bootstrap": "^5.3.8",
     "bson": "^6.10.4",
@@ -48,8 +48,8 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20",
     "@types/nodemailer": "^7.0.1",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
     "autoprefixer": "^10.5.0",
     "postcss": "^8.5.13",
     "prisma": "^6.18.0",

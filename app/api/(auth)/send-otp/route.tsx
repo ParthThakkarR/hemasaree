@@ -35,14 +35,14 @@ export async function POST(req: Request) {
     const { email } = validation.data;
 
     // Check for existing OTP to prevent spam
-    // 6. Use the 'prisma' singleton (lowercase)
-    const existingOTP = await prisma.verificationToken.findUnique({
-      where: { email },
+    const existingOTPRecord = await prisma.verificationToken.findFirst({
+      where: { identifier: email },
+      orderBy: { expires: 'desc' }
     });
 
-    if (existingOTP && new Date() < new Date(existingOTP.expiresAt)) {
+    if (existingOTPRecord && new Date() < new Date(existingOTPRecord.expires)) {
       const timeLeft = Math.ceil(
-        (new Date(existingOTP.expiresAt).getTime() - Date.now()) / 1000 / 60
+        (new Date(existingOTPRecord.expires).getTime() - Date.now()) / 1000 / 60
       );
       return NextResponse.json(
         {
@@ -59,13 +59,17 @@ export async function POST(req: Request) {
     const hashedOtp = crypto.createHash('sha256').update(otp).digest('hex');
 
     // Expire in 10 minutes
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    const expires = new Date(Date.now() + 10 * 60 * 1000);
 
     // Store/replace OTP in DB using the singleton
-    await prisma.verificationToken.upsert({
-      where: { email },
-      update: { token: hashedOtp, expiresAt },
-      create: { email, token: hashedOtp, expiresAt },
+    // Since we can't easily upsert with just identifier if it's not unique, 
+    // we delete old ones and create new one, or just create.
+    await prisma.verificationToken.deleteMany({
+      where: { identifier: email }
+    });
+
+    await prisma.verificationToken.create({
+      data: { identifier: email, token: hashedOtp, expires },
     });
 
     // 7. Send email
