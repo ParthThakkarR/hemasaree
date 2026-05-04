@@ -1,6 +1,6 @@
 import { z } from 'zod';
 // Assuming your generated prisma client is here
-import { OrderStatus, OrderItemStatus } from '@/app/generated/prisma'; 
+import { OrderStatus, OrderItemStatus } from '@prisma/client'; 
 
 // --- Reusable Regex & Constants ---
 const phoneRegex = /^\d{10}$/;

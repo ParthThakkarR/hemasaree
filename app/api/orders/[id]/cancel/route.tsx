@@ -1,7 +1,7 @@
 // /app/api/orders/[id]/cancel/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma";
-import { OrderStatus, OrderItemStatus } from "@/app/generated/prisma";
+import { OrderStatus, OrderItemStatus } from "@prisma/client";
 import { getUserFromToken } from "@/app/lib/getUserFromToken";
 
 export async function POST(
