@@ -1,5 +1,6 @@
 import { prisma } from './prisma';
-import { jwtVerify } from 'jose';
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 export interface Address {
   id: string;
@@ -20,40 +21,21 @@ export interface User {
 }
 
 /**
- * Fetches user from JWT token (stored in cookies)
+ * Fetches user from NextAuth session
  * Returns full user object with all saved addresses
  */
 export async function getUserFromToken(
-  req: Request | { cookies: Map<string, { value: string }> }
+  req?: Request | { cookies: Map<string, { value: string }> }
 ): Promise<User | null> {
   try {
-    // ✅ Extract JWT token
-    const token =
-      'cookies' in req
-        ? req.cookies.get('token')?.value
-        : req.headers
-            ?.get?.('cookie')
-            ?.split(';')
-            ?.find((c) => c.trim().startsWith('token='))
-            ?.split('=')[1];
+    const session = await getServerSession(authOptions);
 
-    if (!token) {
-      console.warn('[getUserFromToken] No token found');
+    if (!session?.user || !(session.user as any).id) {
+      console.warn('[getUserFromToken] No active session found');
       return null;
     }
 
-    // ✅ Verify token
-    const JWT_SECRET = process.env.JWT_SECRET!;
-    const { payload } = await jwtVerify(
-      token,
-      new TextEncoder().encode(JWT_SECRET)
-    );
-
-    const userId = (payload as any).id;
-    if (!userId) {
-      console.warn('[getUserFromToken] Invalid token payload');
-      return null;
-    }
+    const userId = (session.user as any).id;
 
     // ✅ Fetch user with addresses (MongoDB-compatible)
     const userRecord = await prisma.user.findUnique({

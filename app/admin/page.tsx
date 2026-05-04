@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/app/contexts/AuthContext';
 import { Bar, Doughnut, Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -42,10 +44,20 @@ export default function AdminDashboard() {
   const [salesData, setSalesData] = useState<{ labels: string[]; revenueData: number[]; orderData: number[] } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const { user, isLoading: authLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!authLoading && (!user || !user.isAdmin)) {
+      router.push('/login');
+    }
+  }, [user, authLoading, router]);
+
 useEffect(() => {
   async function loadSales() {
     try {
-      const res = await fetch("/api/analytics/sales");
+      const res = await fetch("/api/analytics/sales", { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
         setSalesData(data);
@@ -59,7 +71,7 @@ useEffect(() => {
   useEffect(() => {
     async function loadData() {
       try {
-        const res = await fetch('/api/products?page=1&limit=100');
+        const res = await fetch('/api/products?page=1&limit=100', { cache: 'no-store' });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         setProducts(data.products || []);

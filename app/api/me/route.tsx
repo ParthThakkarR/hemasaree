@@ -4,8 +4,9 @@ import { getUserFromToken } from '@/app/lib/getUserFromToken';
 import type { User } from '@/app/lib/getUserFromToken';
 
 /**
- * ✅ GET  /api/me → Return logged-in user + all saved addresses
+ * ✅ GET  /api/me  → Return logged-in user + all saved addresses
  * ✅ POST /api/me → Add new address to user
+ * ✅ PUT  /api/me  → Update basic profile fields (name, phone)
  */
 
 export async function GET(req: Request) {
@@ -29,6 +30,8 @@ export async function GET(req: Request) {
         id: fullUser.id,
         email: fullUser.email,
         firstName: fullUser.firstName,
+        lastName: fullUser.lastName,
+        phone: fullUser.phone,
         isAdmin: fullUser.isAdmin,
         addresses: fullUser.addresses ?? [],
       },
@@ -84,6 +87,71 @@ export async function POST(req: Request) {
     console.error('[ME_POST_ERROR]', error);
     return NextResponse.json(
       { error: 'Failed to add address' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(req: Request) {
+  try {
+    const user = await getUserFromToken(req);
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const { firstName, lastName, phone } = body as {
+      firstName?: string;
+      lastName?: string;
+      phone?: string;
+    };
+
+    if (!firstName && !lastName && !phone) {
+      return NextResponse.json(
+        { error: 'Nothing to update. Provide at least one field.' },
+        { status: 400 }
+      );
+    }
+
+    if (firstName !== undefined && firstName.trim().length === 0) {
+      return NextResponse.json(
+        { error: 'First name cannot be empty.' },
+        { status: 400 }
+      );
+    }
+
+    if (phone !== undefined && phone.trim().length > 0 && !/^\d{10}$/.test(phone.trim())) {
+      return NextResponse.json(
+        { error: 'Phone number must be exactly 10 digits.' },
+        { status: 400 }
+      );
+    }
+
+    const updated = await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        firstName: firstName ?? undefined,
+        lastName: lastName ?? undefined,
+        phone: phone?.trim() || undefined,
+      },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        phone: true,
+        isAdmin: true,
+      },
+    });
+
+    return NextResponse.json(
+      { user: updated, message: 'Profile updated successfully' },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error('[ME_PUT_ERROR]', error);
+    return NextResponse.json(
+      { error: 'Failed to update profile' },
       { status: 500 }
     );
   }

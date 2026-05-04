@@ -1,295 +1,37 @@
-// 'use client';
-
-// import { useState } from 'react';
-// import Link from 'next/link';
-// import { useRouter } from 'next/navigation';
-// import { useAuth } from '@/app/contexts/AuthContext';
-// import './page.css';
-
-// // --- Helper Icons ---
-// const EyeIcon = () => (
-//   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-//        viewBox="0 0 24 24" fill="none" stroke="currentColor"
-//        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-//     <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-//     <circle cx="12" cy="12" r="3" />
-//   </svg>
-// );
-// const EyeOffIcon = () => (
-//   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-//        viewBox="0 0 24 24" fill="none" stroke="currentColor"
-//        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-//     <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
-//     <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
-//     <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
-//     <line x1="2" x2="22" y1="2" y2="22" />
-//   </svg>
-// );
-
-// export default function LoginPage() {
-//   const router = useRouter();
-//   const { login } = useAuth();
-//   const [form, setForm] = useState({ email: '', password: '' });
-//   const [error, setError] = useState('');
-//   const [isLoading, setIsLoading] = useState(false);
-//   const [showPassword, setShowPassword] = useState(false);
-
-//   const handleSubmit = async (e: React.FormEvent) => {
-//     e.preventDefault();
-//     setError('');
-//     setIsLoading(true);
-
-//     try {
-//       const res = await fetch('/api/login', {
-//         method: 'POST',
-//         headers: { 'Content-Type': 'application/json' },
-//         body: JSON.stringify(form),
-//       });
-
-//       const data = await res.json();
-
-//       if (!res.ok) {
-//         throw new Error(data.message || 'Login failed.');
-//       }
-
-//       // ✅ Update context
-//       login(data.user);
-
-//       // ✅ Redirect based on role
-//       if (data.user.isAdmin) {
-//         router.push('/admin');
-//       } else {
-//         router.push('/');
-//       }
-//     } catch (err: any) {
-//       setError(err.message);
-//       setIsLoading(false);
-//     }
-//   };
-
-//   const togglePasswordVisibility = () => setShowPassword(prev => !prev);
-
-//   return (
-//     <div className="login-container d-flex align-items-center justify-content-center">
-//       <div className="card login-card shadow-lg">
-//         <div className="card-body">
-//           <div className="text-center mb-4">
-//             <h1 className="h3 fw-bold text-dark">Saree Bazaar</h1>
-//             <p className="text-muted">Welcome back! Please sign in.</p>
-//           </div>
-
-//           <form onSubmit={handleSubmit}>
-//             {/* Email */}
-//             <div className="mb-3">
-//               <label className="form-label">Email</label>
-//               <input
-//                 type="email"
-//                 value={form.email}
-//                 onChange={(e) => setForm({ ...form, email: e.target.value })}
-//                 className="form-control"
-//                 required
-//               />
-//             </div>
-
-//             {/* Password */}
-//             <div className="mb-3">
-//               <div className="d-flex justify-content-between">
-//                 <label className="form-label">Password</label>
-//                 <Link href="/forgot-password" className="small text-danger">
-//                   Forgot password?
-//                 </Link>
-//               </div>
-//               <div className="input-group">
-//                 <input
-//                   type={showPassword ? 'text' : 'password'}
-//                   value={form.password}
-//                   onChange={(e) => setForm({ ...form, password: e.target.value })}
-//                   className="form-control"
-//                   required
-//                 />
-//                 <button
-//                   type="button"
-//                   onClick={togglePasswordVisibility}
-//                   className="btn btn-outline-secondary"
-//                 >
-//                   {showPassword ? <EyeOffIcon /> : <EyeIcon />}
-//                 </button>
-//               </div>
-//             </div>
-
-//             {/* Error */}
-//             {error && <div className="alert alert-danger text-center">{error}</div>}
-
-//             {/* Submit */}
-//             <div className="d-grid">
-//               <button type="submit" className="btn btn-danger fw-bold" disabled={isLoading}>
-//                 {isLoading ? 'Signing In...' : 'Sign In'}
-//               </button>
-//             </div>
-//           </form>
-
-//           <p className="text-center mt-4 small">
-//             Don’t have an account?{' '}
-//             <Link href="/signup" className="fw-semibold text-danger">
-//               Sign up
-//             </Link>
-//           </p>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
-
-
-
 'use client';
 
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/app/contexts/AuthContext';
-
-// --- Elegant Feminine Theme (Golden Ratio Layout) ---
-const styles = `
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@400;500;600&display=swap');
-  :root {
-    --primary: #e76f51;
-    --primary-light: #f7c6c7;
-    --bg-gradient: linear-gradient(135deg, #fdf6f0 0%, #f7c6c7 100%);
-    --glass: rgba(255, 255, 255, 0.25);
-    --shadow: 0 8px 32px rgba(231, 111, 81, 0.2);
-    --text: #1e293b;
-    --success: #10b981;
-    --error: #ef4444;
-    --phi: 1.618;
-    --phi2: calc(var(--phi) * var(--phi));
-    --phi-1: calc(1 / var(--phi));
-    --phi-2: calc(var(--phi-1) * var(--phi-1));
-    --unit: 1rem;
-    --s-xs: calc(var(--unit) * var(--phi-2));
-    --s-sm: calc(var(--unit) * var(--phi-1));
-    --s-md: var(--unit);
-    --s-lg: calc(var(--unit) * var(--phi));
-    --s-xl: calc(var(--unit) * var(--phi2));
-    --text-sm: calc(0.875rem * var(--phi-1));
-    --text-base: 1rem;
-    --text-lg: calc(1rem * var(--phi));
-    --text-xl: calc(1rem * var(--phi2));
-    --heading-lg: calc(2rem * var(--phi));
-  }
-  body {
-    font-family: 'Inter', sans-serif;
-    background: var(--bg-gradient);
-    min-height: 100vh;
-    color: var(--text);
-    overflow-x: hidden;
-  }
-  .motif-drift {
-    position: fixed; inset: 0; pointer-events: none;
-    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><path d="M0 10 Q25 5 50 10 T100 10" stroke="%23f7c6c7" stroke-width="0.5" fill="none" opacity="0.03"/></svg>');
-    background-size: 150px 20px;
-    animation: driftWeave 25s linear infinite;
-  }
-  @keyframes driftWeave { 0% { background-position: 0 0; } 100% { background-position: 150px 20px; } }
-  .threshold-container {
-    display: grid; min-height: 100vh;
-    place-items: center; padding: var(--s-lg);
-  }
-  .entry-chamber {
-    background: var(--glass);
-    backdrop-filter: blur(16px);
-    border-radius: var(--s-sm);
-    padding: var(--s-xl);
-    box-shadow: var(--shadow);
-    border: 1px solid rgba(255,255,255,0.3);
-    max-width: 420px; width: 100%;
-  }
-  .entry-header { text-align: center; margin-bottom: var(--s-lg); }
-  .entry-title {
-    font-family: 'Playfair Display', serif;
-    font-size: var(--text-xl);
-    color: var(--primary);
-    margin-bottom: var(--s-xs);
-  }
-  .entry-subtitle { color: #64748b; font-size: var(--text-sm); }
-  .form-group { position: relative; margin-bottom: var(--s-lg); }
-  input {
-    width: 100%; padding: 1rem 1rem 0.75rem;
-    font-size: var(--text-base);
-    background: rgba(255,255,255,0.8);
-    border: 1.5px solid #e2e8f0;
-    border-radius: 12px;
-    color: var(--text);
-    transition: all 0.3s ease;
-  }
-  input:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(231,111,81,0.2);
-  }
-  label {
-    position: absolute; left: 1rem; top: 50%;
-    transform: translateY(-50%);
-    color: #94a3b8;
-    font-size: var(--text-base);
-    pointer-events: none;
-    transition: all 0.2s ease;
-  }
-  input:focus ~ label,
-  input:not(:placeholder-shown) ~ label {
-    top: 0;
-    font-size: var(--text-sm);
-    color: var(--primary);
-    background: white;
-    padding: 0 0.3rem;
-  }
-  .invoke-btn {
-    background: linear-gradient(135deg, var(--primary), #d85a40);
-    color: white; border: none;
-    border-radius: 12px; padding: 0.9rem;
-    font-weight: 600; width: 100%;
-    transition: all 0.3s ease;
-  }
-  .invoke-btn:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(231,111,81,0.3);
-  }
-  .error-msg { color: var(--error); text-align: center; font-size: var(--text-sm); margin-top: var(--s-sm); }
-  .success-msg { color: var(--success); text-align: center; font-size: var(--text-sm); margin-top: var(--s-sm); }
-  .signup-link { color: var(--primary); font-weight: 500; text-decoration: none; }
-  .signup-link:hover { color: #d85a40; }
-`;
+import { signIn } from 'next-auth/react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import Image from 'next/image';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useAuth();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  // ✅ Working API logic from the second version
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
     try {
-      const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+      const res = await signIn('credentials', {
+        redirect: false,
+        email: form.email,
+        password: form.password,
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Login failed.');
+      if (res?.error) {
+        throw new Error(res.error || 'Login failed.');
+      }
 
-      // ✅ Update global auth context
-      login(data.user);
-
-      // ✅ Redirect by role
-      if (data.user.isAdmin) router.push('/admin');
-      else router.push('/');
+      router.push('/');
+      router.refresh();
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -297,78 +39,155 @@ export default function LoginPage() {
     }
   };
 
-  const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
-
   return (
-    <>
-      <style jsx global>{styles}</style>
-      <div className="motif-drift" />
+    <div className="min-h-screen flex bg-surface">
+      {/* Left Panel - Brand Imagery (Hidden on mobile) */}
+      <div className="hidden lg:flex w-1/2 relative bg-brand-950 text-brand-50 flex-col justify-between p-12 overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0 z-0 opacity-40">
+           <Image 
+              src="https://images.unsplash.com/photo-1594938298603-c8148c4dae35" 
+              alt="Brand Imagery" 
+              fill
+              className="object-cover"
+              priority
+           />
+           <div className="absolute inset-0 bg-gradient-to-t from-brand-950 via-brand-950/60 to-transparent"></div>
+        </div>
 
-      <div className="threshold-container">
-        <section className="entry-chamber">
-          <div className="entry-header">
-            <h2 className="entry-title">Serene Recall</h2>
-            <p className="entry-subtitle">Welcome back, sovereign. Reclaim your essence.</p>
+        <div className="relative z-10">
+          <Link href="/" className="inline-flex items-center gap-3">
+             <div className="w-12 h-12 rounded-full bg-brand-800 text-accent flex items-center justify-center font-serif text-2xl font-bold shadow-md">
+                H
+             </div>
+             <span className="font-serif text-2xl font-bold tracking-wide text-white">Hema Sarees</span>
+          </Link>
+        </div>
+
+        <div className="relative z-10 max-w-md">
+          <h2 className="font-serif text-4xl font-bold text-white mb-4 leading-tight">
+            Elegance Woven in <span className="text-accent italic">Every Thread</span>
+          </h2>
+          <p className="text-brand-100/80 text-lg leading-relaxed">
+            Experience the finest Indian ethnic wear. Handcrafted sarees for the modern woman who honors tradition.
+          </p>
+        </div>
+      </div>
+
+      {/* Right Panel - Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12">
+        <div className="w-full max-w-md">
+          {/* Mobile Logo */}
+          <div className="lg:hidden text-center mb-8">
+            <Link href="/" className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-brand-800 text-accent mb-4 shadow-md">
+              <span className="font-serif text-3xl leading-none font-bold">H</span>
+            </Link>
+            <h1 className="font-serif text-3xl font-bold text-ink mb-2">Welcome Back</h1>
+            <p className="text-ink-muted">Sign in to your Hema Sarees account</p>
           </div>
 
-          <form onSubmit={handleSubmit}>
+          {/* Desktop Header */}
+          <div className="hidden lg:block mb-8">
+            <h1 className="font-serif text-4xl font-bold text-ink mb-2">Sign In</h1>
+            <p className="text-ink-muted">Welcome back to your account</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email */}
-            <div className="form-group">
+            <div>
+              <label className="block text-sm font-medium text-ink mb-1.5">Email Address</label>
               <input
                 type="email"
-                placeholder=" "
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
+                className="w-full px-4 py-3 bg-surface border border-brand-200 rounded-xl text-ink placeholder-ink-faint focus:outline-none focus:ring-2 focus:ring-brand-800 focus:border-brand-800 transition-all"
+                placeholder="you@example.com"
                 required
               />
-              <label>Email</label>
             </div>
 
             {/* Password */}
-            <div className="form-group">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                placeholder=" "
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-                required
-              />
-              <label>Password</label>
-              <button
-                type="button"
-                onClick={togglePasswordVisibility}
-                style={{
-                  position: 'absolute',
-                  right: '1rem',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: '#64748b',
-                }}
-              >
-                {showPassword ? '🙈' : '👁️'}
-              </button>
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-sm font-medium text-ink">Password</label>
+                <Link href="/forgot-password" className="text-sm text-brand-800 hover:text-brand-900 font-medium transition-colors">
+                  Forgot password?
+                </Link>
+              </div>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  className="w-full px-4 py-3 bg-surface border border-brand-200 rounded-xl text-ink placeholder-ink-faint focus:outline-none focus:ring-2 focus:ring-brand-800 focus:border-brand-800 transition-all pr-12"
+                  placeholder="Enter your password"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((p) => !p)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-faint hover:text-brand-800 transition-colors"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
             </div>
 
             {/* Error */}
-            {error && <p className="error-msg">{error}</p>}
+            {error && (
+              <div className="bg-red-50 text-red-600 text-sm p-3 rounded-xl border border-red-100 text-center font-medium">
+                {error}
+              </div>
+            )}
 
             {/* Submit */}
-            <button type="submit" disabled={isLoading} className="invoke-btn">
-              {isLoading ? 'Recalling...' : 'Cross Threshold'}
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-brand-800 hover:bg-brand-900 text-white py-3.5 rounded-xl font-semibold shadow-md transition-all transform hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0 flex items-center justify-center gap-2"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 size={20} className="animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                'Sign In'
+              )}
             </button>
           </form>
 
-          <p className="text-center small mt-3">
-            Not yet woven?{' '}
-            <Link href="/signup" className="signup-link">
-              Invoke Eternal
+          {/* Divider */}
+          <div className="flex items-center gap-4 my-8">
+            <div className="flex-1 h-px bg-brand-100" />
+            <span className="text-sm text-ink-muted font-medium">or continue with</span>
+            <div className="flex-1 h-px bg-brand-100" />
+          </div>
+
+          {/* Google */}
+          <button
+            type="button"
+            onClick={() => signIn('google', { callbackUrl: '/' })}
+            className="w-full flex items-center justify-center gap-3 bg-surface border border-brand-200 hover:border-brand-300 py-3.5 rounded-xl font-medium text-ink hover:bg-surface-muted transition-all shadow-sm"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+            </svg>
+            Continue with Google
+          </button>
+
+          {/* Footer */}
+          <p className="text-center text-sm text-ink-muted mt-8">
+            Don't have an account?{' '}
+            <Link href="/signup" className="text-brand-800 hover:text-brand-900 font-semibold transition-colors">
+              Sign Up
             </Link>
           </p>
-        </section>
+        </div>
       </div>
-    </>
+    </div>
   );
 }

@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState, useRef, useEffect, FormEvent } from 'react';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2, Plus, UploadCloud } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
+import { useAuth } from '@/app/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
 
 interface Category { id: string; name: string; }
 interface Product {
@@ -18,6 +20,9 @@ interface Product {
 }
 
 export default function ManageProductsPage() {
+  const { user, isLoading: authLoading } = useAuth();
+  const router = useRouter();
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -33,6 +38,12 @@ export default function ManageProductsPage() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [newProductImages, setNewProductImages] = useState<FileList | null>(null);
   const [newProductImageUrls, setNewProductImageUrls] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!authLoading && (!user || !user.isAdmin)) {
+      router.push('/login');
+    }
+  }, [user, authLoading, router]);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -61,7 +72,6 @@ export default function ManageProductsPage() {
         finalUrls.push(...data.urls);
       }
       const payload = {
-        
         name: productData.name,
         color: productData.color,
         ocassion: productData.ocassion,
@@ -106,7 +116,17 @@ export default function ManageProductsPage() {
       }
       if (newProductImageUrls.length > 0) finalUrls.push(...newProductImageUrls);
       finalUrls = Array.from(new Set(finalUrls));
-      const payload = { ...editingProduct, images: finalUrls };
+
+      const payload = {
+        id: editingProduct.id,
+        name: editingProduct.name,
+        color: editingProduct.color,
+        ocassion: editingProduct.ocassion,
+        price: editingProduct.price,
+        stock: editingProduct.stock,
+        categoryId: editingProduct.categoryId,
+        images: finalUrls,
+      };
       const res = await fetch('/api/admin/products', {
         method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
       });
@@ -119,180 +139,206 @@ export default function ManageProductsPage() {
   };
 
   return (
-    <div className="container py-4">
+    <div className="max-w-7xl mx-auto py-8">
       <Toaster position="top-right" />
-      <h2 className="mb-4">Manage Products</h2>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-serif font-bold text-[#1A0A12]">Manage Products</h1>
+      </div>
 
       {/* Add Form */}
-      <form onSubmit={handleAddProduct} className="p-3 bg-light border rounded mb-4">
-        <div className="row g-3">
-          <div className="col-md-6">
-            <input className="form-control" placeholder="Name"
-              value={productData.name} onChange={e => setProductData({ ...productData, name: e.target.value })} />
+      <div className="bg-white rounded-2xl shadow-sm border border-[#FBF5EC] p-6 mb-8">
+        <h2 className="text-xl font-bold text-[#1A0A12] mb-6 flex items-center gap-2"><Plus size={20} className="text-[#6B0F1A]"/> Add New Product</h2>
+        <form onSubmit={handleAddProduct}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
+              <input className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-[#6B0F1A]" placeholder="Exquisite Banarasi Silk Saree" value={productData.name} onChange={e => setProductData({ ...productData, name: e.target.value })} required />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
+              <input className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-[#6B0F1A]" placeholder="Crimson Red" value={productData.color} onChange={e => setProductData({ ...productData, color: e.target.value })} required />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Occasion</label>
+              <input className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-[#6B0F1A]" placeholder="Bridal" value={productData.ocassion} onChange={e => setProductData({ ...productData, ocassion: e.target.value })} required />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹)</label>
+              <input type="number" className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-[#6B0F1A]" placeholder="4999" value={productData.price} onChange={e => setProductData({ ...productData, price: e.target.value })} required />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>
+              <input type="number" className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-[#6B0F1A]" placeholder="15" value={productData.stock} onChange={e => setProductData({ ...productData, stock: e.target.value })} required />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+              <select className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-[#6B0F1A] bg-white" value={productData.category} onChange={e => setProductData({ ...productData, category: e.target.value })} required>
+                <option value="">Select Category</option>
+                {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2"><UploadCloud size={16}/> Upload Images</label>
+              <input ref={fileRef} type="file" multiple accept="image/*" className="w-full px-4 py-2 border border-gray-200 rounded-xl file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#FBF5EC] file:text-[#6B0F1A] hover:file:bg-[#f3ead9]" onChange={e => setProductImages(e.target.files)} />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Or Image URLs</label>
+              <input className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-[#6B0F1A]" placeholder="https://image1.jpg, https://image2.jpg" value={productImageUrls.join(', ')} onChange={e => setProductImageUrls(e.target.value.split(',').map(u => u.trim()).filter(Boolean))} />
+            </div>
           </div>
-          <div className="col-md-3">
-            <input className="form-control" placeholder="Color"
-              value={productData.color} onChange={e => setProductData({ ...productData, color: e.target.value })} />
+          <div className="mt-6 flex justify-end">
+             <button className="bg-[#6B0F1A] hover:bg-[#5a0c16] text-white px-8 py-3 rounded-xl font-semibold transition-colors shadow-sm" disabled={isLoading}>{isLoading ? 'Adding...' : 'Save Product'}</button>
           </div>
-          <div className="col-md-3">
-            <input className="form-control" placeholder="Ocassion"
-              value={productData.ocassion} onChange={e => setProductData({ ...productData, ocassion: e.target.value })} />
-          </div>
-          <div className="col-md-3">
-            <input type="number" className="form-control" placeholder="Price ₹"
-              value={productData.price} onChange={e => setProductData({ ...productData, price: e.target.value })} />
-          </div>
-          <div className="col-md-3">
-            <input type="number" className="form-control" placeholder="Stock"
-              value={productData.stock} onChange={e => setProductData({ ...productData, stock: e.target.value })} />
-          </div>
-          <div className="col-md-6">
-            <select className="form-select" value={productData.category}
-              onChange={e => setProductData({ ...productData, category: e.target.value })}>
-              <option value="">Select Category</option>
-              {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-          </div>
-          <div className="col-md-6">
-            <input ref={fileRef} type="file" multiple accept="image/*" className="form-control"
-              onChange={e => setProductImages(e.target.files)} />
-          </div>
-          <div className="col-md-6">
-            <input className="form-control" placeholder="Or image URLs"
-              value={productImageUrls.join(', ')}
-              onChange={e => setProductImageUrls(e.target.value.split(',').map(u => u.trim()).filter(Boolean))} />
-          </div>
-        </div>
-        <button className="btn btn-primary mt-3" disabled={isLoading}>{isLoading ? 'Adding...' : 'Add Product'}</button>
-      </form>
+        </form>
+      </div>
 
       {/* Table */}
-      <table className="table align-middle">
-        <thead><tr><th>Image</th><th>Name</th><th>Color</th><th>Ocassion</th><th>Price</th><th>Stock</th><th>Action</th></tr></thead>
-        <tbody>
-          {products.map(p => (
-            <tr key={p.id}>
-              <td><img src={p.images?.[0] || 'https://placehold.co/60x60'} width={60} height={60} className="rounded" /></td>
-              <td>{p.name}</td><td>{p.color}</td><td>{p.ocassion}</td><td>₹{p.price}</td><td>{p.stock}</td>
-              <td><button onClick={() => { setEditingProduct(p); setIsEditModalOpen(true); }} className="btn btn-sm btn-outline-primary"><Pencil size={16} /></button></td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className="bg-white rounded-2xl shadow-sm border border-[#FBF5EC] overflow-hidden">
+        <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+           <h2 className="text-xl font-bold text-[#1A0A12]">Product Inventory</h2>
+           <span className="bg-[#FBF5EC] text-[#6B0F1A] px-3 py-1 rounded-full text-sm font-semibold">{products.length} Items</span>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-[#1A0A12] text-white">
+                <th className="p-4 font-semibold whitespace-nowrap">Image</th>
+                <th className="p-4 font-semibold whitespace-nowrap">Name</th>
+                <th className="p-4 font-semibold whitespace-nowrap">Color</th>
+                <th className="p-4 font-semibold whitespace-nowrap">Occasion</th>
+                <th className="p-4 font-semibold whitespace-nowrap">Price</th>
+                <th className="p-4 font-semibold whitespace-nowrap">Stock</th>
+                <th className="p-4 font-semibold text-right whitespace-nowrap">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {products.map(p => (
+                <tr key={p.id} className="hover:bg-[#FBF5EC] transition-colors">
+                  <td className="p-4">
+                    <img src={p.images?.[0] || 'https://placehold.co/60x60'} alt={p.name} className="w-12 h-12 rounded-lg object-cover" />
+                  </td>
+                  <td className="p-4 font-medium text-[#1A0A12]">{p.name}</td>
+                  <td className="p-4 text-gray-600 capitalize">{p.color}</td>
+                  <td className="p-4 text-gray-600 capitalize">{p.ocassion}</td>
+                  <td className="p-4 font-semibold text-[#6B0F1A]">₹{p.price.toLocaleString('en-IN')}</td>
+                  <td className="p-4">
+                    <span className={`px-2 py-1 rounded-md text-xs font-bold ${p.stock < 5 ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                       {p.stock} in stock
+                    </span>
+                  </td>
+                  <td className="p-4 text-right space-x-2 whitespace-nowrap">
+                    <button onClick={() => { setEditingProduct(p); setIsEditModalOpen(true); }} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors inline-flex">
+                      <Pencil size={18} />
+                    </button>
+                    <button
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors inline-flex"
+                      onClick={async () => {
+                        if (!window.confirm('Are you sure you want to delete this product?')) return;
+                        try {
+                          setIsLoading(true);
+                          const res = await fetch(`/api/admin/products?id=${p.id}`, { method: 'DELETE' });
+                          const data = await res.json().catch(() => ({}));
+                          if (!res.ok) {
+                            toast.error(data.error || data.message || 'Failed to delete product');
+                            return;
+                          }
+                          toast.success(data.message || 'Product deleted successfully');
+                          fetchData();
+                        } catch (err: any) {
+                          toast.error(err.message || 'Failed to delete product');
+                        } finally {
+                          setIsLoading(false);
+                        }
+                      }}
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {products.length === 0 && (
+                 <tr>
+                    <td colSpan={7} className="p-8 text-center text-gray-500">No products found.</td>
+                 </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
       {/* Edit Modal */}
       {isEditModalOpen && editingProduct && (
-        <div className="modal show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog modal-lg">
-            <div className="modal-content">
-              <form onSubmit={handleSaveChanges}>
-                <div className="modal-header">
-                  <h5>Edit {editingProduct.name}</h5>
-                  <button className="btn-close" onClick={() => setIsEditModalOpen(false)}></button>
-                </div>
-                <div className="modal-body">
-  <div className="row g-3">
-    <div className="col-md-6">
-      <label className="form-label">Name</label>
-      <input
-        type="text"
-        className="form-control"
-        value={editingProduct.name}
-        onChange={e => setEditingProduct({ ...editingProduct, name: e.target.value })}
-      />
-    </div>
-    <div className="col-md-3">
-      <label className="form-label">Color</label>
-      <input
-        type="text"
-        className="form-control"
-        value={editingProduct.color}
-        onChange={e => setEditingProduct({ ...editingProduct, color: e.target.value })}
-      />
-    </div>
-    <div className="col-md-3">
-      <label className="form-label">Ocassion</label>
-      <input
-        type="text"
-        className="form-control"
-        value={editingProduct.ocassion}
-        onChange={e => setEditingProduct({ ...editingProduct, ocassion: e.target.value })}
-      />
-    </div>
-
-    <div className="col-md-3">
-      <label className="form-label">Price ₹</label>
-      <input
-        type="number"
-        className="form-control"
-        value={editingProduct.price}
-        onChange={e => setEditingProduct({ ...editingProduct, price: Number(e.target.value) })}
-      />
-    </div>
-
-    <div className="col-md-3">
-      <label className="form-label">Stock</label>
-      <input
-        type="number"
-        className="form-control"
-        value={editingProduct.stock}
-        onChange={e => setEditingProduct({ ...editingProduct, stock: Number(e.target.value) })}
-      />
-    </div>
-
-    <div className="col-md-6">
-      <label className="form-label">Category</label>
-      <select
-        className="form-select"
-        value={editingProduct.categoryId}
-        onChange={e => setEditingProduct({ ...editingProduct, categoryId: e.target.value })}
-      >
-        <option value="">Select Category</option>
-        {categories.map(c => (
-          <option key={c.id} value={c.id}>{c.name}</option>
-        ))}
-      </select>
-    </div>
-  </div>
-
-  <hr />
-
-  <label className="form-label">Images</label>
-  <div className="d-flex flex-wrap gap-2 mb-3">
-    {editingProduct.images.map((img, i) => (
-      <div key={i} className="position-relative">
-        <img src={img} width={80} height={80} className="rounded border" />
-        <button
-          type="button"
-          onClick={() => handleDeleteImage(img)}
-          className="btn btn-danger btn-sm position-absolute top-0 end-0"
-          style={{ borderRadius: '50%', width: 22, height: 22, padding: 0 }}
-        >×</button>
-      </div>
-    ))}
-  </div>
-
-  <input
-    type="file"
-    multiple
-    accept="image/*"
-    className="form-control mb-2"
-    onChange={e => setNewProductImages(e.target.files)}
-  />
-  <input
-    type="text"
-    className="form-control"
-    placeholder="Add image URLs (comma-separated)"
-    onChange={e => setNewProductImageUrls(e.target.value.split(',').map(u => u.trim()).filter(Boolean))}
-  />
-</div>
-
-                <div className="modal-footer">
-                  <button type="button" className="btn btn-secondary" onClick={() => setIsEditModalOpen(false)}>Close</button>
-                  <button type="submit" className="btn btn-primary" disabled={isLoading}>{isLoading ? 'Saving...' : 'Save Changes'}</button>
-                </div>
-              </form>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-white rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl my-8">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+              <h3 className="text-xl font-bold text-[#1A0A12]">Edit {editingProduct.name}</h3>
+              <button onClick={() => setIsEditModalOpen(false)} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
             </div>
+            <form onSubmit={handleSaveChanges}>
+              <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                    <input type="text" className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-[#6B0F1A]" value={editingProduct.name} onChange={e => setEditingProduct({ ...editingProduct, name: e.target.value })} required />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
+                    <input type="text" className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-[#6B0F1A]" value={editingProduct.color} onChange={e => setEditingProduct({ ...editingProduct, color: e.target.value })} required />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Occasion</label>
+                    <input type="text" className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-[#6B0F1A]" value={editingProduct.ocassion} onChange={e => setEditingProduct({ ...editingProduct, ocassion: e.target.value })} required />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹)</label>
+                    <input type="number" className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-[#6B0F1A]" value={editingProduct.price} onChange={e => setEditingProduct({ ...editingProduct, price: Number(e.target.value) })} required />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>
+                    <input type="number" className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-[#6B0F1A]" value={editingProduct.stock} onChange={e => setEditingProduct({ ...editingProduct, stock: Number(e.target.value) })} required />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                    <select className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-[#6B0F1A] bg-white" value={editingProduct.categoryId} onChange={e => setEditingProduct({ ...editingProduct, categoryId: e.target.value })} required>
+                      <option value="">Select Category</option>
+                      {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-100 my-4"></div>
+
+                <div>
+                   <label className="block text-sm font-medium text-gray-700 mb-2">Manage Images</label>
+                   <div className="flex flex-wrap gap-3 mb-4">
+                     {editingProduct.images.map((img, i) => (
+                       <div key={i} className="relative group">
+                         <img src={img} className="w-20 h-20 rounded-xl object-cover border border-gray-200" />
+                         <button type="button" onClick={() => handleDeleteImage(img)} className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white w-6 h-6 flex items-center justify-center rounded-full text-xs shadow-md opacity-0 group-hover:opacity-100 transition-opacity">×</button>
+                       </div>
+                     ))}
+                   </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                     <label className="block text-sm font-medium text-gray-700 mb-1">Upload Additional Images</label>
+                     <input type="file" multiple accept="image/*" className="w-full px-4 py-2 border border-gray-200 rounded-xl file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#FBF5EC] file:text-[#6B0F1A] hover:file:bg-[#f3ead9]" onChange={e => setNewProductImages(e.target.files)} />
+                  </div>
+                  <div>
+                     <label className="block text-sm font-medium text-gray-700 mb-1">Or Add Image URLs</label>
+                     <input type="text" className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-[#6B0F1A]" placeholder="Comma-separated URLs" onChange={e => setNewProductImageUrls(e.target.value.split(',').map(u => u.trim()).filter(Boolean))} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 border-t border-gray-100 flex justify-end gap-3 bg-gray-50">
+                <button type="button" className="px-5 py-2 text-gray-600 font-semibold hover:bg-gray-200 rounded-xl transition-colors" onClick={() => setIsEditModalOpen(false)}>Cancel</button>
+                <button type="submit" className="bg-[#6B0F1A] hover:bg-[#5a0c16] text-white px-5 py-2 rounded-xl font-semibold transition-colors" disabled={isLoading}>
+                   {isLoading ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

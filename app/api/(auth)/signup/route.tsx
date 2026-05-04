@@ -6,14 +6,6 @@ import jwt from 'jsonwebtoken';
 
 export async function POST(req: NextRequest) {
   try {
-    const JWT_SECRET = process.env.JWT_SECRET;
-    if (!JWT_SECRET) {
-      console.error('JWT_SECRET is missing from environment variables');
-      return NextResponse.json(
-        { message: 'Server configuration error' },
-        { status: 500 }
-      );
-    }
 
     const body = await req.json();
     const validation = SignUpSchema.safeParse(body);
@@ -63,15 +55,8 @@ export async function POST(req: NextRequest) {
       include: { addresses: true },
     });
 
-    // ✅ Sign token
-    const token = jwt.sign(
-      { id: user.id, email: user.email, isAdmin: !!user.isAdmin },
-      JWT_SECRET,
-      { expiresIn: '7d' }
-    );
-
-    // ✅ Set cookie (global)
-    const res = NextResponse.json(
+    // ✅ Just return success since NextAuth handles session logging in later
+    return NextResponse.json(
       {
         message: 'Signup successful!',
         user: {
@@ -84,16 +69,6 @@ export async function POST(req: NextRequest) {
       },
       { status: 201 }
     );
-
-    res.cookies.set('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-    });
-
-    return res;
   } catch (err) {
     console.error('[SIGNUP_ERROR]', err);
     return NextResponse.json(

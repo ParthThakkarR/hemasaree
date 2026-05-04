@@ -1,912 +1,286 @@
-// // 'use client';
-
-// // import React, { useState } from 'react';
-// // import Link from 'next/link';
-// // import { motion, AnimatePresence } from 'framer-motion';
-// // import { useAuth } from '@/app/contexts/AuthContext';
-// // import {
-// //   ShoppingCart,
-// //   User,
-// //   Package,
-// //   Tag,
-// //   LayoutDashboard,
-// //   ClipboardList,
-// //   LogOut,
-// //   LogIn,
-// //   ChevronDown,
-// //   Search,
-// //   X,
-// // } from 'lucide-react';
-
-// // export default function Navbar() {
-// //   const { user, logout, isLoading } = useAuth();
-// //   const [isProfileOpen, setIsProfileOpen] = useState(false);
-// //   const [isCartOpen, setIsCartOpen] = useState(false);
-// //   const [isMobileOpen, setIsMobileOpen] = useState(false);
-
-// //   // Placeholder for cart count – replace with real state
-// //   const cartCount = 3;
-
-// //   // Functions
-// //   const toggleMobile = () => setIsMobileOpen(!isMobileOpen);
-// //   const closeMobile = () => setIsMobileOpen(false);
-// //   const toggleProfile = () => setIsProfileOpen(!isProfileOpen);
-// //   const toggleCart = () => setIsCartOpen(!isCartOpen);
-
-// //   return (
-// //     <>
-// //       {/* Sticky Navbar with Bootstrap – Fixed Horizontal Layout */}
-// //       <nav className="fixed top-0 left-0 right-0 z-3 bg-white shadow-sm border-bottom border-mauve-100 py-3 transition-all duration-300" style={{ backdropFilter: 'blur(10px)' }}>
-// //         <div className="container-xl"> {/* Constrained width: max 1140px on xl screens */}
-// //           <div className="d-flex justify-content-between align-items-center position-relative">
-// //             {/* Brand – Serif Elegance */}
-// //             <Link href="/" className="d-flex align-items-center text-decoration-none">
-// //               <span className="fs-3 fw-bold font-serif text-mauve-600 transition-all duration-300">
-// //                 SareeShop
-// //               </span>
-// //               <small className="ms-2 font-serif text-muted transition-colors duration-300">
-// //                 Timeless Weaves
-// //               </small>
-// //             </Link>
-
-// //             {/* Desktop Search – Central, Constrained */}
-// //             <div className="flex-grow-1 mx-4 d-none d-md-block position-relative mx-auto" style={{ maxWidth: '400px' }}> {/* Constrain search width */}
-// //               <Search className="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" size={18} />
-// //               <input
-// //                 type="search"
-// //                 className="form-control form-control-sm ps-5 rounded-pill border-mauve-200 focus-border-mauve-300 focus-ring-0 shadow-none transition-all duration-200 bg-light"
-// //                 placeholder="Search Sarees, Fabrics..."
-// //                 style={{ background: 'rgba(255,255,255,0.8)' }}
-// //               />
-// //             </div>
-
-// //             {/* Desktop Menu – Horizontal with Spacing */}
-// //             <ul className="navbar-nav d-none d-md-flex align-items-center mb-0 ms-auto flex-row gap-3"> {/* flex-row explicit + gap-3 for spacing */}
-// //               {/* Public Links */}
-// //               <li className="nav-item me-0"> {/* Remove extra me on last */}
-// //                 <Link href="/" className="nav-link text-muted hover-text-mauve-600 fw-medium transition-all duration-300 position-relative group">
-// //                   <Package size={18} className="me-1 group-hover-scale-110 transition-transform duration-200" />
-// //                   Home
-// //                   <span className="position-absolute bottom-0 start-0 w-0 h-1 bg-mauve-600 group-hover-w-full transition-all duration-300" style={{ transitionProperty: 'width' }}></span>
-// //                 </Link>
-// //               </li>
-// //               <li className="nav-item me-0">
-// //                 <Link href="/products" className="nav-link text-muted hover-text-mauve-600 fw-medium transition-all duration-300 position-relative group">
-// //                   <Tag size={18} className="me-1 group-hover-scale-110 transition-transform duration-200" />
-// //                   Products
-// //                   <span className="position-absolute bottom-0 start-0 w-0 h-1 bg-mauve-600 group-hover-w-full transition-all duration-300" style={{ transitionProperty: 'width' }}></span>
-// //                 </Link>
-// //               </li>
-// //               <li className="nav-item me-0">
-// //                 <Link href="/categories" className="nav-link text-muted hover-text-mauve-600 fw-medium transition-all duration-300 position-relative group">
-// //                   <LayoutDashboard size={18} className="me-1 group-hover-scale-110 transition-transform duration-200" />
-// //                   Categories
-// //                   <span className="position-absolute bottom-0 start-0 w-0 h-1 bg-mauve-600 group-hover-w-full transition-all duration-300" style={{ transitionProperty: 'width' }}></span>
-// //                 </Link>
-// //               </li>
-
-// //               {/* Authenticated Links */}
-// //               {!isLoading && user ? (
-// //                 <>
-// //                   {user.isAdmin && (
-// //                     <li className="nav-item me-0">
-// //                       <Link href="/admin" className="nav-link text-muted hover-text-mauve-600 fw-medium transition-all duration-300 position-relative group">
-// //                         <LayoutDashboard size={18} className="me-1 group-hover-scale-110 transition-transform duration-200" />
-// //                         Admin
-// //                         <span className="position-absolute bottom-0 start-0 w-0 h-1 bg-mauve-600 group-hover-w-full transition-all duration-300" style={{ transitionProperty: 'width' }}></span>
-// //                       </Link>
-// //                     </li>
-// //                   )}
-// //                   <li className="nav-item me-0">
-// //                     <Link href="/orders" className="nav-link text-muted hover-text-mauve-600 fw-medium transition-all duration-300 position-relative group">
-// //                       <ClipboardList size={18} className="me-1 group-hover-scale-110 transition-transform duration-200" />
-// //                       Orders
-// //                       <span className="position-absolute bottom-0 start-0 w-0 h-1 bg-mauve-600 group-hover-w-full transition-all duration-300" style={{ transitionProperty: 'width' }}></span>
-// //                     </Link>
-// //                   </li>
-// //                   <li className="nav-item position-relative me-0">
-// //                     <button
-// //                       type="button"
-// //                       onClick={toggleCart}
-// //                       className="nav-link btn btn-link text-muted hover-text-mauve-600 fw-medium transition-all duration-300 position-relative group p-0"
-// //                     >
-// //                       <ShoppingCart size={18} className="me-1 group-hover-scale-110 transition-transform duration-200" />
-// //                       Cart
-// //                       {cartCount > 0 && (
-// //                         <span className="position-absolute top-0 end-0 badge rounded-pill bg-mauve-500 text-white fs-2xsmall animate-pulse">
-// //                           {cartCount}
-// //                         </span>
-// //                       )}
-// //                       <span className="position-absolute bottom-0 start-0 w-0 h-1 bg-mauve-600 group-hover-w-full transition-all duration-300" style={{ transitionProperty: 'width' }}></span>
-// //                     </button>
-// //                     {/* Cart Flyout */}
-// //                     <AnimatePresence>
-// //                       {isCartOpen && (
-// //                         <motion.div
-// //                           initial={{ opacity: 0, scale: 0.95, y: 10 }}
-// //                           animate={{ opacity: 1, scale: 1, y: 0 }}
-// //                           exit={{ opacity: 0, scale: 0.95, y: 10 }}
-// //                           className="position-absolute end-0 mt-2 card shadow-lg border-mauve-100 z-3" style={{ width: '280px', borderRadius: '12px' }}
-// //                         >
-// //                           <div className="card-body p-3">
-// //                             <h6 className="card-title font-serif text-mauve-700 mb-2">Your Cart</h6>
-// //                             <p className="text-muted small mb-3">3 items – ₹1,250</p>
-// //                             <button className="btn btn-outline-mauve w-100 rounded-pill transition-all duration-200">
-// //                               View Cart
-// //                             </button>
-// //                           </div>
-// //                         </motion.div>
-// //                       )}
-// //                     </AnimatePresence>
-// //                   </li>
-// //                   {/* Profile Dropdown */}
-// //                   <li className="nav-item dropdown position-relative me-0">
-// //                     <button
-// //                       type="button"
-// //                       onClick={toggleProfile}
-// //                       className="nav-link dropdown-toggle btn btn-link text-muted hover-text-mauve-600 fw-medium transition-all duration-300 group p-0 d-flex align-items-center gap-1"
-// //                       aria-expanded={isProfileOpen}
-// //                     >
-// //                       <User size={18} className="group-hover-scale-110 transition-transform duration-200" />
-// //                       {user?.firstName || 'Profile'}
-// //                       <ChevronDown size={16} className={`transition-transform duration-300 ${isProfileOpen ? 'rotate-180' : ''}`} />
-// //                     </button>
-// //                     <AnimatePresence>
-// //                       {isProfileOpen && (
-// //                         <motion.ul
-// //                           initial={{ opacity: 0, y: -10, scale: 0.95 }}
-// //                           animate={{ opacity: 1, y: 0, scale: 1 }}
-// //                           exit={{ opacity: 0, y: -10, scale: 0.95 }}
-// //                           className="dropdown-menu show position-absolute end-0 mt-2 shadow-lg border-mauve-100 rounded-3 z-3" style={{ minWidth: '200px', borderRadius: '12px' }}
-// //                         >
-// //                           <li>
-// //                             <Link href="/profile" className="dropdown-item text-muted hover-bg-mauve-50 hover-text-mauve-600 transition-all duration-200 d-flex align-items-center gap-2 p-2" onClick={() => setIsProfileOpen(false)}>
-// //                               <User size={16} />
-// //                               My Profile
-// //                             </Link>
-// //                           </li>
-// //                           <li>
-// //                             <Link href="/orders" className="dropdown-item text-muted hover-bg-mauve-50 hover-text-mauve-600 transition-all duration-200 d-flex align-items-center gap-2 p-2" onClick={() => setIsProfileOpen(false)}>
-// //                               <ClipboardList size={16} />
-// //                               My Orders
-// //                             </Link>
-// //                           </li>
-// //                           <li className="dropdown-divider border-mauve-200"></li>
-// //                           <li>
-// //                             <button
-// //                               onClick={() => {
-// //                                 logout();
-// //                                 setIsProfileOpen(false);
-// //                               }}
-// //                               className="dropdown-item text-danger hover-bg-mauve-50 transition-all duration-200 d-flex align-items-center gap-2 p-2 w-100 text-start"
-// //                             >
-// //                               <LogOut size={16} />
-// //                               Logout
-// //                             </button>
-// //                           </li>
-// //                         </motion.ul>
-// //                       )}
-// //                     </AnimatePresence>
-// //                   </li>
-// //                 </>
-// //               ) : (
-// //                 !isLoading && (
-// //                   <li className="nav-item me-0">
-// //                     <Link
-// //                       href="/login"
-// //                       className="btn btn-outline-mauve rounded-pill px-4 py-2 fw-medium hover-bg-mauve-50 transition-all duration-300 shadow-sm hover-shadow d-flex align-items-center gap-2"
-// //                       style={{ borderColor: '#E0BBE4', color: '#E0BBE4' }}
-// //                     >
-// //                       <LogIn size={16} />
-// //                       Login
-// //                     </Link>
-// //                   </li>
-// //                 )
-// //               )}
-// //             </ul>
-
-// //             {/* Mobile Toggle */}
-// //             <button
-// //               className="navbar-toggler d-md-none border-0 p-0" type="button"
-// //               onClick={toggleMobile}
-// //               aria-expanded={isMobileOpen}
-// //             >
-// //               <span className="navbar-toggler-icon-custom"></span>
-// //             </button>
-// //           </div>
-// //         </div>
-// //       </nav>
-
-// //       {/* Mobile Menu – Fixed Vertical Stacking */}
-// //       <AnimatePresence>
-// //         {isMobileOpen && (
-// //           <motion.div
-// //             initial={{ opacity: 0 }}
-// //             animate={{ opacity: 1 }}
-// //             exit={{ opacity: 0 }}
-// //             className="position-fixed top-0 end-0 h-100 w-75 bg-white shadow-lg z-4 d-md-none border-start border-mauve-100"
-// //             style={{ top: '80px' }}
-// //             onClick={(e) => e.stopPropagation()}
-// //           >
-// //             <div className="p-4 h-100 d-flex flex-column">
-// //               {/* Close Button */}
-// //               <button className="btn btn-link text-muted ms-auto mb-4" onClick={closeMobile}>
-// //                 <X size={24} />
-// //               </button>
-
-// //               {/* Mobile Search */}
-// //               <div className="mb-4 position-relative">
-// //                 <Search className="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" size={18} />
-// //                 <input
-// //                   type="search"
-// //                   className="form-control ps-5 rounded-pill border-mauve-200 focus-border-mauve-300 transition-all duration-200"
-// //                   placeholder="Search Sarees..."
-// //                 />
-// //               </div>
-
-// //               <ul className="nav flex-column flex-grow-1 mb-0">
-// //                 {/* Public Links – Stacked with Spacing */}
-// //                 <li className="nav-item mb-3"> {/* mb-3 for vertical spacing */}
-// //                   <Link href="/" className="nav-link text-muted hover-text-mauve-600 fw-medium transition-all duration-200 d-flex align-items-center gap-3 py-3" onClick={closeMobile}>
-// //                     <Package size={20} />
-// //                     Home
-// //                   </Link>
-// //                 </li>
-// //                 <li className="nav-item mb-3">
-// //                   <Link href="/products" className="nav-link text-muted hover-text-mauve-600 fw-medium transition-all duration-200 d-flex align-items-center gap-3 py-3" onClick={closeMobile}>
-// //                     <Tag size={20} />
-// //                     Products
-// //                   </Link>
-// //                 </li>
-// //                 <li className="nav-item mb-3">
-// //                   <Link href="/categories" className="nav-link text-muted hover-text-mauve-600 fw-medium transition-all duration-200 d-flex align-items-center gap-3 py-3" onClick={closeMobile}>
-// //                     <LayoutDashboard size={20} />
-// //                     Categories
-// //                   </Link>
-// //                 </li>
-
-// //                 {/* Authenticated */}
-// //                 {!isLoading && user ? (
-// //                   <>
-// //                     {user.isAdmin && (
-// //                       <li className="nav-item mb-3">
-// //                         <Link href="/admin" className="nav-link text-muted hover-text-mauve-600 fw-medium transition-all duration-200 d-flex align-items-center gap-3 py-3" onClick={closeMobile}>
-// //                           <LayoutDashboard size={20} />
-// //                           Admin
-// //                         </Link>
-// //                       </li>
-// //                     )}
-// //                     <li className="nav-item mb-3">
-// //                       <Link href="/orders" className="nav-link text-muted hover-text-mauve-600 fw-medium transition-all duration-200 d-flex align-items-center gap-3 py-3" onClick={closeMobile}>
-// //                         <ClipboardList size={20} />
-// //                         Orders
-// //                       </Link>
-// //                     </li>
-// //                     <li className="nav-item mb-3">
-// //                       <Link href="/cart" className="nav-link text-muted hover-text-mauve-600 fw-medium transition-all duration-200 d-flex align-items-center gap-3 py-3" onClick={closeMobile}>
-// //                         <ShoppingCart size={20} />
-// //                         Cart
-// //                         {cartCount > 0 && (
-// //                           <span className="badge bg-mauve-500 text-white rounded-pill ms-2">
-// //                             {cartCount}
-// //                           </span>
-// //                         )}
-// //                       </Link>
-// //                     </li>
-// //                     <li className="dropdown-divider border-mauve-200 mt-4 mb-3"></li>
-// //                     <li className="nav-item mb-3">
-// //                       <Link href="/profile" className="nav-link text-muted hover-text-mauve-600 fw-medium transition-all duration-200 d-flex align-items-center gap-3 py-3" onClick={closeMobile}>
-// //                         <User size={20} />
-// //                         My Profile
-// //                       </Link>
-// //                     </li>
-// //                     <li className="nav-item mb-3">
-// //                       <Link href="/orders" className="nav-link text-muted hover-text-mauve-600 fw-medium transition-all duration-200 d-flex align-items-center gap-3 py-3" onClick={closeMobile}>
-// //                         <ClipboardList size={20} />
-// //                         My Orders
-// //                       </Link>
-// //                     </li>
-// //                     <li className="nav-item">
-// //                       <button
-// //                         onClick={() => {
-// //                           logout();
-// //                           closeMobile();
-// //                         }}
-// //                         className="nav-link text-danger hover-text-red-700 fw-medium transition-all duration-200 d-flex align-items-center gap-3 py-3 w-100 text-start"
-// //                       >
-// //                         <LogOut size={20} />
-// //                         Logout
-// //                       </button>
-// //                     </li>
-// //                   </>
-// //                 ) : (
-// //                   !isLoading && (
-// //                     <li className="nav-item mt-4 mb-0">
-// //                       <Link
-// //                         href="/login"
-// //                         className="btn btn-outline-mauve rounded-pill w-100 fw-medium hover-bg-mauve-50 transition-all duration-300 d-flex align-items-center justify-content-center gap-2"
-// //                         style={{ borderColor: '#E0BBE4', color: '#E0BBE4' }}
-// //                         onClick={closeMobile}
-// //                       >
-// //                         <LogIn size={16} />
-// //                         Login
-// //                       </Link>
-// //                     </li>
-// //                   )
-// //                 )}
-// //               </ul>
-// //             </div>
-// //           </motion.div>
-// //         )}
-// //       </AnimatePresence>
-
-// //       {/* Spacer */}
-// //       <div className="h-20"></div>
-
-// //       {/* Custom CSS – Unchanged */}
-// //       <style jsx global>{`
-// //         :root {
-// //           --mauve-100: #F5F3FF;
-// //           --mauve-200: #EDE9FE;
-// //           --mauve-300: #E0BBE4;
-// //           --mauve-500: #C4B5FD;
-// //           --mauve-600: #A78BFA;
-// //           --mauve-700: #8B5CF6;
-// //         }
-// //         .border-mauve-100 { border-color: var(--mauve-100) !important; }
-// //         .border-mauve-200 { border-color: var(--mauve-200) !important; }
-// //         .bg-mauve-50 { background-color: var(--mauve-100) !important; }
-// //         .bg-mauve-100 { background-color: var(--mauve-200) !important; }
-// //         .text-mauve-600 { color: var(--mauve-600) !important; }
-// //         .text-mauve-700 { color: var(--mauve-700) !important; }
-// //         .hover-text-mauve-600:hover { color: var(--mauve-600) !important; }
-// //         .hover-bg-mauve-50:hover { background-color: var(--mauve-100) !important; }
-// //         .group-hover-text-mauve-500:hover { color: var(--mauve-300) !important; }
-// //         .group-hover-scale-110:hover { transform: scale(1.1) !important; }
-// //         .group-hover-w-full:hover { width: 100% !important; }
-// //         .fs-2xsmall { font-size: 0.625rem !important; }
-// //         .font-serif { font-family: 'Playfair Display', serif !important; }
-// //         .navbar-toggler-icon-custom {
-// //           position: relative;
-// //           width: 30px;
-// //           height: 2px;
-// //           background: #6c757d;
-// //           border-radius: 1px;
-// //         }
-// //         .navbar-toggler-icon-custom::before, .navbar-toggler-icon-custom::after {
-// //           content: '';
-// //           position: absolute;
-// //           width: 30px;
-// //           height: 2px;
-// //           background: #6c757d;
-// //           border-radius: 1px;
-// //           left: 0;
-// //         }
-// //         .navbar-toggler-icon-custom::before { top: -8px; }
-// //         .navbar-toggler-icon-custom::after { bottom: -8px; }
-// //         .btn-outline-mauve { border-color: var(--mauve-300) !important; color: var(--mauve-300) !important; }
-// //         .btn-outline-mauve:hover { background-color: var(--mauve-100) !important; }
-// //       `}</style>
-// //     </>
-// //   );
-// // }
-
-
-
-// 'use client';
-
-// import React, { useState } from 'react';
-// import Link from 'next/link'; // Import next/link
-// import { useAuth } from '@/app/contexts/AuthContext'; // Import the auth hook
-// import {
-//   ShoppingCart,
-//   User,
-//   Menu,
-//   X,
-//   LogOut,
-//   Package,
-//   List,
-//   Home,
-//   LogIn, // Import LogIn icon
-// } from 'lucide-react';
-
-// // No props interface needed, as we'll use the context
-// // interface NavbarProps { ... }
-
-// export default function Navbar() {
-//   // --- Logic from Working Navbar ---
-//   const { user, logout, isLoading } = useAuth();
-//   // ---
-
-//   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-//   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
-//   // --- Derive state from auth context instead of props ---
-//   const userType = user ? (user.isAdmin ? 'admin' : 'user') : null;
-
-//   // TODO: Replace this with your actual cart logic (e.g., from a useCart context)
-//   // Using '3' as a placeholder from your working navbar example.
-//   const cartCount = 3;
-//   // ---
-
-//   // This logic block is from your Designed Navbar and now works with the auth state
-//   const navLinks =
-//     userType === 'admin'
-//       ? [
-//           { label: 'Products', href: '/products', icon: Package },
-//           { label: 'Categories', href: '/categories', icon: List },
-//           { label: 'Orders', href: '/orders', icon: Package },
-//         ]
-//       : userType === 'user'
-//       ? [
-//           { label: 'Products', href: '/products', icon: Package },
-//           { label: 'Orders', href: '/orders', icon: Package },
-//           {
-//             label: 'Cart',
-//             href: '/cart',
-//             icon: ShoppingCart,
-//             badge: cartCount,
-//           },
-//         ]
-//       : []; // Logged-out users will see no links here, only the Login button
-
-//   return (
-//     <>
-//       {/* Styles from Designed Navbar (unchanged) */}
-//       <style jsx global>{`
-//         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
-//         * {
-//           font-family: 'Inter', sans-serif;
-//         }
-
-//         .navbar-custom {
-//           background-color: #ffffff;
-//           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-//           transition: all 0.3s ease;
-//         }
-
-//         .nav-link-custom {
-//           color: #1e293b !important;
-//           font-weight: 500;
-//           transition: all 0.3s ease;
-//           position: relative;
-//         }
-
-//         .nav-link-custom:hover,
-//         .nav-link-custom.active {
-//           color: #e76f51 !important;
-//         }
-
-//         .nav-link-custom:hover::after {
-//           content: '';
-//           position: absolute;
-//           bottom: 0;
-//           left: 50%;
-//           transform: translateX(-50%);
-//           width: 60%;
-//           height: 2px;
-//           background-color: #e76f51;
-//           transition: all 0.3s ease;
-//         }
-
-//         .btn-primary-custom {
-//           background-color: #e76f51;
-//           color: white;
-//           border: none;
-//           transition: all 0.3s ease;
-//           font-weight: 500;
-//         }
-
-//         .btn-primary-custom:hover {
-//           background-color: #d45a3f;
-//           transform: translateY(-1px);
-//         }
-
-//         .dropdown-menu-custom {
-//           border: none;
-//           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-//           border-radius: 8px;
-//           padding: 0.5rem 0;
-//           min-width: 180px;
-//         }
-
-//         .dropdown-item-custom {
-//           color: #1e293b;
-//           padding: 0.5rem 1rem;
-//           transition: all 0.3s ease;
-//           font-size: 0.9rem;
-//         }
-
-//         .dropdown-item-custom:hover {
-//           background-color: #fdf6f0;
-//           color: #e76f51;
-//         }
-
-//         .badge-custom {
-//           background-color: #f7c6c7;
-//           color: #1e293b;
-//           font-size: 0.65rem;
-//           font-weight: 600;
-//           min-width: 18px;
-//           height: 18px;
-//           border-radius: 50%;
-//           display: flex;
-//           align-items: center;
-//           justify-content: center;
-//         }
-
-//         .logo-text {
-//           color: #e76f51;
-//           font-weight: 700;
-//           font-size: 1.5rem;
-//           text-decoration: none;
-//           transition: all 0.3s ease;
-//         }
-
-//         .logo-text:hover {
-//           color: #d45a3f;
-//           transform: scale(1.05);
-//         }
-
-//         .user-icon-btn {
-//           background-color: #fdf6f0;
-//           border: 1px solid #fdf6f0;
-//           width: 40px;
-//           height: 40px;
-//           border-radius: 50%;
-//           display: flex;
-//           align-items: center;
-//           justify-content: center;
-//           transition: all 0.3s ease;
-//         }
-
-//         .user-icon-btn:hover {
-//           background-color: #f7c6c7;
-//           transform: translateY(-1px);
-//         }
-
-//         .mobile-menu-bg {
-//           background-color: rgba(255, 255, 255, 0.95);
-//           backdrop-filter: blur(10px);
-//         }
-//       `}</style>
-
-//       <nav className="navbar navbar-expand-lg navbar-custom sticky-top">
-//         <div className="container-fluid px-4">
-//           {/* Logo - Replaced <a> with <Link> */}
-//           <Link
-//             className="navbar-brand d-flex align-items-center logo-text"
-//             href="/"
-//           >
-//             👗 Hemasaree
-//           </Link>
-
-//           {/* Mobile toggle (unchanged) */}
-//           <button
-//             className="navbar-toggler border-0 p-2"
-//             type="button"
-//             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-//             aria-label="Toggle navigation"
-//           >
-//             {isMobileMenuOpen ? (
-//               <X size={24} color="#1e293b" />
-//             ) : (
-//               <Menu size={24} color="#1e293b" />
-//             )}
-//           </button>
-
-//           {/* Desktop Navigation */}
-//           <div className="collapse navbar-collapse" id="navbarNav">
-//             <ul className="navbar-nav mx-auto">
-//               {navLinks.map((link) => {
-//                 const Icon = link.icon;
-//                 return (
-//                   <li key={link.label} className="nav-item mx-2">
-//                     {/* Replaced <a> with <Link> */}
-//                     <Link
-//                       className="nav-link nav-link-custom d-flex align-items-center gap-1"
-//                       href={link.href}
-//                     >
-//                       <Icon size={18} />
-//                       {link.label}
-//                       {link.badge !== undefined && link.badge > 0 && (
-//                         <span className="badge-custom ms-1">{link.badge}</span>
-//                       )}
-//                     </Link>
-//                   </li>
-//                 );
-//               })}
-//             </ul>
-
-//             {/* --- Auth Controls - Desktop (Replaced) --- */}
-//             <div className="d-flex align-items-center">
-//               {isLoading ? (
-//                 // Loading spinner
-//                 <div
-//                   className="spinner-border text-muted"
-//                   role="status"
-//                   style={{
-//                     width: '1.5rem',
-//                     height: '1.5rem',
-//                     borderWidth: '0.2em',
-//                   }}
-//                 >
-//                   <span className="visually-hidden">Loading...</span>
-//                 </div>
-//               ) : user ? (
-//                 // User is logged in: Show dropdown
-//                 <div className="dropdown">
-//                   <button
-//                     className="user-icon-btn dropdown-toggle"
-//                     type="button"
-//                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-//                     aria-expanded={isDropdownOpen}
-//                   >
-//                     <User size={20} color="#e76f51" />
-//                   </button>
-//                   <ul
-//                     className={`dropdown-menu dropdown-menu-end dropdown-menu-custom ${
-//                       isDropdownOpen ? 'show' : ''
-//                     }`}
-//                     style={{
-//                       position: 'absolute',
-//                       top: '100%',
-//                       right: 0,
-//                       marginTop: '0.5rem',
-//                       zIndex: 1041, // Ensure it's above the overlay
-//                     }}
-//                   >
-//                     <li>
-//                       {/* Replaced <a> with <Link> and onProfile with direct link */}
-//                       <Link
-//                         className="dropdown-item dropdown-item-custom d-flex align-items-center gap-2"
-//                         href="/profile"
-//                         onClick={() => setIsDropdownOpen(false)}
-//                       >
-//                         <User size={16} />
-//                         Profile
-//                       </Link>
-//                     </li>
-//                     <li>
-//                       {/* Replaced onLogout with logout() from context */}
-//                       <button
-//                         className="dropdown-item dropdown-item-custom d-flex align-items-center gap-2 text-danger"
-//                         onClick={(e) => {
-//                           e.preventDefault();
-//                           logout(); // Use logout from context
-//                           setIsDropdownOpen(false);
-//                         }}
-//                         style={{
-//                           background: 'none',
-//                           border: 'none',
-//                           width: '100%',
-//                           textAlign: 'left',
-//                         }}
-//                       >
-//                         <LogOut size={16} />
-//                         Logout
-//                       </button>
-//                     </li>
-//                   </ul>
-//                 </div>
-//               ) : (
-//                 // User is not logged in: Show Login button
-//                 <Link
-//                   href="/login"
-//                   className="btn btn-primary-custom d-flex align-items-center gap-2"
-//                 >
-//                   <LogIn size={18} />
-//                   Login
-//                 </Link>
-//               )}
-//             </div>
-//             {/* --- End Auth Controls --- */}
-//           </div>
-//         </div>
-
-//         {/* --- Mobile Menu (Updated Logic) --- */}
-//         {isMobileMenuOpen && (
-//           <div
-//             className="mobile-menu-bg position-absolute top-100 start-0 end-0 border-top"
-//             style={{ zIndex: 1000 }}
-//           >
-//             <div className="container-fluid px-4 py-3">
-//               <ul className="navbar-nav">
-//                 {navLinks.map((link) => {
-//                   const Icon = link.icon;
-//                   return (
-//                     <li key={link.label} className="nav-item mb-2">
-//                       {/* Replaced <a> with <Link> */}
-//                       <Link
-//                         className="nav-link nav-link-custom d-flex align-items-center gap-2 py-3"
-//                         href={link.href}
-//                         onClick={() => setIsMobileMenuOpen(false)}
-//                       >
-//                         <Icon size={20} />
-//                         {link.label}
-//                         {link.badge !== undefined && link.badge > 0 && (
-//                           <span className="badge-custom ms-auto">
-//                             {link.badge}
-//                           </span>
-//                         )}
-//                       </Link>
-//                     </li>
-//                   );
-//                 })}
-
-//                 {/* --- Auth Controls - Mobile (Replaced) --- */}
-//                 {isLoading ? (
-//                   <li className="nav-item mt-3 pt-3 border-top">
-//                     <span className="nav-link nav-link-custom d-flex align-items-center gap-2 py-3 text-muted">
-//                       Loading...
-//                     </span>
-//                   </li>
-//                 ) : user ? (
-//                   // User is logged in: Show Profile & Logout
-//                   <>
-//                     <li className="nav-item mt-3 pt-3 border-top">
-//                       {/* Replaced <a> with <Link> and onProfile with direct link */}
-//                       <Link
-//                         className="nav-link nav-link-custom d-flex align-items-center gap-2 py-3"
-//                         href="/profile"
-//                         onClick={() => setIsMobileMenuOpen(false)}
-//                       >
-//                         <User size={20} />
-//                         Profile
-//                       </Link>
-//                     </li>
-//                     <li className="nav-item">
-//                       {/* Replaced onLogout with logout() from context */}
-//                       <button
-//                         className="nav-link nav-link-custom d-flex align-items-center gap-2 py-3 text-danger w-100 text-start"
-//                         onClick={(e) => {
-//                           e.preventDefault();
-//                           logout(); // Use logout from context
-//                           setIsMobileMenuOpen(false);
-//                         }}
-//                         style={{ background: 'none', border: 'none' }}
-//                       >
-//                         <LogOut size={20} />
-//                         Logout
-//                       </button>
-//                     </li>
-//                   </>
-//                 ) : (
-//                   // User is not logged in: Show Login link
-//                   <li className="nav-item mt-3 pt-3 border-top">
-//                     <Link
-//                       className="nav-link nav-link-custom d-flex align-items-center gap-2 py-3 btn-primary-custom text-white"
-//                       href="/login"
-//                       onClick={() => setIsMobileMenuOpen(false)}
-//                       style={{ borderRadius: '8px', justifyContent: 'center' }}
-//                     >
-//                       <LogIn size={20} />
-//                       Login
-//                     </Link>
-//                   </li>
-//                 )}
-//                 {/* --- End Auth Controls --- */}
-//               </ul>
-//             </div>
-//           </div>
-//         )}
-//       </nav>
-
-//       {/* Overlay for dropdown outside click (unchanged) */}
-//       {isDropdownOpen && (
-//         <div
-//           className="position-fixed top-0 start-0 end-0 bottom-0"
-//           style={{ zIndex: 1040 }}
-//           onClick={() => setIsDropdownOpen(false)}
-//         />
-//       )}
-//     </>
-//   );
-// }\\\\\\\\\\
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { ShoppingBag, Heart, User, Search, Menu, X, LogOut, Package, ChevronDown } from 'lucide-react';
 import { useAuth } from '@/app/contexts/AuthContext';
-import { User as UserIcon } from 'lucide-react';
+import { useCart } from '@/app/contexts/CartContext';
+import { useWishlist } from '@/app/contexts/WishlistContext';
 
 export default function Navbar() {
-  const { user, logout } = useAuth();
-  const [mounted, setMounted] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
 
-  // ensure component only renders on client after mount
+  const pathname = usePathname();
+  const router = useRouter();
+  
+  const { user, logout, isLoading } = useAuth();
+  const { cartCount } = useCart();
+  const { wishlistCount } = useWishlist();
+
+  // Handle scroll effect for sticky navbar
   useEffect(() => {
-    setMounted(true);
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 40); // 40 is the height of announcement bar
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  if (!mounted) return null; // prevent hydration errors
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+    setIsProfileDropdownOpen(false);
+  }, [pathname]);
 
-  const isAdmin = user?.isAdmin ?? false;
-  const isUser = user && !user.isAdmin;
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
+  const collections = [
+    { name: 'Bridal', href: '/products?category=Bridal' },
+    { name: 'Festive', href: '/products?category=Festive' },
+    { name: 'Casual', href: '/products?category=Casual' },
+    { name: 'Gifts', href: '/products?category=Gifts' },
+  ];
+
+  // Hidden on admin routes
+  if (pathname.startsWith('/admin')) return null;
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-light bg-light shadow-sm py-3 px-4 sticky-top">
-      <div className="container-fluid">
-        <Link className="navbar-brand fw-bold fs-4 text-uppercase text-primary" href="/">
-          Hema Sarees
-        </Link>
-
-        <button
-          className="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarNav"
-          aria-controls="navbarNav"
-          aria-expanded="false"
-          aria-label="Toggle navigation"
-        >
-          <span className="navbar-toggler-icon"></span>
-        </button>
-
-        <div className="collapse navbar-collapse" id="navbarNav">
-          <ul className="navbar-nav mx-auto mb-2 mb-lg-0">
-            {isUser && (
-              <>
-                <li className="nav-item">
-                  <Link className="nav-link" href="/products">Products</Link>
-                </li>
-                <li className="nav-item">
-                  <Link className="nav-link" href="/cart">Cart</Link>
-                </li>
-                <li className="nav-item">
-                  <Link className="nav-link" href="/orders">Orders</Link>
-                </li>
-              </>
-            )}
-
-            {isAdmin && (
-              <>
-                <li className="nav-item">
-                  <Link className="nav-link" href="/admin/product">Products</Link>
-                </li>
-                <li className="nav-item">
-                  <Link className="nav-link" href="/admin/categories">Categories</Link>
-                </li>
-                <li className="nav-item">
-                  <Link className="nav-link" href="/admin/order">Orders</Link>
-                </li>
-              </>
-            )}
-          </ul>
-
-          <ul className="navbar-nav ms-auto">
-            {user ? (
-              <li className="nav-item dropdown">
-                <button
-                  className="nav-link dropdown-toggle btn btn-link d-flex align-items-center"
-                  id="userDropdown"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                >
-                  <UserIcon size={20} className="me-1" />
-                  {user.firstName}
-                </button>
-                <ul className="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="userDropdown">
-                  <li>
-                    <Link className="dropdown-item" href="/profile">Profile</Link>
-                  </li>
-                  <li>
-                    <button className="dropdown-item text-danger" onClick={logout}>
-                      Logout
-                    </button>
-                  </li>
-                </ul>
-              </li>
-            ) : (
-              <li className="nav-item">
-                <Link className="nav-link" href="/login">Login</Link>
-              </li>
-            )}
-          </ul>
-        </div>
+    <>
+      {/* Top Announcement Bar */}
+      <div className="bg-[#6B0F1A] text-white text-xs sm:text-sm py-2 px-4 text-center font-medium tracking-wide z-50 relative flex items-center justify-center gap-2">
+        <span>Festive Season Sale: Free Shipping on Orders Over ₹999 |</span>
+        <Link href="/products" className="underline hover:text-accent transition-colors font-bold">Shop Now</Link>
       </div>
-    </nav>
+
+      <header
+        className={`fixed left-0 right-0 z-40 transition-all duration-300 ${
+          isScrolled 
+            ? 'top-0 bg-white/95 backdrop-blur-md shadow-sm py-3 border-b border-surface-subtle' 
+            : 'top-[36px] bg-transparent py-5'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between gap-4 lg:gap-8">
+            
+            {/* Mobile Menu Button */}
+            <button 
+              className="lg:hidden p-2 -ml-2 text-[#3D1A24] hover:text-brand-800 transition-colors"
+              onClick={() => setIsMobileMenuOpen(true)}
+            >
+              <Menu size={24} />
+            </button>
+
+            {/* Logo */}
+            <Link href="/" className="flex-shrink-0 group flex items-center gap-2">
+              <span className="font-serif text-2xl font-bold tracking-wide text-brand-800 group-hover:text-brand-900 transition-colors">
+                Hema Sarees
+              </span>
+            </Link>
+
+            {/* Desktop Navigation */}
+            <nav className="hidden lg:flex items-center gap-8">
+              <Link
+                href="/"
+                className={`text-sm font-semibold uppercase tracking-wider transition-colors hover:text-brand-800 ${
+                  pathname === '/' ? 'text-brand-800' : 'text-[#3D1A24]/70'
+                }`}
+              >
+                Home
+              </Link>
+              
+              {/* Collections Dropdown */}
+              <div className="relative group">
+                <button className={`flex items-center gap-1 text-sm font-semibold uppercase tracking-wider transition-colors hover:text-brand-800 ${pathname.includes('category') ? 'text-brand-800' : 'text-[#3D1A24]/70'}`}>
+                   Collections <ChevronDown size={14} className="group-hover:rotate-180 transition-transform duration-200" />
+                </button>
+                <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-brand-100 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 overflow-hidden">
+                   {collections.map(col => (
+                      <Link key={col.name} href={col.href} className="block px-4 py-3 text-sm text-[#3D1A24] hover:bg-brand-50 hover:text-brand-800 transition-colors border-b border-brand-50 last:border-0 font-medium">
+                         {col.name}
+                      </Link>
+                   ))}
+                </div>
+              </div>
+
+              <Link
+                href="/products"
+                className={`text-sm font-semibold uppercase tracking-wider transition-colors hover:text-brand-800 ${
+                  pathname === '/products' && !pathname.includes('category') ? 'text-brand-800' : 'text-[#3D1A24]/70'
+                }`}
+              >
+                All Sarees
+              </Link>
+            </nav>
+
+            {/* Desktop Search Bar */}
+            <div className="hidden lg:block flex-grow max-w-md">
+              <form onSubmit={handleSearch} className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-800/50" size={18} />
+                <input
+                  type="text"
+                  placeholder="Search elegant sarees..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-surface border border-brand-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-brand-800 focus:border-transparent transition-all placeholder:text-ink-faint text-[#3D1A24]"
+                />
+              </form>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center gap-3 sm:gap-5">
+              
+              {/* Desktop Wishlist & Cart */}
+              <div className="hidden lg:flex items-center gap-4">
+                <Link href="/wishlist" className="relative p-2 text-[#3D1A24] hover:text-brand-800 transition-colors group">
+                  <Heart size={22} className="group-hover:scale-110 transition-transform" />
+                  {wishlistCount > 0 && (
+                    <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-brand-600 rounded-full border-2 border-white"></span>
+                  )}
+                </Link>
+
+                <Link href="/cart" className="relative p-2 text-[#3D1A24] hover:text-brand-800 transition-colors group">
+                  <ShoppingBag size={22} className="group-hover:scale-110 transition-transform" />
+                  {cartCount > 0 && (
+                    <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-brand-600 rounded-full border-2 border-white"></span>
+                  )}
+                </Link>
+              </div>
+
+              {/* User Profile */}
+              <div className="relative">
+                {isLoading ? (
+                  <div className="w-8 h-8 rounded-full bg-brand-100 animate-pulse border border-brand-200" />
+                ) : user ? (
+                  <div 
+                    className="relative"
+                    onMouseEnter={() => setIsProfileDropdownOpen(true)}
+                    onMouseLeave={() => setIsProfileDropdownOpen(false)}
+                  >
+                      <button className="flex items-center gap-2 p-2 rounded-full hover:bg-brand-50 text-[#3D1A24] transition-colors">
+                        <div className="w-8 h-8 rounded-full bg-brand-800 text-accent flex items-center justify-center font-bold text-sm uppercase shadow-sm">
+                          {user.firstName?.charAt(0) || user.email?.charAt(0) || 'U'}
+                        </div>
+                      </button>
+
+                      {/* Dropdown */}
+                      {isProfileDropdownOpen && (
+                        <div className="absolute right-0 mt-1 w-48 bg-white rounded-xl shadow-xl border border-brand-100 overflow-hidden py-2 animate-scale-in origin-top-right">
+                          <div className="px-4 py-2 border-b border-brand-50 mb-1">
+                            <p className="text-sm font-semibold text-[#3D1A24] truncate">{user.firstName || 'User'}</p>
+                            <p className="text-xs text-[#3D1A24]/70 truncate">{user.email}</p>
+                          </div>
+                          {user.isAdmin && (
+                            <Link href="/admin" className="flex items-center gap-2 px-4 py-2 text-sm text-[#3D1A24]/80 hover:bg-brand-50 hover:text-brand-800 font-medium">
+                              <User size={16} /> Admin Dashboard
+                            </Link>
+                          )}
+                          <Link href="/profile" className="flex items-center gap-2 px-4 py-2 text-sm text-[#3D1A24]/80 hover:bg-brand-50 hover:text-brand-800 font-medium">
+                            <User size={16} /> My Profile
+                          </Link>
+                          <Link href="/orders" className="flex items-center gap-2 px-4 py-2 text-sm text-[#3D1A24]/80 hover:bg-brand-50 hover:text-brand-800 font-medium">
+                            <Package size={16} /> My Orders
+                          </Link>
+                          <button 
+                            onClick={logout}
+                            className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 text-left font-medium"
+                          >
+                            <LogOut size={16} /> Sign Out
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <Link 
+                      href="/login" 
+                      className="hidden sm:flex items-center gap-2 px-5 py-2 bg-brand-800 text-white rounded-full text-sm font-medium hover:bg-brand-900 transition-colors shadow-md"
+                    >
+                      Sign In
+                    </Link>
+                  )}
+              </div>
+              
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Mobile Drawer Overlay */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div className="absolute inset-0 bg-[#3D1A24]/40 backdrop-blur-sm animate-fade-in" onClick={() => setIsMobileMenuOpen(false)} />
+          <div className="absolute inset-y-0 left-0 w-4/5 max-w-sm bg-surface shadow-2xl animate-slide-right flex flex-col h-full">
+            
+            <div className="p-4 flex items-center justify-between border-b border-brand-100">
+              <span className="font-serif text-xl font-bold text-brand-800">Hema Sarees</span>
+              <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-[#3D1A24]/60 hover:text-[#3D1A24] bg-surface-muted rounded-full">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-4 overflow-y-auto">
+              <form onSubmit={handleSearch} className="relative mb-6">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-800/50" size={18} />
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 bg-white border border-brand-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-800"
+                />
+              </form>
+
+              <nav className="flex flex-col gap-2">
+                <Link
+                  href="/"
+                  className={`px-4 py-3 rounded-xl font-semibold transition-colors ${
+                    pathname === '/' ? 'bg-brand-50 text-brand-800' : 'text-[#3D1A24] hover:bg-surface-muted'
+                  }`}
+                >
+                  Home
+                </Link>
+                <Link
+                  href="/products"
+                  className={`px-4 py-3 rounded-xl font-semibold transition-colors ${
+                    pathname === '/products' && !pathname.includes('category') ? 'bg-brand-50 text-brand-800' : 'text-[#3D1A24] hover:bg-surface-muted'
+                  }`}
+                >
+                  All Sarees
+                </Link>
+                
+                <div className="pt-4 pb-2">
+                   <p className="px-4 text-xs font-bold text-[#3D1A24]/50 uppercase tracking-wider mb-2">Collections</p>
+                   {collections.map(col => (
+                      <Link key={col.name} href={col.href} className="block px-4 py-2 text-sm font-medium text-[#3D1A24] hover:text-brand-800">
+                         {col.name}
+                      </Link>
+                   ))}
+                </div>
+              </nav>
+            </div>
+
+            <div className="mt-auto p-4 border-t border-brand-100">
+              {!isLoading && !user && (
+                <Link 
+                  href="/login" 
+                  className="w-full flex items-center justify-center py-3 bg-brand-800 text-white rounded-xl font-semibold hover:bg-brand-900 transition-colors shadow-md"
+                >
+                  Sign In / Register
+                </Link>
+              )}
+            </div>
+            
+          </div>
+        </div>
+      )}
+    </>
   );
 }

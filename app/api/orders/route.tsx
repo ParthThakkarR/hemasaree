@@ -1,11 +1,19 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma";
+import { getUserFromToken } from "@/app/lib/getUserFromToken";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const user = await getUserFromToken(req);
+    
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const orders = await prisma.order.findMany({
+      where: { userId: user.id },
       orderBy: { createdAt: "desc" },
       include: {
         payment: true,
@@ -24,21 +32,10 @@ export async function GET() {
       },
     });
 
-    // Manually attach user info (optional) — prevents Prisma crash
-    const enrichedOrders = await Promise.all(
-      orders.map(async (order) => {
-        let user = null;
-        try {
-          user = await prisma.user.findUnique({
-            where: { id: order.userId },
-            select: { firstName: true, email: true },
-          });
-        } catch {
-          user = null;
-        }
-        return { ...order, user };
-      })
-    );
+    const enrichedOrders = orders.map((order) => ({
+      ...order,
+      user: { firstName: user.firstName, email: user.email },
+    }));
 
     return NextResponse.json({ orders: enrichedOrders });
   } catch (error: any) {

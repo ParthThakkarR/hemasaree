@@ -34,9 +34,11 @@ model User {
   lastName             String?
   addresses            Address[]
   email                String     @unique
+  emailVerified        DateTime?
+  image                String?
   phone                String?
   isAdmin              Boolean    @default(false)
-  password             String
+  password             String?    // Optional for OAuth users
   createdAt            DateTime   @default(now())
   updatedAt            DateTime   @updatedAt
   passwordResetToken   String?
@@ -45,6 +47,44 @@ model User {
   orders               Order[]
   payments             Payment[]
   carts                Cart[]
+  accounts             Account[]
+  sessions             Session[]
+}
+
+model Account {
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String  @db.ObjectId
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.String
+  access_token      String? @db.String
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.String
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionToken String   @unique
+  userId       String   @db.ObjectId
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AnalyticsEvent {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  eventName String
+  url       String?
+  userId    String?  @db.ObjectId
+  metadata  Json?
+  createdAt DateTime @default(now())
 }
 model Address {
   id            String   @id @default(auto()) @map("_id") @db.ObjectId
@@ -158,9 +198,10 @@ model Payment {
 }
 
 model VerificationToken {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  email     String   @unique
-  token     String
-  expiresAt DateTime
-  createdAt DateTime @default(now())
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }

@@ -1,8 +1,16 @@
 'use client';
 
-import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode } from 'react';
+import { useSession, signIn, signOut, SessionProvider } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { User } from '@/app/lib/getUserFromToken';
+
+interface User {
+  id: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  isAdmin?: boolean;
+}
 
 interface AuthContextType {
   user: User | null;
@@ -13,65 +21,36 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+function AuthProviderInner({ children }: { children: ReactNode }) {
+  const { data: session, status } = useSession();
   const router = useRouter();
 
-  useEffect(() => {
-    let active = true;
-
-    const fetchUser = async () => {
-      try {
-        const res = await fetch('/api/me', {
-          method: 'GET',
-          credentials: 'include',
-          cache: 'no-store',
-        });
-
-        if (!active) return;
-
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data.user || null);
-        } else {
-          setUser(null);
-        }
-      } catch (err) {
-        console.error('[AUTH_FETCH_ERROR]', err);
-        if (active) setUser(null);
-      } finally {
-        if (active) setIsLoading(false);
-      }
-    };
-
-    fetchUser();
-
-    return () => {
-      active = false;
-    };
-  }, []);
+  const user = session?.user as unknown as User | null;
+  const isLoading = status === 'loading';
 
   const login = (userData: User) => {
-    setUser(userData);
+    // NextAuth handles redirects in signIn, but we can maintain this signature for compatibility
     router.push(userData.isAdmin ? '/admin' : '/');
   };
 
   const logout = async () => {
-    try {
-      await fetch('/api/logout', { method: 'POST', credentials: 'include' });
-    } catch (err) {
-      console.error('[LOGOUT_ERROR]', err);
-    } finally {
-      setUser(null);
-      router.push('/login');
-    }
+    await signOut({ callbackUrl: '/login' });
   };
 
   return (
     <AuthContext.Provider value={{ user, login, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
+  );
+}
+
+import { Session } from 'next-auth';
+
+export function AuthProvider({ children, session }: { children: ReactNode, session?: Session | null }) {
+  return (
+    <SessionProvider session={session} refetchInterval={0}>
+      <AuthProviderInner>{children}</AuthProviderInner>
+    </SessionProvider>
   );
 }
 
