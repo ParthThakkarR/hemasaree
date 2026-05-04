@@ -86,7 +86,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
           alt={product.name}
           fill
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          className="object-cover transition-opacity duration-500 ease-in-out group-hover:opacity-0"
+          className="object-cover object-top transition-opacity duration-500 ease-in-out group-hover:opacity-0"
           priority={priority}
         />
         <Image
@@ -94,7 +94,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
           alt={`Alternate view of ${product.name}`}
           fill
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          className="object-cover absolute inset-0 opacity-0 transition-opacity duration-500 ease-in-out group-hover:opacity-100 group-hover:scale-105"
+          className="object-cover object-top absolute inset-0 opacity-0 transition-opacity duration-500 ease-in-out group-hover:opacity-100 group-hover:scale-105"
         />
 
         {/* Quick Add Overlay (Desktop) */}

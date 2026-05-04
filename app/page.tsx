@@ -85,7 +85,7 @@ export default function Home() {
                   alt="Beautiful Indian Saree"
                   fill
                   sizes="(max-width: 1024px) 80vw, 40vw"
-                  className="object-cover"
+                  className="object-cover object-top"
                   priority
                 />
               </div>
@@ -95,7 +95,7 @@ export default function Home() {
                   alt="Saree Detail"
                   fill
                   sizes="(max-width: 1024px) 50vw, 25vw"
-                  className="object-cover"
+                  className="object-cover object-top"
                 />
               </div>
             </div>
@@ -150,7 +150,7 @@ export default function Home() {
               { name: 'Casual', img: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&q=80&w=600' }
             ].map((occasion) => (
               <Link href={`/products?category=${occasion.name.split(' ')[0]}`} key={occasion.name} className="relative min-w-[280px] md:min-w-[320px] h-[400px] rounded-2xl overflow-hidden snap-start group cursor-pointer shadow-md">
-                <Image src={occasion.img} alt={occasion.name} fill className="object-cover group-hover:scale-105 transition-transform duration-700" />
+                <Image src={occasion.img} alt={occasion.name} fill className="object-cover object-top group-hover:scale-105 transition-transform duration-700" />
                 <div className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/20 to-transparent"></div>
                 <div className="absolute bottom-6 left-6 right-6 flex items-center justify-between">
                   <h3 className="font-serif text-2xl font-bold text-white">{occasion.name}</h3>
@@ -237,7 +237,7 @@ export default function Home() {
         <div className="flex overflow-x-auto gap-4 px-4 sm:px-6 lg:px-8 pb-8 hide-scrollbar snap-x">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <div key={i} className="relative min-w-[250px] h-[300px] rounded-2xl overflow-hidden snap-center flex-shrink-0">
-              <Image src={`https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&q=80&w=400&sig=${i}`} alt="Customer in Saree" fill className="object-cover" />
+              <Image src={`https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&q=80&w=400&sig=${i}`} alt="Customer in Saree" fill className="object-cover object-top" />
             </div>
           ))}
         </div>
@@ -253,7 +253,7 @@ export default function Home() {
                 src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&q=80&w=1600"
                 alt="Wedding Collection"
                 fill
-                className="object-cover opacity-40 mix-blend-overlay"
+                className="object-cover object-top opacity-40 mix-blend-overlay"
               />
             </div>
 

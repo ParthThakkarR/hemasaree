@@ -195,7 +195,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                    alt={`${product.name} - Image ${idx + 1}`}
                    fill
                    priority={idx === 0}
-                   className="object-cover"
+                   className="object-cover object-top"
                    sizes="(max-width: 1024px) 100vw, 60vw"
                  />
                </div>
@@ -384,7 +384,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                       src={getImageSrc(r.images?.[0])} 
                       alt={r.name}
                       fill
-                      className="object-cover transition-transform duration-700 group-hover:scale-105"
+                      className="object-cover object-top transition-transform duration-700 group-hover:scale-105"
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                     />
                   </Link>

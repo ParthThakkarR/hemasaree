@@ -6,11 +6,13 @@ import { usePathname } from 'next/navigation';
 import { Home, Search, ShoppingBag, Heart, User } from 'lucide-react';
 import { useCart } from '@/app/contexts/CartContext';
 import { useWishlist } from '@/app/contexts/WishlistContext';
+import { useAuth } from '@/app/contexts/AuthContext';
 
 export default function MobileNav() {
   const pathname = usePathname();
   const { cartCount } = useCart();
   const { wishlistCount } = useWishlist();
+  const { user } = useAuth();
 
   // Hidden on admin pages or specific checkout pages if needed
   if (pathname.startsWith('/admin')) return null;
@@ -20,7 +22,7 @@ export default function MobileNav() {
     { name: 'Search', href: '/products', icon: Search },
     { name: 'Wishlist', href: '/wishlist', icon: Heart, badge: wishlistCount },
     { name: 'Cart', href: '/cart', icon: ShoppingBag, badge: cartCount },
-    { name: 'Profile', href: '/profile', icon: User },
+    { name: user ? 'Profile' : 'Sign In', href: user ? '/profile' : '/login', icon: User },
   ];
 
   return (

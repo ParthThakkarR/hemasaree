@@ -201,7 +201,7 @@ export default function Navbar() {
                   ) : (
                     <Link 
                       href="/login" 
-                      className="hidden sm:flex items-center gap-2 px-5 py-2 bg-brand-800 text-white rounded-full text-sm font-medium hover:bg-brand-900 transition-colors shadow-md"
+                      className="flex items-center gap-2 px-3 sm:px-5 py-1.5 sm:py-2 bg-brand-800 text-white rounded-full text-xs sm:text-sm font-medium hover:bg-brand-900 transition-colors shadow-md"
                     >
                       Sign In
                     </Link>
