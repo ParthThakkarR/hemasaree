@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Heart, ShoppingBag } from 'lucide-react';
@@ -22,6 +22,7 @@ export interface ProductCardProps {
 const ProductCard = memo(function ProductCard({ product, priority = false }: ProductCardProps) {
   const { isInWishlist, toggleWishlist } = useWishlist();
   const { addToCart } = useCart();
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
   
   const inWishlist = isInWishlist(product.id);
   const outOfStock = typeof product.stock === 'number' && product.stock <= 0;
@@ -44,16 +45,22 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
 
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
-    if (outOfStock) return;
+    if (outOfStock || isAddingToCart) return;
     
-    await addToCart({
-      productId: product.id,
-      quantity: 1,
-      productName: product.name,
-      productImage: primaryImage,
-      price: product.price,
-    });
-    toast.success('Added to cart');
+    try {
+      setIsAddingToCart(true);
+      await addToCart({
+        productId: product.id,
+        quantity: 1,
+        productName: product.name,
+        productImage: primaryImage,
+        price: product.price,
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsAddingToCart(false);
+    }
   };
 
   return (
@@ -101,11 +108,15 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
         <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out hidden lg:block bg-gradient-to-t from-ink/50 to-transparent">
            <button
             onClick={handleAddToCart}
-            disabled={outOfStock}
+            disabled={outOfStock || isAddingToCart}
             className="w-full bg-white/95 backdrop-blur text-ink font-semibold py-2.5 rounded-xl shadow-md hover:bg-brand-50 hover:text-brand-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <ShoppingBag size={18} />
-            {outOfStock ? 'Out of Stock' : 'Quick Add'}
+            {isAddingToCart ? (
+              <div className="w-4 h-4 border-2 border-ink border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <ShoppingBag size={18} />
+            )}
+            {outOfStock ? 'Out of Stock' : (isAddingToCart ? 'Adding...' : 'Quick Add')}
           </button>
         </div>
       </Link>
@@ -134,11 +145,15 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
           
           <button
             onClick={handleAddToCart}
-            disabled={outOfStock}
+            disabled={outOfStock || isAddingToCart}
             className="lg:hidden w-8 h-8 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center hover:bg-brand-100 disabled:opacity-50"
             aria-label="Add to cart"
           >
-            <ShoppingBag size={16} />
+            {isAddingToCart ? (
+              <div className="w-4 h-4 border-2 border-brand-600 border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <ShoppingBag size={16} />
+            )}
           </button>
         </div>
       </div>

@@ -43,7 +43,8 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   // Accordion state
   const [openAccordion, setOpenAccordion] = useState<string>('details');
   
-  const { refreshCart } = useCart();
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const { addToCart: addToCartContext } = useCart();
   const router = useRouter();
 
   const fetchProduct = useCallback(async () => {
@@ -100,6 +101,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   const addToCart = async (qty = 1) => {
     if (!product) return;
     try {
+      setIsAddingToCart(true);
       const finalPrice = product.price + (polish ? POLISH_PRICE : 0);
       const body = {
         productId: product.id,
@@ -109,16 +111,11 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
         price: finalPrice,
         withPolish: polish
       };
-      const res = await axios.post(`${API_BASE}/api/cart`, body);
-      const updatedCart = res.data?.cart;
-      const newCount = updatedCart?.items?.reduce((s: number, i: any) => s + (i.quantity || 0), 0) ?? cartCount + qty;
-      setCartCount(newCount);
-      await refreshCart();
-      toast.success(`Added to cart${polish ? ' (with polish)' : ''}!`);
+      await addToCartContext(body);
     } catch (err: any) {
       console.error('[CART_ADD_ERROR]', err);
-      if (err?.response?.status === 401) toast.error('Please log in to add items to your cart.');
-      else toast.error(err?.response?.data?.error || 'Failed to add to cart.');
+    } finally {
+      setIsAddingToCart(false);
     }
   };
 
@@ -294,11 +291,15 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
             <div className="pt-2">
               <button 
                 onClick={() => addToCart(1)}
-                disabled={product.stock === 0}
+                disabled={product.stock === 0 || isAddingToCart}
                 className="w-full bg-[#6B0F1A] text-white py-4 rounded-xl font-bold text-lg hover:bg-[#5a0c16] hover:shadow-lg transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed group"
               >
-                <ShoppingBag className="w-5 h-5 transition-transform group-hover:-translate-y-1" /> 
-                {product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
+                {isAddingToCart ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <ShoppingBag className="w-5 h-5 transition-transform group-hover:-translate-y-1" /> 
+                )}
+                {product.stock > 0 ? (isAddingToCart ? 'Adding...' : 'Add to Cart') : 'Out of Stock'}
               </button>
               {product.stock > 0 && product.stock <= 5 && (
                  <p className="text-center text-[#6B0F1A] text-xs font-semibold mt-3 animate-pulse">

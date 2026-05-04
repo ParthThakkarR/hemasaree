@@ -78,7 +78,6 @@ export default function CartPage() {
 
   const handleRemove = async (id: string) => {
     await removeItem(id);
-    toast.success('Item removed');
   };
 
   const validateAddressAndProceed = () => {

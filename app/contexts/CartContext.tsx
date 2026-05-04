@@ -10,6 +10,8 @@ import React, {
   ReactNode,
 } from 'react';
 import { useAuth } from './AuthContext';
+import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 
 /* ── Types ───────────────────────────────────────── */
 export interface CartItem {
@@ -35,9 +37,9 @@ interface CartContextType {
   cartCount: number;
   isLoading: boolean;
   error: string | null;
-  addToCart: (payload: AddToCartPayload) => Promise<void>;
-  updateQuantity: (cartItemId: string, quantity: number) => Promise<void>;
-  removeItem: (cartItemId: string) => Promise<void>;
+  addToCart: (payload: AddToCartPayload) => Promise<boolean>;
+  updateQuantity: (cartItemId: string, quantity: number) => Promise<boolean>;
+  removeItem: (cartItemId: string) => Promise<boolean>;
   refreshCart: () => Promise<void>;
   clearError: () => void;
 }
@@ -57,6 +59,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 /* ── Provider ────────────────────────────────────── */
 export function CartProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
+  const router = useRouter();
   const [cart, setCart] = useState<Cart | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -92,7 +95,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [user, refreshCart]);
 
   const addToCart = useCallback(async (payload: AddToCartPayload) => {
-    if (!user) { setError('Please sign in to add items to your cart.'); return; }
+    if (!user) { 
+      toast.error('Please sign in to add items to your cart.');
+      router.push('/login');
+      return false; 
+    }
     setIsLoading(true);
     try {
       const res = await fetch('/api/cart', {
@@ -102,20 +109,25 @@ export function CartProvider({ children }: { children: ReactNode }) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Failed to add item');
+      
       if (data.cart) {
         setCart(data.cart);
       } else {
         await refreshCart();
       }
+      toast.success('Added to cart');
+      return true;
     } catch (err: any) {
       setError(err.message);
+      toast.error(err.message);
+      return false;
     } finally {
       setIsLoading(false);
     }
-  }, [user]);
+  }, [user, refreshCart, router]);
 
   const updateQuantity = useCallback(async (cartItemId: string, quantity: number) => {
-    if (quantity < 1) return;
+    if (quantity < 1) return false;
     setIsLoading(true);
     try {
       const res = await fetch('/api/cart', {
@@ -126,8 +138,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Failed to update');
       setCart(data.cart);
+      return true;
     } catch (err: any) {
       setError(err.message);
+      toast.error(err.message);
+      return false;
     } finally {
       setIsLoading(false);
     }
@@ -144,8 +159,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Failed to remove');
       setCart(data.cart);
+      toast.success('Item removed');
+      return true;
     } catch (err: any) {
       setError(err.message);
+      toast.error(err.message);
+      return false;
     } finally {
       setIsLoading(false);
     }
