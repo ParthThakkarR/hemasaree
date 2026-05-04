@@ -15,6 +15,7 @@ export const authOptions: NextAuthOptions = {
       profile(profile) {
         return {
           id: profile.sub,
+          name: profile.name,
           firstName: profile.given_name || profile.name,
           lastName: profile.family_name || "",
           email: profile.email,

@@ -15,10 +15,24 @@ const phoneRegex = /^\d{10}$/;
 
 export default function SignupPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [step, setStep] = useState<'email' | 'otp' | 'details'>('email');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  useEffect(() => {
+    const errorParam = searchParams.get('error');
+    if (errorParam) {
+      if (errorParam === 'OAuthCallback' || errorParam === 'Callback') {
+        setError('There was a problem signing in with Google. Please try again.');
+      } else if (errorParam === 'OAuthAccountNotLinked') {
+        setError('To confirm your identity, sign in with the same account you used originally.');
+      } else {
+        setError('An unexpected error occurred. Please try again.');
+      }
+    }
+  }, [searchParams]);
 
   const [formData, setFormData] = useState({
     firstName: '',

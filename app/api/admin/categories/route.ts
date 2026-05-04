@@ -8,6 +8,8 @@ import {
   DeleteCategorySchema,
 } from '@/app/lib/validators'; // 2. Import Zod schemas
 
+export const dynamic = "force-dynamic";
+
 // GET all categories (Public)
 export async function GET(req: Request) {
   try {

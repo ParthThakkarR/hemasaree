@@ -1,18 +1,36 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    const errorParam = searchParams.get('error');
+    if (errorParam) {
+      if (errorParam === 'CredentialsSignin') {
+        setError('Invalid email or password.');
+      } else if (errorParam === 'OAuthCallback' || errorParam === 'Callback') {
+        setError('There was a problem signing in with Google. Please try again.');
+      } else if (errorParam === 'OAuthAccountNotLinked') {
+        setError('To confirm your identity, sign in with the same account you used originally.');
+      } else if (errorParam === 'EmailSignin') {
+        setError('The e-mail could not be sent.');
+      } else {
+        setError('An unexpected error occurred. Please try again.');
+      }
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

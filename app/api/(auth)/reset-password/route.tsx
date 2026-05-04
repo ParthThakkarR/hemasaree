@@ -1,6 +1,9 @@
 // app/api/reset-password/route.ts
 import { NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/prisma'; // 1. Use Prisma singleton
+
+export const dynamic = "force-dynamic";
+
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod'; // 2. (Optional but cleaner) Use Zod

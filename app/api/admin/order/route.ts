@@ -5,6 +5,9 @@ import { OrderStatus, OrderItemStatus } from '@/app/generated/prisma';
 import { verifyAdminToken } from '@/app/utils/auth';
 import { AdminOrderUpdateSchema } from '@/app/lib/validators';
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 // --------------------------------------------------
 // GET /api/admin/orders → Fetch all orders
 // --------------------------------------------------

@@ -61,6 +61,9 @@
 // app/api/verify-otp/route.ts
 import { NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/prisma';
+
+export const dynamic = "force-dynamic";
+
 import { VerifyOtpSchema } from '@/app/lib/validators';
 import crypto from 'crypto';
 

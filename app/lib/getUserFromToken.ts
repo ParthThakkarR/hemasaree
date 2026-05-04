@@ -63,7 +63,7 @@ export async function getUserFromToken(
     const user: User = {
       id: userRecord.id,
       email: userRecord.email,
-      firstName: userRecord.firstName,
+      firstName: userRecord.firstName || userRecord.name?.split(' ')[0] || 'User',
       isAdmin: userRecord.isAdmin,
       addresses: addresses,
     };

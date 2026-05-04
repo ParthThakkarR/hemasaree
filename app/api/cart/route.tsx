@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma";
+
+export const dynamic = "force-dynamic";
+
 import { getUserFromToken } from "@/app/lib/getUserFromToken";
 import { CartAddSchema, CartUpdateSchema, CartDeleteSchema } from "@/app/lib/validators";
 

@@ -31,7 +31,8 @@ enum OrderStatus {
 
 model User {
   id                   String     @id @default(auto()) @map("_id") @db.ObjectId
-  firstName            String
+  name                 String?    // Added for NextAuth compatibility
+  firstName            String?    // Made optional for OAuth compatibility
   lastName             String?
   addresses            Address[]
   email                String     @unique

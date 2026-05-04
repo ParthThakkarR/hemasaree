@@ -4,6 +4,8 @@ import { prisma } from '@/app/lib/prisma'; // 1. Use Prisma singleton
 import { verifyAdminToken } from '@/app/utils/auth';
 import { PaginationSchema } from '@/app/lib/validators'; // 2. Import pagination schema
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   // 3. Use NextRequest
   // Only admins can access user data
