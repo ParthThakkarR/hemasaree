@@ -8,7 +8,7 @@ import Footer from '@/app/components/Footer';
 import MobileNav from '@/app/components/MobileNav';
 import { Toaster } from 'react-hot-toast';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/app/lib/auth';
 
 export const metadata: Metadata = {
   title: { default: 'Hema Sarees — Elegant Indian Sarees', template: '%s | Hema Sarees' },

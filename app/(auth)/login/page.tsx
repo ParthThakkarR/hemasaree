@@ -199,7 +199,7 @@ function LoginContent() {
 
           {/* Footer */}
           <p className="text-center text-sm text-ink-muted mt-8">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link href="/signup" className="text-brand-800 hover:text-brand-900 font-semibold transition-colors">
               Sign Up
             </Link>

@@ -140,9 +140,9 @@ export default function Navbar() {
               
               {/* Desktop Wishlist & Cart */}
               <div className="hidden lg:flex items-center gap-4">
-                <Link href="/wishlist" className="relative p-2 text-[#3D1A24] hover:text-brand-800 transition-colors group">
+                <Link href="/wishlist" aria-label="Wishlist" className="relative p-2 text-[#3D1A24] hover:text-brand-800 transition-colors group">
                   <Heart size={22} className="group-hover:scale-110 transition-transform" />
-                  {wishlistCount > 0 && (
+                  {user && wishlistCount > 0 && (
                     <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-brand-600 rounded-full border-2 border-white"></span>
                   )}
                 </Link>

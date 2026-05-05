@@ -426,7 +426,7 @@ export default function InvoicePage() {
                             <div className="row mb-4 border-bottom pb-4">
                                 <div className="col-md-6">
                                     <h2 className="h4 fw-bold">HemaSarees</h2>
-                                    <p className="text-muted mb-0">123 Silk Avenue, Weaver's Lane</p>
+                                    <p className="text-muted mb-0">123 Silk Avenue, Weaver&apos;s Lane</p>
                                     <p className="text-muted mb-0">Surat, Gujarat, 395006</p>
                                     <p className="text-muted mb-0">India</p>
                                 </div>

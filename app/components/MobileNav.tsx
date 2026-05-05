@@ -20,7 +20,7 @@ export default function MobileNav() {
   const navItems = [
     { name: 'Home', href: '/', icon: Home },
     { name: 'Search', href: '/products', icon: Search },
-    { name: 'Wishlist', href: '/wishlist', icon: Heart, badge: wishlistCount },
+    { name: 'Wishlist', href: '/wishlist', icon: Heart, badge: user ? wishlistCount : 0 },
     { name: 'Cart', href: '/cart', icon: ShoppingBag, badge: cartCount },
     { name: user ? 'Profile' : 'Sign In', href: user ? '/profile' : '/login', icon: User },
   ];

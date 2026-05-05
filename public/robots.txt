@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://hemasaree.vercel.app/sitemap.xml

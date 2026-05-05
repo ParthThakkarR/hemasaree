@@ -4,6 +4,8 @@ import Image from 'next/image';
 import { Heart, ShoppingBag } from 'lucide-react';
 import { useWishlist } from '@/app/contexts/WishlistContext';
 import { useCart } from '@/app/contexts/CartContext';
+import { useAuth } from '@/app/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
 export interface ProductCardProps {
@@ -22,6 +24,8 @@ export interface ProductCardProps {
 const ProductCard = memo(function ProductCard({ product, priority = false }: ProductCardProps) {
   const { isInWishlist, toggleWishlist } = useWishlist();
   const { addToCart } = useCart();
+  const { user } = useAuth();
+  const router = useRouter();
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   
   const inWishlist = isInWishlist(product.id);
@@ -39,6 +43,11 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
 
   const handleWishlist = (e: React.MouseEvent) => {
     e.preventDefault();
+    if (!user) {
+      toast.error('Please login to add to wishlist');
+      router.push('/login');
+      return;
+    }
     toggleWishlist(product.id);
     if (!inWishlist) toast.success('Added to wishlist');
   };

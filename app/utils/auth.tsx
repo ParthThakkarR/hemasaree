@@ -4,7 +4,7 @@ import { prisma } from "@/app/lib/prisma";
 
 
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/app/lib/auth";
 
 /**
  * Verifies the admin session using NextAuth.

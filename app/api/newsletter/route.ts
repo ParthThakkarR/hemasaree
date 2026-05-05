@@ -38,3 +38,45 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const { email } = await req.json();
+
+    if (!email) {
+      return NextResponse.json({ error: 'Email is required' }, { status: 400 });
+    }
+
+    await prisma.newsletter.deleteMany({
+      where: { email },
+    });
+
+    return NextResponse.json({ success: true, message: 'Unsubscribed successfully' });
+  } catch (error) {
+    console.error('[NEWSLETTER_DELETE_ERROR]', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+export async function GET(req: NextRequest) {
+  const email = req.nextUrl.searchParams.get('email');
+
+  if (!email) {
+    return new NextResponse('Email missing', { status: 400 });
+  }
+
+  try {
+    await prisma.newsletter.deleteMany({
+      where: { email },
+    });
+
+    return new NextResponse(
+      '<html><body><h1>Unsubscribed Successfully</h1><p>You have been removed from our newsletter.</p></body></html>',
+      { headers: { 'Content-Type': 'text/html' } }
+    );
+  } catch (error) {
+    console.error('[NEWSLETTER_UNSUBSCRIBE_ERROR]', error);
+    return new NextResponse('Error unsubscribing', { status: 500 });
+  }
+}
+

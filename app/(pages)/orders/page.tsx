@@ -72,7 +72,7 @@ export default function OrdersPage() {
       }
     };
     fetchOrders();
-  }, []);
+  }, [router]);
 
   const handleCancelOrder = async (orderId: string) => {
     if (!confirm("Are you sure you want to cancel this entire order? This action cannot be undone.")) return;
@@ -272,7 +272,7 @@ const EmptyState = () => (
         <ShoppingBag className="w-10 h-10 text-brand-500" />
       </div>
       <h3 className="text-2xl font-serif font-bold text-ink mb-3">No Orders Yet</h3>
-      <p className="text-ink-muted mb-8">You haven't placed any orders yet. Once you do, you'll be able to track them here.</p>
+      <p className="text-ink-muted mb-8">You haven&apos;t placed any orders yet. Once you do, you&apos;ll be able to track them here.</p>
       <Link href="/" className="premium-btn inline-block">
         Start Shopping
       </Link>

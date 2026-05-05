@@ -82,11 +82,13 @@ export default function Footer() {
                       disabled={status === 'loading'}
                       className="bg-brand-950/50 border border-brand-800 text-brand-50 px-4 py-2 rounded-l-md focus:outline-none focus:border-accent w-full text-sm disabled:opacity-50" 
                     />
-                    <button 
-                      type="submit" 
+                    <button
+                      type="submit"
+                      aria-label="Subscribe to newsletter"
                       disabled={status === 'loading'}
                       className="bg-accent text-[#1A0A12] px-4 rounded-r-md font-semibold hover:bg-[#dfc67a] transition-colors flex items-center justify-center disabled:opacity-50 min-w-[44px]"
                     >
+
                       {status === 'loading' ? <Loader2 size={18} className="animate-spin" /> : <ArrowRight size={18} />}
                     </button>
                   </div>

@@ -172,7 +172,7 @@ function ProductsListingContent() {
                 </div>
                 <h3 className="text-lg font-bold text-ink mb-2">No products found</h3>
                 <p className="text-ink-muted text-sm max-w-md mx-auto">
-                  We couldn't find any sarees matching your current filters. Try adjusting your search or clearing filters.
+                  We couldn&apos;t find any sarees matching your current filters. Try adjusting your search or clearing filters.
                 </p>
               </div>
             )}

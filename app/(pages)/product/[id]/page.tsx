@@ -9,6 +9,8 @@ import { useRouter } from 'next/navigation';
 import toast, { Toaster } from 'react-hot-toast';
 import { Heart, ShoppingBag, Check, Star, ChevronRight, Home, ChevronDown, Ruler } from 'lucide-react';
 import { useCart } from '@/app/contexts/CartContext';
+import { useWishlist } from '@/app/contexts/WishlistContext';
+import { useAuth } from '@/app/contexts/AuthContext';
 
 type Product = {
   id: string;
@@ -45,6 +47,8 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const { addToCart: addToCartContext } = useCart();
+  const { toggleWishlist, isInWishlist } = useWishlist();
+  const { user } = useAuth();
   const router = useRouter();
 
   const fetchProduct = useCallback(async () => {
@@ -119,27 +123,16 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
     }
   };
 
-  const toggleWishlist = (id: string) => {
-    try {
-      const saved = localStorage.getItem('wishlist');
-      const arr = saved ? JSON.parse(saved) as string[] : [];
-      const updated = arr.includes(id) ? arr.filter(x => x !== id) : [...arr, id];
-      localStorage.setItem('wishlist', JSON.stringify(updated));
-      toast.success(arr.includes(id) ? 'Removed from wishlist' : 'Added to wishlist');
-    } catch {
-      toast.error('Wishlist error');
+  const handleWishlist = (id: string) => {
+    if (!user) {
+      toast.error('Please login to add to wishlist');
+      router.push('/login');
+      return;
     }
+    const inWishlist = isInWishlist(id);
+    toggleWishlist(id);
+    toast.success(inWishlist ? 'Removed from wishlist' : 'Added to wishlist');
   };
-
-  const isInWishlist = useMemo(() => {
-    try {
-      const saved = localStorage.getItem('wishlist');
-      const arr = saved ? JSON.parse(saved) as string[] : [];
-      return (id: string) => arr.includes(id);
-    } catch {
-      return (_: string) => false;
-    }
-  }, []);
 
   if (loading) {
     return (
@@ -153,7 +146,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
     return (
       <div className="min-h-screen bg-surface pt-32 pb-16 flex flex-col items-center justify-center text-center px-4">
         <h2 className="text-3xl font-serif font-bold text-ink mb-4">Product Not Found</h2>
-        <p className="text-ink-muted mb-8 max-w-md">The saree you're looking for might have been moved or removed.</p>
+        <p className="text-ink-muted mb-8 max-w-md">The saree you&apos;re looking for might have been moved or removed.</p>
         <Link href="/products" className="bg-brand-800 text-white px-8 py-4 rounded-xl font-semibold hover:bg-brand-900 transition-colors">
           Back to Products
         </Link>
@@ -209,7 +202,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                   {product.name}
                 </h1>
                 <button 
-                  onClick={() => toggleWishlist(product.id)}
+                  onClick={() => handleWishlist(product.id)}
                   className="w-12 h-12 rounded-full bg-surface border border-brand-200 shadow-sm flex items-center justify-center text-[#6B0F1A] hover:bg-brand-50 hover:border-brand-300 transition-colors shrink-0"
                 >
                   <Heart className={`w-5 h-5 ${isInWishlist(product.id) ? 'fill-current' : ''}`} />

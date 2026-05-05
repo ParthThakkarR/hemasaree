@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Package, Tags, ShoppingCart, LogOut, Store } from 'lucide-react';
+import { LayoutDashboard, Package, Tags, ShoppingCart, LogOut, Store, Mail } from 'lucide-react';
 import { useAuth } from '@/app/contexts/AuthContext';
 
 const adminRoutes = [
@@ -10,6 +10,7 @@ const adminRoutes = [
   { label: 'Products', href: '/admin/product', icon: Package },
   { label: 'Categories', href: '/admin/categories', icon: Tags },
   { label: 'Orders', href: '/admin/order', icon: ShoppingCart },
+  { label: 'Newsletter', href: '/admin/newsletter', icon: Mail },
 ];
 
 export default function AdminSidebar() {

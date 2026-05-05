@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { Heart, ShoppingBag } from 'lucide-react';
 import { useWishlist } from '@/app/contexts/WishlistContext';
 import { useCart } from '@/app/contexts/CartContext';
+import { useAuth } from '@/app/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
 import ProductCard from '@/app/components/ui/ProductCard';
 import ProductSkeleton from '@/app/components/ui/ProductSkeleton';
 import toast from 'react-hot-toast';
@@ -12,10 +14,19 @@ import toast from 'react-hot-toast';
 export default function WishlistPage() {
   const { wishlist, wishlistCount, toggleWishlist } = useWishlist();
   const { addToCart } = useCart();
+  const { user, isLoading } = useAuth();
+  const router = useRouter();
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!isLoading && !user) {
+      router.push('/login?callbackUrl=/wishlist');
+    }
+  }, [user, isLoading, router]);
+
+  useEffect(() => {
+    if (!user) return;
     const fetchWishlistProducts = async () => {
       setLoading(true);
       try {
@@ -45,7 +56,7 @@ export default function WishlistPage() {
     };
 
     fetchWishlistProducts();
-  }, [wishlist]);
+  }, [wishlist, user]);
 
   const handleMoveToCart = async (product: any) => {
     try {
@@ -77,7 +88,7 @@ export default function WishlistPage() {
             )}
           </h1>
           <p className="text-ink-muted">
-            Save your favorite sarees here and move them to your cart when you're ready to buy.
+            Save your favorite sarees here and move them to your cart when you&apos;re ready to buy.
           </p>
         </div>
 
@@ -94,7 +105,7 @@ export default function WishlistPage() {
             </div>
             <h3 className="font-serif text-2xl font-bold text-ink mb-3">Your wishlist is empty</h3>
             <p className="text-ink-muted mb-8 max-w-md mx-auto">
-              You haven't saved any items yet. Browse our collections and click the heart icon to add them here.
+              You haven&apos;t saved any items yet. Browse our collections and click the heart icon to add them here.
             </p>
             <Link 
               href="/products" 

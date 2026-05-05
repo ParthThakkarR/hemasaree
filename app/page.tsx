@@ -207,17 +207,17 @@ export default function Home() {
           <div className="grid md:grid-cols-3 gap-12 text-center divide-y md:divide-y-0 md:divide-x divide-brand-800/50">
             <div className="pt-8 md:pt-0 md:px-8 flex flex-col items-center">
               <span className="text-sm tracking-[0.2em] uppercase text-brand-100/60 mb-3">Varanasi, UP</span>
-              <p className="font-serif text-xl italic text-brand-50 mb-6 max-w-sm">"The threads speak to us. Every motif is a prayer woven in silk."</p>
+              <p className="font-serif text-xl italic text-brand-50 mb-6 max-w-sm">&quot;The threads speak to us. Every motif is a prayer woven in silk.&quot;</p>
               <span className="font-medium text-accent">Banarasi Silk</span>
             </div>
             <div className="pt-8 md:pt-0 md:px-8 flex flex-col items-center">
               <span className="text-sm tracking-[0.2em] uppercase text-brand-100/60 mb-3">Kanchipuram, TN</span>
-              <p className="font-serif text-xl italic text-brand-50 mb-6 max-w-sm">"We weave the colors of the temple architecture into the borders."</p>
+              <p className="font-serif text-xl italic text-brand-50 mb-6 max-w-sm">&quot;We weave the colors of the temple architecture into the borders.&quot;</p>
               <span className="font-medium text-accent">Kanjeevaram</span>
             </div>
             <div className="pt-8 md:pt-0 md:px-8 flex flex-col items-center">
               <span className="text-sm tracking-[0.2em] uppercase text-brand-100/60 mb-3">Paithan, MH</span>
-              <p className="font-serif text-xl italic text-brand-50 mb-6 max-w-sm">"Creating a Paithani is like painting with silk and gold."</p>
+              <p className="font-serif text-xl italic text-brand-50 mb-6 max-w-sm">&quot;Creating a Paithani is like painting with silk and gold.&quot;</p>
               <span className="font-medium text-accent">Paithani</span>
             </div>
           </div>
