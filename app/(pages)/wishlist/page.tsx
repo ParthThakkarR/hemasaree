@@ -42,10 +42,9 @@ export default function WishlistPage() {
         );
         const results = await Promise.all(productPromises);
         
-        // Filter out nulls and normalize
+        // Filter out nulls and errors
         const validProducts = results
-          .filter(data => data && data.product)
-          .map(data => data.product);
+          .filter(data => data && !data.error);
           
         setProducts(validProducts);
       } catch (err) {

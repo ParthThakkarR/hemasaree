@@ -26,6 +26,7 @@ const WishlistContext = createContext<WishlistContextType | undefined>(undefined
 /* ── Provider ────────────────────────────────────── */
 export function WishlistProvider({ children }: { children: ReactNode }) {
   const [wishlist, setWishlist] = useState<string[]>([]);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   /* Hydrate from localStorage */
   useEffect(() => {
@@ -35,14 +36,16 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     } catch {
       setWishlist([]);
     }
+    setIsHydrated(true);
   }, []);
 
   /* Persist on every change */
   useEffect(() => {
+    if (!isHydrated) return;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(wishlist));
     } catch { /* quota exceeded — ignore */ }
-  }, [wishlist]);
+  }, [wishlist, isHydrated]);
 
   const isInWishlist = useCallback((id: string) => wishlist.includes(id), [wishlist]);
 
