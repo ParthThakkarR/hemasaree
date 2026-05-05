@@ -1,10 +1,49 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
-import { Instagram, MapPin, Mail, ArrowRight, MessageCircle } from 'lucide-react';
+import { Instagram, MapPin, Mail, ArrowRight, MessageCircle, Loader2 } from 'lucide-react';
 
 export default function Footer() {
+  const [email, setEmail] = useState('');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [message, setMessage] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+
+    setStatus('loading');
+    try {
+      const res = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setStatus('success');
+        setMessage(data.message || 'Subscribed!');
+        setEmail('');
+      } else {
+        setStatus('error');
+        setMessage(data.error || 'Something went wrong');
+      }
+    } catch (error) {
+      setStatus('error');
+      setMessage('Failed to subscribe');
+    }
+
+    setTimeout(() => {
+      if (status !== 'loading') {
+        setStatus('idle');
+        setMessage('');
+      }
+    }, 5000);
+  };
+
   return (
     <footer className="bg-[#1A0A12] text-brand-100/80 pt-16 pb-24 lg:pb-8 relative mt-12">
       {/* Top Gold SVG Border Pattern */}
@@ -32,11 +71,30 @@ export default function Footer() {
             </p>
             <div>
                <h4 className="font-semibold text-brand-50 uppercase tracking-wider mb-3 text-sm">Join Our Newsletter</h4>
-               <form className="flex" onSubmit={(e) => e.preventDefault()}>
-                  <input type="email" placeholder="Your email address" className="bg-brand-950/50 border border-brand-800 text-brand-50 px-4 py-2 rounded-l-md focus:outline-none focus:border-accent w-full text-sm" />
-                  <button type="submit" className="bg-accent text-[#1A0A12] px-4 rounded-r-md font-semibold hover:bg-[#dfc67a] transition-colors flex items-center justify-center">
-                     <ArrowRight size={18} />
-                  </button>
+               <form className="flex flex-col gap-2" onSubmit={handleSubmit}>
+                  <div className="flex">
+                    <input 
+                      type="email" 
+                      placeholder="Your email address" 
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      disabled={status === 'loading'}
+                      className="bg-brand-950/50 border border-brand-800 text-brand-50 px-4 py-2 rounded-l-md focus:outline-none focus:border-accent w-full text-sm disabled:opacity-50" 
+                    />
+                    <button 
+                      type="submit" 
+                      disabled={status === 'loading'}
+                      className="bg-accent text-[#1A0A12] px-4 rounded-r-md font-semibold hover:bg-[#dfc67a] transition-colors flex items-center justify-center disabled:opacity-50 min-w-[44px]"
+                    >
+                      {status === 'loading' ? <Loader2 size={18} className="animate-spin" /> : <ArrowRight size={18} />}
+                    </button>
+                  </div>
+                  {message && (
+                    <p className={`text-xs ${status === 'success' ? 'text-green-400' : 'text-red-400'}`}>
+                      {message}
+                    </p>
+                  )}
                </form>
             </div>
           </div>

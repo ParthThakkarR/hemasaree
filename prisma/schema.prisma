@@ -206,3 +206,9 @@ model VerificationToken {
 
   @@unique([identifier, token])
 }
+
+model Newsletter {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
