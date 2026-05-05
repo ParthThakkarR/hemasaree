@@ -6,7 +6,7 @@ import axios from 'axios';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import { Heart, ShoppingBag, Check, Star, ChevronRight, Home, ChevronDown, Ruler } from 'lucide-react';
 import { useCart } from '@/app/contexts/CartContext';
 import { useWishlist } from '@/app/contexts/WishlistContext';
@@ -18,29 +18,21 @@ type Product = {
   price: number;
   stock: number;
   images: string[];
-  category?: { id: string; name: string } | string;
   description?: string;
+  category?: { id: string; name: string } | string;
   color?: string;
   ocassion?: string;
   rating?: number;
 };
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || '';
-const POLISH_PRICE = 100;
+const POLISH_PRICE = 450;
 
-const getImageSrc = (img?: string) => {
-  if (!img) return '/uploads/placeholder.png';
-  if (img.startsWith('http') || img.startsWith('data:')) return img;
-  return img.replace(/^\/+/, '/');
-};
-
-export default function ProductDetailPage({ params }: { params: { id: string } }) {
-  const productId = params.id;
+export default function ProductDetailPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [related, setRelated] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [qty, setQty] = useState(1);
   const [polish, setPolish] = useState(true);
-  const [cartCount, setCartCount] = useState(0);
   
   // Accordion state
   const [openAccordion, setOpenAccordion] = useState<string>('details');
@@ -54,64 +46,45 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   const fetchProduct = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${API_BASE}/api/products/${productId}`);
+      const id = window.location.pathname.split('/').pop();
+      const res = await axios.get(`/api/products/${id}`);
       setProduct(res.data);
-    } catch (err) {
-      console.error('[PRODUCT_FETCH_ERROR]', err);
+      
+      // Fetch related products from same category
+      if (res.data.categoryId) {
+        const relRes = await axios.get(`/api/products?category=${res.data.categoryId}&limit=4`);
+        setRelated(relRes.data.products.filter((p: any) => p.id !== res.data.id));
+      }
+    } catch (err: any) {
+      console.error(err);
       toast.error('Failed to load product.');
     } finally {
       setLoading(false);
-    }
-  }, [productId]);
-
-  const fetchRelated = useCallback(async (categoryName?: string) => {
-    try {
-      if (!categoryName) { setRelated([]); return; }
-      const params = new URLSearchParams();
-      params.append('page', '1');
-      params.append('limit', '8');
-      params.append('category', categoryName);
-      const res = await axios.get(`${API_BASE}/api/products?${params.toString()}`);
-      const items: Product[] = Array.isArray(res.data.products) ? res.data.products : (res.data.products || []);
-      const filtered = items.filter(p => p.id !== productId).slice(0, 4);
-      setRelated(filtered);
-    } catch (err) {
-      console.error('[RELATED_FETCH_ERROR]', err);
-      setRelated([]);
-    }
-  }, [productId]);
-
-  const fetchCart = useCallback(async () => {
-    try {
-      const res = await axios.get(`${API_BASE}/api/cart`);
-      const cart = res.data?.cart;
-      if (!cart || !Array.isArray(cart.items)) { setCartCount(0); return; }
-      const count = cart.items.reduce((s: number, i: any) => s + (i.quantity || 0), 0);
-      setCartCount(count);
-    } catch {
-      setCartCount(0);
     }
   }, []);
 
   useEffect(() => {
     fetchProduct();
-    fetchCart();
-  }, [fetchProduct, fetchCart]);
+  }, [fetchProduct]);
 
-  useEffect(() => {
-    if (product) fetchRelated((product.category as any)?.name ?? String(product.category));
-  }, [product, fetchRelated]);
+  // Helper to ensure images load correctly
+  const getImageSrc = (img?: string) => {
+    if (!img) return '/uploads/placeholder.png';
+    if (img.startsWith('http') || img.startsWith('data:')) return img;
+    return img.replace(/^\/+/, '/');
+  };
 
-  const addToCart = async (qty = 1) => {
-    if (!product) return;
+  const addToCart = async (qty: number) => {
+    if (isAddingToCart) return;
+    
+    setIsAddingToCart(true);
     try {
-      setIsAddingToCart(true);
-      const finalPrice = product.price + (polish ? POLISH_PRICE : 0);
+      const finalPrice = product?.price || 0;
       const body = {
-        productId: product.id,
+        productId: product?.id || '',
         quantity: qty,
-        productName: product.name,
-        productImage: product.images?.[0] || '',
+        productName: product?.name || '',
+        productImage: product?.images?.[0] || '',
         price: finalPrice,
         withPolish: polish
       };
@@ -155,7 +128,6 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   }
 
   const displayPrice = product.price + (polish ? POLISH_PRICE : 0);
-  const categoryName = (product.category as any)?.name ?? product.category;
 
   const toggleAccordion = (section: string) => {
      setOpenAccordion(prev => prev === section ? '' : section);
@@ -394,7 +366,6 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
           </div>
         )}
       </div>
-      <Toaster position="top-center" toastOptions={{ style: { background: '#1c1917', color: '#fff', borderRadius: '12px', padding: '16px' } }} />
     </div>
   );
 }

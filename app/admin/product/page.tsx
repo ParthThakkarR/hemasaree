@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, FormEvent } from 'react';
 import { Pencil, Trash2, Plus, UploadCloud } from 'lucide-react';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 
@@ -10,32 +10,43 @@ interface Category { id: string; name: string; }
 interface Product {
   id: string;
   name: string;
-  color: string;
-  ocassion: string;
   price: number;
   stock: number;
-  categoryId: string;
   images: string[];
-  category?: Category;
+  description?: string;
+  categoryId: string;
+  category?: { name: string };
+  color: string;
+  ocassion: string;
 }
 
 export default function ManageProductsPage() {
   const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
 
-  const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Modal States
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+
+  // Add Form State
   const [productData, setProductData] = useState({
-    name: '', color: '', ocassion: '', price: '', stock: '', category: ''
+    name: '',
+    price: '',
+    stock: '',
+    category: '',
+    description: '',
+    color: '',
+    ocassion: '',
   });
   const [productImages, setProductImages] = useState<FileList | null>(null);
   const [productImageUrls, setProductImageUrls] = useState<string[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  // Edit Form New Images
   const [newProductImages, setNewProductImages] = useState<FileList | null>(null);
   const [newProductImageUrls, setNewProductImageUrls] = useState<string[]>([]);
 
@@ -46,58 +57,74 @@ export default function ManageProductsPage() {
   }, [user, authLoading, router]);
 
   const fetchData = async () => {
-    setIsLoading(true);
     try {
-      const [cats, prods] = await Promise.all([
-        fetch('/api/categories'), fetch('/api/admin/products')
+      const [pRes, cRes] = await Promise.all([
+        fetch('/api/products?limit=1000'),
+        fetch('/api/admin/categories')
       ]);
-      setCategories(await cats.json());
-      setProducts(await prods.json());
-    } catch { toast.error('Failed to load data'); }
-    finally { setIsLoading(false); }
+      const pData = await pRes.json();
+      const cData = await cRes.json();
+      setProducts(pData.products || []);
+      setCategories(cData || []);
+    } catch (err) { console.error(err); }
   };
+
   useEffect(() => { fetchData(); }, []);
+
+  const uploadImages = async (files: FileList): Promise<string[]> => {
+    const formData = new FormData();
+    for (let i = 0; i < files.length; i++) {
+      formData.append('files', files[i]);
+    }
+    formData.append('folder', 'products');
+    const res = await fetch('/api/admin/upload', { method: 'POST', body: formData });
+    if (!res.ok) throw new Error('Upload failed');
+    const data = await res.json();
+    return data.urls;
+  };
 
   const handleAddProduct = async (e: FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      let finalUrls = [...productImageUrls];
+      let finalImages = [...productImageUrls];
       if (productImages && productImages.length > 0) {
-        const formData = new FormData();
-        Array.from(productImages).forEach(f => formData.append('files', f));
-        formData.append('folder', 'products');
-        const res = await fetch('/api/admin/upload', { method: 'POST', body: formData });
-        const data = await res.json();
-        finalUrls.push(...data.urls);
+        const uploaded = await uploadImages(productImages);
+        finalImages = [...finalImages, ...uploaded];
       }
+
+      if (finalImages.length === 0) throw new Error('At least one image is required');
+
       const payload = {
-        name: productData.name,
-        color: productData.color,
-        ocassion: productData.ocassion,
-        price: parseFloat(productData.price),
-        stock: parseInt(productData.stock),
-        categoryId: productData.category,
-        images: finalUrls,
+        ...productData,
+        price: Number(productData.price),
+        stock: Number(productData.stock),
+        images: finalImages,
+        categoryId: productData.category
       };
+
       const res = await fetch('/api/admin/products', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
       });
+
       if (!res.ok) throw new Error('Failed to add product');
-      toast.success('Product added');
-      setProductData({ name: '', color: '', ocassion: '', price: '', stock: '', category: '' });
-      setProductImages(null);
+      
+      toast.success('Product added successfully');
+      setProductData({ name: '', price: '', stock: '', category: '', description: '', color: '', ocassion: '' });
       setProductImageUrls([]);
+      setProductImages(null);
       if (fileRef.current) fileRef.current.value = '';
       fetchData();
-    } catch (e: any) { toast.error(e.message); }
+    } catch (err: any) { toast.error(err.message); }
     finally { setIsLoading(false); }
   };
 
-  const handleDeleteImage = (img: string) => {
+  const handleDeleteImage = (url: string) => {
     if (!editingProduct) return;
-    const updated = editingProduct.images.filter(i => i !== img);
-    setEditingProduct({ ...editingProduct, images: updated });
+    setEditingProduct({
+      ...editingProduct,
+      images: editingProduct.images.filter(i => i !== url)
+    });
   };
 
   const handleSaveChanges = async (e: FormEvent) => {
@@ -105,28 +132,24 @@ export default function ManageProductsPage() {
     if (!editingProduct) return;
     setIsLoading(true);
     try {
-      let finalUrls = [...editingProduct.images];
+      let finalImages = [...editingProduct.images];
+      
+      // Upload new files if any
       if (newProductImages && newProductImages.length > 0) {
-        const formData = new FormData();
-        Array.from(newProductImages).forEach(f => formData.append('files', f));
-        formData.append('folder', 'products');
-        const res = await fetch('/api/admin/upload', { method: 'POST', body: formData });
-        const data = await res.json();
-        finalUrls.push(...data.urls);
+        const uploaded = await uploadImages(newProductImages);
+        finalImages = [...finalImages, ...uploaded];
       }
-      if (newProductImageUrls.length > 0) finalUrls.push(...newProductImageUrls);
-      finalUrls = Array.from(new Set(finalUrls));
+
+      // Add new URLs if any
+      if (newProductImageUrls.length > 0) {
+        finalImages = [...finalImages, ...newProductImageUrls];
+      }
 
       const payload = {
-        id: editingProduct.id,
-        name: editingProduct.name,
-        color: editingProduct.color,
-        ocassion: editingProduct.ocassion,
-        price: editingProduct.price,
-        stock: editingProduct.stock,
-        categoryId: editingProduct.categoryId,
-        images: finalUrls,
+        ...editingProduct,
+        images: finalImages
       };
+
       const res = await fetch('/api/admin/products', {
         method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
       });
@@ -139,8 +162,7 @@ export default function ManageProductsPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto py-8">
-      <Toaster position="top-right" />
+    <div className="max-w-7xl mx-auto py-8 px-4">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-serif font-bold text-[#1A0A12]">Manage Products</h1>
       </div>

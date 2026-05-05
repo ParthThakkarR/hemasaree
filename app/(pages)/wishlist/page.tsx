@@ -59,17 +59,18 @@ export default function WishlistPage() {
 
   const handleMoveToCart = async (product: any) => {
     try {
-      await addToCart({
+      const success = await addToCart({
         productId: product.id,
         productName: product.name,
         price: product.price,
         quantity: 1,
         productImage: product.images?.[0],
       });
-      toggleWishlist(product.id); // Remove from wishlist after moving to cart
-      toast.success('Moved to cart!');
+      if (success) {
+        toggleWishlist(product.id); // Remove from wishlist after moving to cart
+      }
     } catch (err) {
-      toast.error('Failed to move to cart');
+      console.error('Failed to move to cart', err);
     }
   };
 

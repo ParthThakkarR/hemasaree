@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { User, Package, Heart, Settings, LogOut, MapPin, Phone, Mail } from 'lucide-react';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 
 interface ProfileFormState {
   firstName: string;
@@ -351,7 +351,6 @@ export default function ProfilePage() {
 
         </div>
       </div>
-      <Toaster position="top-center" toastOptions={{ style: { background: '#1c1917', color: '#fff', borderRadius: '12px', padding: '16px' } }} />
     </div>
   );
 }
