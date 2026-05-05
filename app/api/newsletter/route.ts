@@ -70,10 +70,28 @@ export async function GET(req: NextRequest) {
       where: { email },
     });
 
-    return new NextResponse(
-      '<html><body><h1>Unsubscribed Successfully</h1><p>You have been removed from our newsletter.</p></body></html>',
-      { headers: { 'Content-Type': 'text/html' } }
-    );
+    return new NextResponse(`
+      <html>
+        <head>
+          <title>Unsubscribed Successfully</title>
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background-color: #fbf5ec; }
+            .card { background: white; padding: 40px; border-radius: 24px; box-shadow: 0 4px 20px rgba(107, 15, 26, 0.05); text-align: center; max-width: 400px; }
+            h1 { color: #6b0f1a; margin-bottom: 16px; font-size: 24px; }
+            p { color: #57534e; line-height: 1.6; }
+            .btn { display: inline-block; margin-top: 24px; padding: 12px 24px; background: #6b0f1a; color: white; text-decoration: none; border-radius: 12px; font-weight: bold; transition: opacity 0.2s; }
+            .btn:hover { opacity: 0.9; }
+          </style>
+        </head>
+        <body>
+          <div class="card">
+            <h1>Unsubscribed</h1>
+            <p>You have been successfully removed from our newsletter. We're sorry to see you go!</p>
+            <a href="/" class="btn">Return to Store</a>
+          </div>
+        </body>
+      </html>
+    `, { headers: { 'Content-Type': 'text/html' } });
   } catch (error) {
     console.error('[NEWSLETTER_UNSUBSCRIBE_ERROR]', error);
     return new NextResponse('Error unsubscribing', { status: 500 });

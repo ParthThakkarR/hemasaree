@@ -37,7 +37,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No subscribers found' }, { status: 400 });
     }
 
-    const domain = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const host = req.headers.get('host');
+    const protocol = host?.includes('localhost') ? 'http' : 'https';
+    const domain = process.env.NEXT_PUBLIC_APP_URL || (host ? `${protocol}://${host}` : 'http://localhost:3000');
 
     // In a real production app, you'd use a queue or a bulk email service.
     // For now, we'll send them sequentially or in small batches.
