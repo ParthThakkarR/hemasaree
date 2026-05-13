@@ -6,8 +6,8 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { State, City } from 'country-state-city';
 import { Trash2, ArrowRight, ArrowLeft, ShieldCheck, Truck, Lock, ShoppingBag } from 'lucide-react';
-import { useCart, CartItem } from '@contexts/cart-context';
-import { useAuth } from '@contexts/auth-context';
+import { useCart, CartItem } from '@/app/contexts/cart-context';
+import { useAuth } from '@/app/contexts/auth-context';
 import toast from 'react-hot-toast';
 
 export default function CartPage() {

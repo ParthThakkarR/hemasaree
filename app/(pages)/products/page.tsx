@@ -3,9 +3,9 @@
 import React, { useEffect, useState, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Filter } from 'lucide-react';
-import ProductCard from '@components/ui/product-card';
-import FilterSidebar from '@components/ui/filter-sidebar';
-import ProductSkeleton from '@components/ui/product-skeleton';
+import ProductCard from '@/app/components/ui/product-card';
+import FilterSidebar from '@/app/components/ui/filter-sidebar';
+import ProductSkeleton from '@/app/components/ui/product-skeleton';
 
 interface Category {
   id: string;
