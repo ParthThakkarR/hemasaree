@@ -1,4 +1,4 @@
-import AdminSidebar from './components/AdminSidebar';
+import AdminSidebar from '@/app/admin/components/AdminSidebar';
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/lib/auth';
