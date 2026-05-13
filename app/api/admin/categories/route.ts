@@ -1,7 +1,7 @@
 // app/api/categories/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@lib/prisma'; // 1. Use Prisma singleton
-import { verifyAdminToken } from '@/app/utils/auth';
+import { verifyAdminToken } from '@utils/auth';
 import {
   CategorySchema,
   UpdateCategorySchema,
@@ -130,3 +130,4 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to delete category' }, { status: 500 });
   }
 }
+

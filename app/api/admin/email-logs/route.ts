@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@lib/prisma';
-import { verifyAdminToken } from '@/app/utils/auth';
+import { verifyAdminToken } from '@utils/auth';
 
 export const dynamic = "force-dynamic";
 
@@ -21,4 +21,5 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
 

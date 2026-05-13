@@ -24,3 +24,4 @@ export default function AnalyticsProvider({ children }: { children: React.ReactN
 
   return <>{children}</>;
 }
+

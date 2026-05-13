@@ -1,7 +1,7 @@
 // /app/api/admin/users/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@lib/prisma'; // 1. Use Prisma singleton
-import { verifyAdminToken } from '@/app/utils/auth';
+import { verifyAdminToken } from '@utils/auth';
 import { IdParamSchema } from '@lib/validators'; // 2. Import Zod schema
 
 export const dynamic = "force-dynamic";

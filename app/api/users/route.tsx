@@ -1,7 +1,7 @@
 // /app/api/admin/users/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@lib/prisma'; // 1. Use Prisma singleton
-import { verifyAdminToken } from '@/app/utils/auth';
+import { verifyAdminToken } from '@utils/auth';
 import { PaginationSchema } from '@lib/validators'; // 2. Import pagination schema
 
 export const dynamic = "force-dynamic";
@@ -73,3 +73,4 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
+

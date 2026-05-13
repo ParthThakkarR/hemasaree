@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifyAdminToken } from "@/app/utils/auth";
+import { verifyAdminToken } from "@utils/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -85,4 +85,5 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Failed to generate AI insights" }, { status: 500 });
   }
 }
+
 

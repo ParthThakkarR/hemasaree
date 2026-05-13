@@ -94,3 +94,4 @@ async function signupHandler(req: NextRequest) {
 
 export const POST = withRateLimit(signupHandler, { limit: 3, windowInSeconds: 3600 });
 
+

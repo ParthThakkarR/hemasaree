@@ -181,3 +181,4 @@ export default function FilterSidebar({ categories, isMobileOpen, onMobileClose 
     </>
   );
 }
+

@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@lib/prisma';
 import { OrderStatus, OrderItemStatus } from '@prisma/client';
-import { verifyAdminToken } from '@/app/utils/auth';
+import { verifyAdminToken } from '@utils/auth';
 import { AdminOrderUpdateSchema } from '@lib/validators';
 
 export const dynamic = "force-dynamic";
@@ -227,4 +227,5 @@ export async function PUT(req: Request) {
     );
   }
 }
+
 

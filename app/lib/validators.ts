@@ -238,3 +238,4 @@ export const PaginationSchema = z.object({
     z.coerce.number().int().min(1).max(100).default(20) // Max 100
   ),
 });
+

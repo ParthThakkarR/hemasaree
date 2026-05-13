@@ -37,3 +37,4 @@ export async function getInitialCartServer() {
   return getCartFromCookie<CartItem[]>();
 }
 
+

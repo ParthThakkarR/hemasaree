@@ -39,3 +39,4 @@ export function clearCartCookie() {
   const cookieStore = cookies();
   cookieStore.set("cart", "[]");
 }
+

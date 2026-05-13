@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@lib/prisma';
-import { verifyAdminToken } from '@/app/utils/auth';
+import { verifyAdminToken } from '@utils/auth';
 import { ProductSchema, UpdateProductSchema, DeleteProductSchema } from '@lib/validators';
 
 export const dynamic = "force-dynamic";
@@ -117,4 +117,5 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
+
 

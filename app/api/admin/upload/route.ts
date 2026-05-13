@@ -2,7 +2,7 @@
 // import { NextRequest, NextResponse } from "next/server";
 // import { writeFile, mkdir } from "fs/promises";
 // import { join } from "path";
-// import { verifyAdminToken } from "@/app/utils/auth";
+// import { verifyAdminToken } from "@utils/auth";
 
 // export async function POST(request: NextRequest) {
 //   // ✅ Verify admin authentication
@@ -81,7 +81,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
-import { verifyAdminToken } from '@/app/utils/auth';
+import { verifyAdminToken } from '@utils/auth';
 
 import { optimizeImage } from '@/lib/imageService';
 
@@ -120,4 +120,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'File upload failed.' }, { status: 500 });
   }
 }
+
 

@@ -4,7 +4,7 @@ import { prisma } from '@lib/prisma'; // 1. Use Prisma singleton
 
 export const dynamic = "force-dynamic";
 
-import { verifyAdminToken } from '@/app/utils/auth';
+import { verifyAdminToken } from '@utils/auth';
 import { IdParamSchema } from '@lib/validators'; // 2. Import Zod schema
 
 export async function GET(

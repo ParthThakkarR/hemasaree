@@ -48,3 +48,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ isAuthenticated: false, isAdmin: false }, { status: 401 });
   }
 }
+

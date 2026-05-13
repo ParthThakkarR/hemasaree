@@ -19,6 +19,7 @@
       "@components/*": ["app/components/*"],
       "@lib/*": ["app/lib/*"],
       "@api/*": ["app/api/*"],
+      "@utils/*": ["app/utils/*"],
       "@/*": ["./*"]
     },
     "plugins": [
