@@ -8,7 +8,7 @@ import React, {
   useState,
   ReactNode,
 } from 'react';
-import { useAuth } from '@app/contexts/AuthContext';
+import { useAuth } from '@/app/contexts/AuthContext';
 
 /* ── Types ───────────────────────────────────────── */
 interface WishlistContextType {

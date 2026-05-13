@@ -1,9 +1,9 @@
 // /app/api/admin/orders/route.ts
 import { NextResponse } from 'next/server';
-import { prisma } from '@app/lib/prisma';
+import { prisma } from '@/app/lib/prisma';
 import { OrderStatus, OrderItemStatus } from '@prisma/client';
-import { verifyAdminToken } from '@app/utils/auth';
-import { AdminOrderUpdateSchema } from '@app/lib/validators';
+import { verifyAdminToken } from '@/app/utils/auth';
+import { AdminOrderUpdateSchema } from '@/app/lib/validators';
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;

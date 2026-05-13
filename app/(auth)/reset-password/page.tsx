@@ -1,7 +1,7 @@
 // File: app/(auth)/reset-password/page.tsx
 
 import React, { Suspense } from 'react';
-import ResetPasswordForm from '@app/(auth)/reset-password/ResetPasswordForm'; // Import the component 
+import ResetPasswordForm from '@/app/(auth)/reset-password/ResetPasswordForm'; // Import the component 
 you just renamed
 
 // A simple loading UI

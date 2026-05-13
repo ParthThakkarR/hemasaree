@@ -4,9 +4,9 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Search, ShoppingBag, Heart, User } from 'lucide-react';
-import { useCart } from '@app/contexts/CartContext';
-import { useWishlist } from '@app/contexts/WishlistContext';
-import { useAuth } from '@app/contexts/AuthContext';
+import { useCart } from '@/app/contexts/CartContext';
+import { useWishlist } from '@/app/contexts/WishlistContext';
+import { useAuth } from '@/app/contexts/AuthContext';
 
 export default function MobileNav() {
   const pathname = usePathname();

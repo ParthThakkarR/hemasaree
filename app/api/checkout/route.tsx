@@ -1,11 +1,11 @@
 // /app/api/checkout/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@app/lib/prisma';
+import { prisma } from '@/app/lib/prisma';
 
 export const dynamic = "force-dynamic";
 
-import { getUserFromToken } from '@app/lib/getUserFromToken';
-import { CheckoutSchema } from '@app/lib/validators'; // We defined this before
+import { getUserFromToken } from '@/app/lib/getUserFromToken';
+import { CheckoutSchema } from '@/app/lib/validators'; // We defined this before
 
 // 1. --- NEW: Add your delivery logic to the backend ---
 const getDeliveryCharge = (state: string): number => {

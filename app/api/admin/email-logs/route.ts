@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@app/lib/prisma';
-import { verifyAdminToken } from '@app/utils/auth';
+import { prisma } from '@/app/lib/prisma';
+import { verifyAdminToken } from '@/app/utils/auth';
 
 export const dynamic = "force-dynamic";
 

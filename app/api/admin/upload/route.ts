@@ -2,7 +2,7 @@
 // import { NextRequest, NextResponse } from "next/server";
 // import { writeFile, mkdir } from "fs/promises";
 // import { join } from "path";
-// import { verifyAdminToken } from "@app/utils/auth";
+// import { verifyAdminToken } from "@/app/utils/auth";
 
 // export async function POST(request: NextRequest) {
 //   // ✅ Verify admin authentication
@@ -81,7 +81,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
-import { verifyAdminToken } from '@app/utils/auth';
+import { verifyAdminToken } from '@/app/utils/auth';
 
 import { optimizeImage } from '@/lib/imageService';
 

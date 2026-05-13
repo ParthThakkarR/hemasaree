@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getDashboardStats, getSalesReport, getTopProducts } from '@/lib/analyticsService';
-import { verifyAdminToken } from '@app/utils/auth';
+import { verifyAdminToken } from '@/app/utils/auth';
 
 export const dynamic = "force-dynamic";
 
