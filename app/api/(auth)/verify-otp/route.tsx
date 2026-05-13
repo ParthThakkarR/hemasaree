@@ -1,7 +1,7 @@
 // // app/api/verify-otp/route.ts
 // import { NextResponse } from 'next/server';
-// import { prisma } from '@/app/lib/prisma'; // 1. Use Prisma singleton
-// import { VerifyOtpSchema } from '@/app/lib/validators'; // 2. Use Zod schema
+// import { prisma } from '@lib/prisma'; // 1. Use Prisma singleton
+// import { VerifyOtpSchema } from '@lib/validators'; // 2. Use Zod schema
 // import crypto from 'crypto';
 
 // export async function POST(req: Request) {
@@ -60,11 +60,11 @@
 
 // app/api/verify-otp/route.ts
 import { NextResponse } from 'next/server';
-import { prisma } from '@/app/lib/prisma';
+import { prisma } from '@lib/prisma';
 
 export const dynamic = "force-dynamic";
 
-import { VerifyOtpSchema } from '@/app/lib/validators';
+import { VerifyOtpSchema } from '@lib/validators';
 import crypto from 'crypto';
 
 export async function POST(req: Request) {

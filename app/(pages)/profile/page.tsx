@@ -3,7 +3,7 @@
 import React, { useEffect, useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth } from '@/app/contexts/auth-context';
+import { useAuth } from '@contexts/auth-context';
 import { User, Package, Heart, Settings, LogOut, MapPin, Phone, Mail } from 'lucide-react';
 import toast from 'react-hot-toast';
 

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/app/lib/prisma";
-import { getUserFromToken } from "@/app/lib/getUserFromToken";
+import { prisma } from "@lib/prisma";
+import { getUserFromToken } from "@lib/getUserFromToken";
 
 export const dynamic = "force-dynamic";
 

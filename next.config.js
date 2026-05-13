@@ -19,13 +19,12 @@ const nextConfig = {
   // Standardize build behavior
   reactStrictMode: true,
   
-  // Disable linting and type checks ONLY for this build to ensure artifact generation
-  // We will re-enable these once the deployment is stable
+  // Enable full build checks for production stability
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
   },
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
 };
 

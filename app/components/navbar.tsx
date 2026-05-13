@@ -4,9 +4,9 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { ShoppingBag, Heart, User, Search, Menu, X, LogOut, Package, ChevronDown } from 'lucide-react';
-import { useAuth } from '@/app/contexts/auth-context';
-import { useCart } from '@/app/contexts/cart-context';
-import { useWishlist } from '@/app/contexts/wishlist-context';
+import { useAuth } from '@contexts/auth-context';
+import { useCart } from '@contexts/cart-context';
+import { useWishlist } from '@contexts/wishlist-context';
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);

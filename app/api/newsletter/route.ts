@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/app/lib/prisma';
-import { rateLimiter } from '@/app/lib/rate-limit';
+import { prisma } from '@lib/prisma';
+import { rateLimiter } from '@lib/rate-limit';
 
 export const dynamic = "force-dynamic";
 

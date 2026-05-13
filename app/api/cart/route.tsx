@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/app/lib/prisma";
+import { prisma } from "@lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-import { getUserFromToken } from "@/app/lib/getUserFromToken";
-import { CartAddSchema, CartUpdateSchema, CartDeleteSchema } from "@/app/lib/validators";
+import { getUserFromToken } from "@lib/getUserFromToken";
+import { CartAddSchema, CartUpdateSchema, CartDeleteSchema } from "@lib/validators";
 
 /* ---------------------------------------------
    🔧 Helper: Always recalculate total cart price

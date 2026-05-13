@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/app/lib/prisma';
+import { prisma } from '@lib/prisma';
 import { verifyAdminToken } from '@/app/utils/auth';
-import { ProductSchema, UpdateProductSchema, DeleteProductSchema } from '@/app/lib/validators';
+import { ProductSchema, UpdateProductSchema, DeleteProductSchema } from '@lib/validators';
 
 export const dynamic = "force-dynamic";
 

@@ -1,14 +1,14 @@
 import type { Metadata, Viewport } from 'next';
 import '@/app/globals.css';
-import { AuthProvider } from '@/app/contexts/auth-context';
-import { CartProvider } from '@/app/contexts/cart-context';
-import { WishlistProvider } from '@/app/contexts/wishlist-context';
-import Navbar from '@/app/components/navbar';
-import Footer from '@/app/components/footer';
-import MobileNav from '@/app/components/mobile-nav';
+import { AuthProvider } from '@contexts/auth-context';
+import { CartProvider } from '@contexts/cart-context';
+import { WishlistProvider } from '@contexts/wishlist-context';
+import Navbar from '@components/navbar';
+import Footer from '@components/footer';
+import MobileNav from '@components/mobile-nav';
 import { Toaster } from 'react-hot-toast';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/lib/auth';
+import { authOptions } from '@lib/auth';
 
 export const metadata: Metadata = {
   title: { default: 'Hema Sarees — Elegant Indian Sarees', template: '%s | Hema Sarees' },
@@ -25,7 +25,7 @@ export const viewport: Viewport = {
   themeColor: '#ec4899',
 };
 
-import GlobalErrorBoundary from '@/app/components/global-error-boundary';
+import GlobalErrorBoundary from '@components/global-error-boundary';
 
 export const dynamic = "force-dynamic";
 

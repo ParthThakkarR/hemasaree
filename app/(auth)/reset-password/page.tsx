@@ -2,7 +2,7 @@
 
 import React, { Suspense } from 'react';
 import ResetPasswordForm from '@/app/(auth)/reset-password/reset-password-form'; // Import the component 
-you just renamed
+
 
 // A simple loading UI
 const LoadingFallback = () => (

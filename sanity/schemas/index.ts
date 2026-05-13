@@ -32,7 +32,7 @@ export const schemaTypes = [
       },
       {
         name: 'footerText',
-        title: 'Footer Text',
+        title: 'footer Text',
         type: 'string',
       },
     ],

@@ -1,5 +1,5 @@
 import cron from 'node-cron';
-import { prisma } from '@app/lib/prisma';
+import { prisma } from '@lib/prisma';
 import { emailQueue } from '@/lib/email/emailQueue';
 
 // 1. Clean up old carts (7 days old) every day at 2 AM

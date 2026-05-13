@@ -1,4 +1,4 @@
-import { prisma } from '@app/lib/prisma';
+import { prisma } from '@lib/prisma';
 
 export const getDashboardStats = async () => {
   const [totalOrders, totalRevenue, totalUsers, totalProducts] = await Promise.all([

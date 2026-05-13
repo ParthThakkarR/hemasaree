@@ -1,7 +1,7 @@
 // app/lib/cartActions.ts
 'use server';
 
-import { getCartFromCookie, setCartCookie } from '@/app/lib/cartCookie';
+import { getCartFromCookie, setCartCookie } from '@lib/cartCookie';
 
 type CartItem = {
   id: string | number;

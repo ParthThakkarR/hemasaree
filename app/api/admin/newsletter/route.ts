@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/app/lib/prisma';
+import { prisma } from '@lib/prisma';
 import { verifyAdminToken } from '@/app/utils/auth';
-import { sendMail } from '@/app/lib/mail';
+import { sendMail } from '@lib/mail';
 
 export const dynamic = "force-dynamic";
 

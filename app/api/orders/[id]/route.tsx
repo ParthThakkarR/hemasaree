@@ -1,8 +1,8 @@
 // /app/api/orders/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/app/lib/prisma';
-import { getUserFromToken } from '@/app/lib/getUserFromToken';
-import { IdParamSchema } from '@/app/lib/validators';
+import { prisma } from '@lib/prisma';
+import { getUserFromToken } from '@lib/getUserFromToken';
+import { IdParamSchema } from '@lib/validators';
 
 export const dynamic = "force-dynamic";
 

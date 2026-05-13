@@ -1,12 +1,12 @@
 // app/api/categories/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/app/lib/prisma'; // 1. Use Prisma singleton
+import { prisma } from '@lib/prisma'; // 1. Use Prisma singleton
 import { verifyAdminToken } from '@/app/utils/auth';
 import {
   CategorySchema,
   UpdateCategorySchema,
   DeleteCategorySchema,
-} from '@/app/lib/validators'; // 2. Import Zod schemas
+} from '@lib/validators'; // 2. Import Zod schemas
 
 export const dynamic = "force-dynamic";
 

@@ -2,9 +2,9 @@ import React, { memo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Heart, ShoppingBag } from 'lucide-react';
-import { useWishlist } from '@/app/contexts/wishlist-context';
-import { useCart } from '@/app/contexts/cart-context';
-import { useAuth } from '@/app/contexts/auth-context';
+import { useWishlist } from '@contexts/wishlist-context';
+import { useCart } from '@contexts/cart-context';
+import { useAuth } from '@contexts/auth-context';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 

@@ -1,10 +1,10 @@
 // app/api/forgot-password/route.ts
 import { NextResponse } from 'next/server';
-import { prisma } from '@/app/lib/prisma'; // 1. Import the singleton
+import { prisma } from '@lib/prisma'; // 1. Import the singleton
 
 export const dynamic = "force-dynamic";
 
-import { ForgotPasswordSchema } from '@/app/lib/validators'; // 2. Import the schema
+import { ForgotPasswordSchema } from '@lib/validators'; // 2. Import the schema
 import crypto from 'crypto';
 import nodemailer from 'nodemailer'; // (Or better: import { Resend } from 'resend';)
 

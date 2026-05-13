@@ -1,7 +1,7 @@
 // /app/api/products/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/app/lib/prisma'; // 1. Use Prisma singleton
-import { IdParamSchema } from '@/app/lib/validators'; // 2. Import Zod schema
+import { prisma } from '@lib/prisma'; // 1. Use Prisma singleton
+import { IdParamSchema } from '@lib/validators'; // 2. Import Zod schema
 
 export const dynamic = "force-dynamic";
 

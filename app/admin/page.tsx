@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/app/contexts/auth-context';
+import { useAuth } from '@contexts/auth-context';
 import { Bar, Doughnut, Line } from 'react-chartjs-2';
 import Link from 'next/link';
 import { 

@@ -1,5 +1,5 @@
 import { Metadata, ResolvingMetadata } from 'next';
-import { prisma } from '@/app/lib/prisma';
+import { prisma } from '@lib/prisma';
 import ProductDetailClient from '@/app/(pages)/product/[id]/product-detail-client';
 import { notFound } from 'next/navigation';
 
