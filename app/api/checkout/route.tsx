@@ -117,6 +117,23 @@ export async function POST(req: NextRequest) {
       data: { totalPrice: 0 },
     });
 
+    // 9. Queue order confirmation email
+    try {
+      const { emailQueue } = await import('@/lib/email/emailQueue');
+      const orderWithUser = await prisma.order.findUnique({
+        where: { id: newOrder.id },
+        include: { user: true, orderItems: true },
+      });
+      if (orderWithUser) {
+        await emailQueue.add('order_confirmation', {
+          type: 'order_confirmation',
+          data: { to: orderWithUser.user.email, order: orderWithUser },
+        });
+      }
+    } catch (err) {
+      console.error('[ORDER_CONFIRMATION_EMAIL_QUEUE_ERROR]', err);
+    }
+
     return NextResponse.json({
       message: 'Order placed successfully!',
       order: newOrder,

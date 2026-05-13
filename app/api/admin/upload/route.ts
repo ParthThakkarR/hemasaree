@@ -83,6 +83,8 @@ import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 import { verifyAdminToken } from '@/app/utils/auth';
 
+import { optimizeImage } from '@/lib/imageService';
+
 export async function POST(req: NextRequest) {
   const adminId = await verifyAdminToken(req);
   if (!adminId) {
@@ -91,21 +93,13 @@ export async function POST(req: NextRequest) {
 
   try {
     const formData = await req.formData();
-
-    // ✅ Get all uploaded files
     const files = formData.getAll('files') as File[];
     if (!files || files.length === 0) {
       return NextResponse.json({ error: 'No files provided.' }, { status: 400 });
     }
 
-    // ✅ Optional folder name (default: products)
-    const folder = (formData.get('folder') as string) || 'products';
-
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     const maxSize = 5 * 1024 * 1024; // 5MB
-
-    const uploadDir = path.join(process.cwd(), `public/uploads/${folder}`);
-    await mkdir(uploadDir, { recursive: true });
 
     const urls: string[] = [];
 
@@ -113,14 +107,9 @@ export async function POST(req: NextRequest) {
       if (!allowedTypes.includes(file.type)) continue;
       if (file.size > maxSize) continue;
 
-      const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-      const filename = `${Date.now()}_${sanitizedName}`;
-      const filePath = path.join(uploadDir, filename);
-
       const buffer = Buffer.from(await file.arrayBuffer());
-      await writeFile(filePath, buffer);
-
-      urls.push(`/uploads/${folder}/${filename}`);
+      const optimizedUrl = await optimizeImage(buffer, file.name);
+      urls.push(optimizedUrl);
     }
 
     return NextResponse.json({ urls });

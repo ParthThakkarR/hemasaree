@@ -5,9 +5,9 @@ export const dynamic = "force-dynamic";
 
 import { SignUpSchema } from '@/app/lib/validators';
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import { withRateLimit } from '@/lib/rateLimitWrapper';
 
-export async function POST(req: NextRequest) {
+async function signupHandler(req: NextRequest) {
   try {
     console.log("[SIGNUP] POST request received");
     const body = await req.json();
@@ -24,10 +24,8 @@ export async function POST(req: NextRequest) {
     console.log(`[SIGNUP] Attempting signup for: ${email}`);
 
     // ✅ Check if user already exists
-    console.log("[SIGNUP] Checking existing user...");
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
-      console.warn(`[SIGNUP] User already exists: ${email}`);
       return NextResponse.json(
         { message: 'User with this email already exists' },
         { status: 409 }
@@ -35,11 +33,9 @@ export async function POST(req: NextRequest) {
     }
 
     // ✅ Hash password
-    console.log("[SIGNUP] Hashing password...");
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // ✅ Create user (and optional initial address)
-    console.log("[SIGNUP] Creating user in database...");
+    // ✅ Create user
     const user = await prisma.user.create({
       data: {
         firstName,
@@ -47,7 +43,6 @@ export async function POST(req: NextRequest) {
         email,
         phone,
         password: hashedPassword,
-        // if address exists in signup, save it as first Address entry
         addresses: address
           ? {
               create: {
@@ -63,9 +58,18 @@ export async function POST(req: NextRequest) {
       },
       include: { addresses: true },
     });
-    console.log(`[SIGNUP] User created: ${user.id}`);
 
-    // ✅ Just return success since NextAuth handles session logging in later
+    // ✅ Queue welcome email
+    try {
+      const { emailQueue } = await import('@/lib/email/emailQueue');
+      await emailQueue.add('welcome', {
+        type: 'welcome',
+        data: { to: user.email, name: user.firstName || user.email },
+      });
+    } catch (err) {
+      console.error('[WELCOME_EMAIL_QUEUE_ERROR]', err);
+    }
+
     return NextResponse.json(
       {
         message: 'Signup successful!',
@@ -87,3 +91,5 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+export const POST = withRateLimit(signupHandler, { limit: 3, windowInSeconds: 3600 });

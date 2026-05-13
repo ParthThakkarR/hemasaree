@@ -25,36 +25,40 @@ export const viewport: Viewport = {
   themeColor: '#ec4899',
 };
 
+import GlobalErrorBoundary from '@/app/components/GlobalErrorBoundary';
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions);
   return (
     <html lang="en">
       <body className="bg-white text-ink antialiased">
-        <AuthProvider session={session}>
-          <CartProvider>
-            <WishlistProvider>
-              <Navbar />
-              <main className="pb-mobile-nav lg:pb-0">
-                {children}
-              </main>
-              <Footer />
-              <MobileNav />
-              <Toaster
-                position="top-right"
-                toastOptions={{
-                  duration: 3000,
-                  style: {
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: '14px',
-                    borderRadius: '12px',
-                    border: '1px solid #fbcfe8',
-                  },
-                  success: { iconTheme: { primary: '#ec4899', secondary: '#fff' } },
-                }}
-              />
-            </WishlistProvider>
-          </CartProvider>
-        </AuthProvider>
+        <GlobalErrorBoundary>
+          <AuthProvider session={session}>
+            <CartProvider>
+              <WishlistProvider>
+                <Navbar />
+                <main className="pb-mobile-nav lg:pb-0">
+                  {children}
+                </main>
+                <Footer />
+                <MobileNav />
+                <Toaster
+                  position="top-right"
+                  toastOptions={{
+                    duration: 3000,
+                    style: {
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: '14px',
+                      borderRadius: '12px',
+                      border: '1px solid #fbcfe8',
+                    },
+                    success: { iconTheme: { primary: '#ec4899', secondary: '#fff' } },
+                  }}
+                />
+              </WishlistProvider>
+            </CartProvider>
+          </AuthProvider>
+        </GlobalErrorBoundary>
       </body>
     </html>
   );

@@ -97,6 +97,25 @@ export async function POST(
       },
     });
 
+    // ✅ Queue return requested email (to admin)
+    try {
+      const { emailQueue } = await import('@/lib/email/emailQueue');
+      const adminUsers = await prisma.user.findMany({ where: { isAdmin: true } });
+      for (const admin of adminUsers) {
+        await emailQueue.add('return_requested', {
+          type: 'return_requested',
+          data: {
+            to: admin.email,
+            adminName: admin.firstName || admin.email,
+            orderId: orderId,
+            reason: reason,
+          },
+        });
+      }
+    } catch (err) {
+      console.error('[RETURN_REQUESTED_EMAIL_QUEUE_ERROR]', err);
+    }
+
     return NextResponse.json({
       message: 'Return request submitted successfully',
       orderItem: updatedOrderItem,

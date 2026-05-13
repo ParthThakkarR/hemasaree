@@ -9,10 +9,22 @@ export const revalidate = 0;
 export const fetchCache = "force-no-store";
 export const runtime = "nodejs";
 
+import { cache } from "@/lib/cache";
+
 export async function GET(req: NextRequest) {
   try {
     const url = req.nextUrl;
     const searchParams = url.searchParams;
+    const cacheKey = `products:${url.search}`;
+
+    // ✅ Try to get from cache
+    const cachedData = await cache.get<any>(cacheKey);
+    if (cachedData) {
+      console.log(`[PRODUCTS] Cache HIT: ${cacheKey}`);
+      return NextResponse.json(cachedData);
+    }
+
+    console.log(`[PRODUCTS] Cache MISS: ${cacheKey}`);
 
     // ✅ Validate pagination parameters with Zod
     const validation = ProductQuerySchema.safeParse({
@@ -26,9 +38,12 @@ export async function GET(req: NextRequest) {
         { status: 400 }
       );
     }
+    // ... rest of query logic
 
     const { page, limit } = validation.data;
     const skip = (page - 1) * limit;
+
+    // ... where, search, sort logic ...
 
     // ✅ Extract filters safely
     const rawCategory = searchParams.get("category");
@@ -39,16 +54,14 @@ export async function GET(req: NextRequest) {
     const sortPrice = searchParams.get("sortPrice")?.trim() || "";
     const maxPrice = parseFloat(searchParams.get("maxPrice") || "10000");
 
-    // ✅ Filter products between ₹500 and selected max
     const where: any = {
       price: {
-        gte: 500,          // ✅ lower bound (never below ₹500)
-        lte: maxPrice,     // ✅ upper bound (slider-selected)
+        gte: 500,
+        lte: maxPrice,
       },
       AND: [],
     };
 
-    // ✅ Category filter
     if (category) {
       const isValidObjectId = /^[a-f\d]{24}$/i.test(category);
       if (isValidObjectId) {
@@ -60,7 +73,6 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // ✅ Search filter (name, color, occasion)
     if (search) {
       where.AND.push({
         OR: [
@@ -71,15 +83,12 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // ✅ Sorting logic
     let orderBy: any = { createdAt: "desc" };
     if (sortPrice === "asc") orderBy = { price: "asc" };
     else if (sortPrice === "desc") orderBy = { price: "desc" };
 
-    // ✅ Count total products
     const totalProducts = await prisma.product.count({ where });
 
-    // ✅ Fetch paginated products
     const products = await prisma.product.findMany({
       where,
       orderBy,
@@ -90,8 +99,7 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // ✅ Structured response
-    return NextResponse.json({
+    const responseData = {
       products,
       pagination: {
         totalProducts,
@@ -100,7 +108,12 @@ export async function GET(req: NextRequest) {
         limit,
       },
       updatedAt: new Date().toISOString(),
-    });
+    };
+
+    // ✅ Set cache (15 minutes for product lists)
+    await cache.set(cacheKey, responseData, 900);
+
+    return NextResponse.json(responseData);
   } catch (err: any) {
     console.error("[PRODUCTS_GET_ERROR]", err);
     return NextResponse.json(

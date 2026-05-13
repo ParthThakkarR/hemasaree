@@ -108,6 +108,30 @@ export async function PUT(req: Request) {
         }),
       ]);
 
+      // ✅ Queue order status email
+      try {
+        const { emailQueue } = await import('@/lib/email/emailQueue');
+        const order = await prisma.order.findUnique({
+          where: { id: orderId },
+          include: { user: true },
+        });
+        if (order) {
+          if (status === 'SHIPPED') {
+            await emailQueue.add('order_shipped', {
+              type: 'order_shipped',
+              data: { to: order.user.email, order, trackingInfo: 'Available in your orders' },
+            });
+          } else if (status === 'DELIVERED') {
+            await emailQueue.add('order_delivered', {
+              type: 'order_delivered',
+              data: { to: order.user.email, order },
+            });
+          }
+        }
+      } catch (err) {
+        console.error('[ORDER_STATUS_EMAIL_QUEUE_ERROR]', err);
+      }
+
       return NextResponse.json({
         success: true,
         message: `Order ${orderId} updated to ${status}`,
@@ -122,7 +146,7 @@ export async function PUT(req: Request) {
 
       const orderItem = await prisma.orderItem.findUnique({
         where: { id: orderItemId },
-        include: { product: true, order: true },
+        include: { product: true, order: { include: { user: true } } },
       });
 
       if (!orderItem) {
@@ -165,6 +189,24 @@ export async function PUT(req: Request) {
 
         return updated;
       });
+
+      // ✅ Queue return status email
+      try {
+        const { emailQueue } = await import('@/lib/email/emailQueue');
+        if (newStatus === OrderItemStatus.RETURN_APPROVED || newStatus === OrderItemStatus.RETURN_DECLINED) {
+          await emailQueue.add('return_status', {
+            type: 'return_status',
+            data: {
+              to: orderItem.order.user.email,
+              name: orderItem.order.user.firstName || orderItem.order.user.email,
+              orderId: orderItem.orderId,
+              status: newStatus === OrderItemStatus.RETURN_APPROVED ? 'APPROVED' : 'REJECTED',
+            },
+          });
+        }
+      } catch (err) {
+        console.error('[RETURN_STATUS_EMAIL_QUEUE_ERROR]', err);
+      }
 
       return NextResponse.json({
         success: true,

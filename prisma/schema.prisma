@@ -30,8 +30,8 @@ enum OrderStatus {
 
 model User {
   id                   String     @id @default(auto()) @map("_id") @db.ObjectId
-  name                 String?    // Added for NextAuth compatibility
-  firstName            String?    // Made optional for OAuth compatibility
+  name                 String?    
+  firstName            String?    
   lastName             String?
   addresses            Address[]
   email                String     @unique
@@ -39,7 +39,7 @@ model User {
   image                String?
   phone                String?
   isAdmin              Boolean    @default(false)
-  password             String?    // Optional for OAuth users
+  password             String?    
   createdAt            DateTime   @default(now())
   updatedAt            DateTime   @updatedAt
   passwordResetToken   String?
@@ -51,6 +51,8 @@ model User {
   wishlist             WishlistItem[]
   accounts             Account[]
   sessions             Session[]
+
+  @@index([createdAt])
 }
 
 model WishlistItem {
@@ -62,6 +64,7 @@ model WishlistItem {
   createdAt DateTime @default(now())
 
   @@unique([userId, productId])
+  @@index([userId])
 }
 
 model Account {
@@ -99,19 +102,23 @@ model AnalyticsEvent {
   metadata  Json?
   createdAt DateTime @default(now())
 }
+
 model Address {
   id            String   @id @default(auto()) @map("_id") @db.ObjectId
   streetAddress String
   city          String
   state         String
   zipCode       String
-  label         String?    // e.g. "Home", "Office"
+  label         String?    
   isDefault     Boolean    @default(false)
   user          User       @relation(fields: [userId], references: [id])
   userId        String     @db.ObjectId
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
+
+  @@index([userId])
 }
+
 model Category {
   id          String    @id @default(auto()) @map("_id") @db.ObjectId
   name        String    @unique
@@ -139,6 +146,11 @@ model Product {
   cartItems    CartItem[]
   orderItems   OrderItem[]
   wishlistItems WishlistItem[]
+
+  @@index([categoryId])
+  @@index([name])
+  @@index([createdAt])
+  @@index([price])
 }
 
 model Cart {
@@ -149,6 +161,8 @@ model Cart {
   totalPrice Float      @default(0)
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
+
+  @@index([userId])
 }
 
 model CartItem {
@@ -162,7 +176,10 @@ model CartItem {
   quantity     Int      @default(1)
   price        Float
   withPolish   Boolean  @default(false)
-  createdAt    DateTime @default(now()) // Added for reliable sorting
+  createdAt    DateTime @default(now()) 
+
+  @@index([cartId])
+  @@index([productId])
 }
 
 model Order {
@@ -178,6 +195,10 @@ model Order {
   payment         Payment?
   shippingAddress String?
   cancelledAt  DateTime?
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
 }
 
 model OrderItem {
@@ -196,6 +217,9 @@ model OrderItem {
   returnReason   String?
   returnNotes    String?
   returnImage    String?
+
+  @@index([orderId])
+  @@index([productId])
 }
 
 model Payment {
@@ -209,6 +233,9 @@ model Payment {
   status    String   @default("pending")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
 }
 
 model VerificationToken {
@@ -224,4 +251,16 @@ model Newsletter {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   email     String   @unique
   createdAt DateTime @default(now())
+}
+
+model EmailLog {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String
+  subject   String
+  type      String   
+  status    String   
+  error     String?
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
