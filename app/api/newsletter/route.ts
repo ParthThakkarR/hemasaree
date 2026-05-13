@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/app/lib/prisma';
-import { rateLimiter } from '@/app/lib/rate-limit';
+import { prisma } from '@app/lib/prisma';
+import { rateLimiter } from '@app/lib/rate-limit';
 
 export const dynamic = "force-dynamic";
 
@@ -99,4 +99,5 @@ export async function GET(req: NextRequest) {
     return new NextResponse('Error unsubscribing', { status: 500 });
   }
 }
+
 

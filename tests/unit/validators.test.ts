@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { LoginSchema, SignUpSchema } from '@/app/lib/validators';
+import { LoginSchema, SignUpSchema } from '@app/lib/validators';
 
 describe('Validators', () => {
   describe('LoginSchema', () => {
@@ -47,3 +47,4 @@ describe('Validators', () => {
     });
   });
 });
+

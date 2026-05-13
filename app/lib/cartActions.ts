@@ -1,7 +1,7 @@
 // app/lib/cartActions.ts
 'use server';
 
-import { getCartFromCookie, setCartCookie } from '@/app/lib/cartCookie';
+import { getCartFromCookie, setCartCookie } from '@app/lib/cartCookie';
 
 type CartItem = {
   id: string | number;
@@ -36,3 +36,4 @@ export async function getInitialCartServer() {
   await new Promise((r) => setTimeout(r, 400)); // simulate latency
   return getCartFromCookie<CartItem[]>();
 }
+

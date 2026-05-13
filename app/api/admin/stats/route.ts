@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/app/lib/prisma";
-import { verifyAdminToken } from "@/app/utils/auth";
+import { prisma } from "@app/lib/prisma";
+import { verifyAdminToken } from "@app/utils/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -82,3 +82,4 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Failed to fetch dashboard stats" }, { status: 500 });
   }
 }
+

@@ -9,7 +9,7 @@ import React, {
   useRef,
   ReactNode,
 } from 'react';
-import { useAuth } from '@/app/contexts/AuthContext';
+import { useAuth } from '@app/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
@@ -188,3 +188,4 @@ export function useCart() {
   if (!ctx) throw new Error('useCart must be used within CartProvider');
   return ctx;
 }
+

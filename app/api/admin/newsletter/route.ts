@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/app/lib/prisma';
-import { verifyAdminToken } from '@/app/utils/auth';
-import { sendMail } from '@/app/lib/mail';
+import { prisma } from '@app/lib/prisma';
+import { verifyAdminToken } from '@app/utils/auth';
+import { sendMail } from '@app/lib/mail';
 
 export const dynamic = "force-dynamic";
 
@@ -81,3 +81,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+

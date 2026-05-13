@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/app/contexts/AuthContext';
+import { useAuth } from '@app/contexts/AuthContext';
 import { Bar, Doughnut, Line } from 'react-chartjs-2';
 import Link from 'next/link';
 import { 
@@ -502,3 +502,4 @@ function KPICard({ title, value, icon, trend, trendUp, subtitle }: any) {
     </div>
   );
 }
+

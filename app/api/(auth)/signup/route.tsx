@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/app/lib/prisma';
+import { prisma } from '@app/lib/prisma';
 
 export const dynamic = "force-dynamic";
 
-import { SignUpSchema } from '@/app/lib/validators';
+import { SignUpSchema } from '@app/lib/validators';
 import bcrypt from 'bcryptjs';
 import { withRateLimit } from '@/lib/rateLimitWrapper';
 
@@ -93,3 +93,4 @@ async function signupHandler(req: NextRequest) {
 }
 
 export const POST = withRateLimit(signupHandler, { limit: 3, windowInSeconds: 3600 });
+

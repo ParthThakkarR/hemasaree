@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/app/lib/prisma";
-import { getUserFromToken } from "@/app/lib/getUserFromToken";
+import { prisma } from "@app/lib/prisma";
+import { getUserFromToken } from "@app/lib/getUserFromToken";
 
 export const dynamic = "force-dynamic";
 
@@ -46,3 +46,4 @@ export async function GET(req: Request) {
     );
   }
 }
+

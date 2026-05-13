@@ -1,7 +1,7 @@
 // /app/api/products/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/app/lib/prisma";
-import { ProductQuerySchema } from "@/app/lib/validators";
+import { prisma } from "@app/lib/prisma";
+import { ProductQuerySchema } from "@app/lib/validators";
 
 // 🟢 Always serve fresh data
 export const dynamic = "force-dynamic";
@@ -122,3 +122,4 @@ export async function GET(req: NextRequest) {
     );
   }
 }
+

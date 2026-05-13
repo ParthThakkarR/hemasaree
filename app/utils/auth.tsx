@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/app/lib/prisma";
+import { prisma } from "@app/lib/prisma";
 
 
 
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/lib/auth";
+import { authOptions } from "@app/lib/auth";
 
 /**
  * Verifies the admin session using NextAuth.
@@ -35,4 +35,5 @@ export async function verifyAdminToken(req: Request): Promise<string | null> {
     return null;
   }
 }
+
 

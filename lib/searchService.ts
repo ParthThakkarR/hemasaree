@@ -1,4 +1,4 @@
-import { prisma } from '@/app/lib/prisma';
+import { prisma } from '@app/lib/prisma';
 
 export const searchProducts = async ({
   query,
@@ -62,3 +62,4 @@ export const searchProducts = async ({
     pages: Math.ceil(total / limit),
   };
 };
+

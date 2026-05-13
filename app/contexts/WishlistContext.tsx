@@ -8,7 +8,7 @@ import React, {
   useState,
   ReactNode,
 } from 'react';
-import { useAuth } from '@/app/contexts/AuthContext';
+import { useAuth } from '@app/contexts/AuthContext';
 
 /* ── Types ───────────────────────────────────────── */
 interface WishlistContextType {
@@ -146,3 +146,4 @@ export function useWishlist() {
   if (!ctx) throw new Error('useWishlist must be used within WishlistProvider');
   return ctx;
 }
+

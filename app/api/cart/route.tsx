@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/app/lib/prisma";
+import { prisma } from "@app/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-import { getUserFromToken } from "@/app/lib/getUserFromToken";
-import { CartAddSchema, CartUpdateSchema, CartDeleteSchema } from "@/app/lib/validators";
+import { getUserFromToken } from "@app/lib/getUserFromToken";
+import { CartAddSchema, CartUpdateSchema, CartDeleteSchema } from "@app/lib/validators";
 
 /* ---------------------------------------------
    🔧 Helper: Always recalculate total cart price
@@ -213,3 +213,4 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: "Failed to remove item" }, { status: 500 });
   }
 }
+

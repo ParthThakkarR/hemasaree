@@ -4,9 +4,9 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { ShoppingBag, Heart, User, Search, Menu, X, LogOut, Package, ChevronDown } from 'lucide-react';
-import { useAuth } from '@/app/contexts/AuthContext';
-import { useCart } from '@/app/contexts/CartContext';
-import { useWishlist } from '@/app/contexts/WishlistContext';
+import { useAuth } from '@app/contexts/AuthContext';
+import { useCart } from '@app/contexts/CartContext';
+import { useWishlist } from '@app/contexts/WishlistContext';
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -284,3 +284,4 @@ export default function Navbar() {
     </>
   );
 }
+

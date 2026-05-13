@@ -1,7 +1,7 @@
 import Queue from 'bull';
 import { sendEmail } from './emailService';
 import * as templates from './templates';
-import { prisma } from '@/app/lib/prisma';
+import { prisma } from '@app/lib/prisma';
 
 const redisConfig = process.env.REDIS_URL || {
   host: process.env.REDIS_HOST || '127.0.0.1',
@@ -114,3 +114,4 @@ emailQueue.on('failed', async (job, err) => {
     }
   }
 });
+

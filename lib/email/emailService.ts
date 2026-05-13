@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import { prisma } from '@/app/lib/prisma';
+import { prisma } from '@app/lib/prisma';
 
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_SERVER_HOST,
@@ -62,3 +62,4 @@ export async function sendEmail({
     throw error;
   }
 }
+

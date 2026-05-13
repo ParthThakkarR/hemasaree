@@ -1,4 +1,4 @@
-import { prisma } from '@/app/lib/prisma';
+import { prisma } from '@app/lib/prisma';
 
 export const getDashboardStats = async () => {
   const [totalOrders, totalRevenue, totalUsers, totalProducts] = await Promise.all([
@@ -46,3 +46,4 @@ export const getTopProducts = async (limit = 5) => {
 
   return topItems;
 };
+

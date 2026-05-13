@@ -1,6 +1,6 @@
 import { Metadata, ResolvingMetadata } from 'next';
-import { prisma } from '@/app/lib/prisma';
-import ProductDetailClient from '@/app/(pages)/product/[id]/ProductDetailClient';
+import { prisma } from '@app/lib/prisma';
+import ProductDetailClient from '@app/(pages)/product/[id]/ProductDetailClient';
 import { notFound } from 'next/navigation';
 
 type Props = {

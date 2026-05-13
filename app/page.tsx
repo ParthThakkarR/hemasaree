@@ -4,8 +4,8 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight, ShieldCheck, Truck, RefreshCw, CreditCard, Star } from 'lucide-react';
-import ProductCard from '@/app/components/ui/ProductCard';
-import ProductSkeleton from '@/app/components/ui/ProductSkeleton';
+import ProductCard from '@app/components/ui/ProductCard';
+import ProductSkeleton from '@app/components/ui/ProductSkeleton';
 
 export default function Home() {
   const [newArrivals, setNewArrivals] = useState<any[]>([]);
@@ -288,3 +288,4 @@ export default function Home() {
     </div>
   );
 }
+

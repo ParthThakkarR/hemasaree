@@ -2,9 +2,9 @@ import React, { memo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Heart, ShoppingBag } from 'lucide-react';
-import { useWishlist } from '@/app/contexts/WishlistContext';
-import { useCart } from '@/app/contexts/CartContext';
-import { useAuth } from '@/app/contexts/AuthContext';
+import { useWishlist } from '@app/contexts/WishlistContext';
+import { useCart } from '@app/contexts/CartContext';
+import { useAuth } from '@app/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
@@ -171,3 +171,4 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
 });
 
 export default ProductCard;
+

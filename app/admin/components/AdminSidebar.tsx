@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutDashboard, Package, Tags, ShoppingCart, LogOut, Store, Mail } from 'lucide-react';
-import { useAuth } from '@/app/contexts/AuthContext';
+import { useAuth } from '@app/contexts/AuthContext';
 
 const adminRoutes = [
   { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
@@ -60,3 +60,4 @@ export default function AdminSidebar() {
     </aside>
   );
 }
+

@@ -3,9 +3,9 @@
 import React, { useEffect, useState, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Filter } from 'lucide-react';
-import ProductCard from '@/app/components/ui/ProductCard';
-import FilterSidebar from '@/app/components/ui/FilterSidebar';
-import ProductSkeleton from '@/app/components/ui/ProductSkeleton';
+import ProductCard from '@app/components/ui/ProductCard';
+import FilterSidebar from '@app/components/ui/FilterSidebar';
+import ProductSkeleton from '@app/components/ui/ProductSkeleton';
 
 interface Category {
   id: string;
@@ -196,3 +196,4 @@ export default function ProductsListingPage() {
     </Suspense>
   );
 }
+
