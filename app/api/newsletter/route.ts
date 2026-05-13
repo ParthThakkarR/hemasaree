@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/prisma';
 import { rateLimiter } from '@/app/lib/rate-limit';
 
+export const dynamic = "force-dynamic";
+
 const newsletterRateLimit = rateLimiter({ interval: 60000, maxRequests: 5 });
 
 export async function POST(req: NextRequest) {

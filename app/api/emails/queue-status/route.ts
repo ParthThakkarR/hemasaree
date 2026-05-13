@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { emailQueue } from '@/lib/email/emailQueue';
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const [waiting, active, completed, failed, delayed] = await Promise.all([

@@ -3,6 +3,8 @@ import { prisma } from '@/app/lib/prisma';
 import { getUserFromToken } from '@/app/lib/getUserFromToken';
 import type { User } from '@/app/lib/getUserFromToken';
 
+export const dynamic = "force-dynamic";
+
 /**
  * ✅ GET  /api/me  → Return logged-in user + all saved addresses
  * ✅ POST /api/me → Add new address to user

@@ -85,6 +85,8 @@ import { verifyAdminToken } from '@/app/utils/auth';
 
 import { optimizeImage } from '@/lib/imageService';
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: NextRequest) {
   const adminId = await verifyAdminToken(req);
   if (!adminId) {

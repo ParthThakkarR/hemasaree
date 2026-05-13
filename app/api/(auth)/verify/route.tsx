@@ -2,6 +2,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
 
+export const dynamic = "force-dynamic";
+
 interface UserJWTPayload { /* ... */ }
 
 export async function POST(req: NextRequest) {
