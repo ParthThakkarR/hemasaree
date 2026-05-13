@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/prisma';
 import { createClient } from 'redis';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   const healthCheck: any = {
     uptime: process.uptime(),

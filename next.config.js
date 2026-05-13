@@ -2,57 +2,18 @@
 const nextConfig = {
   images: {
     remotePatterns: [
-      // Allow your CDN or shop domain
-      {
-        protocol: 'https',
-        hostname: 'kapaaskatha.in',
-        pathname: '**',
-      },
-      // Optional: allow Shopify/CDNs etc if you use them
-      {
-        protocol: 'https',
-        hostname: 'cdn.shopify.com',
-        pathname: '**',
-      },
-      // Allow any generic CDN
       {
         protocol: 'https',
         hostname: '**',
       },
     ],
   },
+  // Vercel handles these automatically, so we'll simplify
   reactStrictMode: true,
-  eslint: {
-    ignoreDuringBuilds: false,
-  },
-  typescript: {
-    ignoreBuildErrors: false,
-  },
-  async headers() {
-    return [
-      {
-        source: '/(.*)',
-        headers: [
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
-          },
-          {
-            key: 'X-Frame-Options',
-            value: 'DENY',
-          },
-          {
-            key: 'X-XSS-Protection',
-            value: '1; mode=block',
-          },
-          {
-            key: 'Strict-Transport-Security',
-            value: 'max-age=31536000; includeSubDomains; preload',
-          },
-        ],
-      },
-    ];
-  },
+  /* 
+    We are removing manual headers and complex config to let 
+    Vercel's default build pipeline handle the artifact collection.
+  */
 };
 
 module.exports = nextConfig;
