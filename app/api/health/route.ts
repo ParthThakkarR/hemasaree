@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { prisma } from '@/app/lib/prisma';
 import { createClient } from 'redis';
 
 export async function GET() {
@@ -11,8 +11,8 @@ export async function GET() {
   };
 
   try {
-    // Check Database
-    await prisma.$queryRaw`SELECT 1`;
+    // Check Database (MongoDB compatible)
+    await prisma.user.count();
     healthCheck.services.database = 'UP';
   } catch (error) {
     healthCheck.services.database = 'DOWN';

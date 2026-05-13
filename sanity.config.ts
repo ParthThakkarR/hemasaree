@@ -1,6 +1,5 @@
 import { defineConfig } from 'sanity';
 import { deskTool } from 'sanity/desk';
-import { visionTool } from '@sanity/vision';
 import { schemaTypes } from './sanity/schemas';
 import { projectId, dataset } from './sanity/env';
 
@@ -10,7 +9,7 @@ export default defineConfig({
   title: 'Hemasaree Content Studio',
   projectId,
   dataset,
-  plugins: [deskTool(), visionTool()],
+  plugins: [deskTool()],
   schema: {
     types: schemaTypes,
   },

@@ -1,5 +1,6 @@
-import { NextRequest } from 'next/server';
-import { NextStudio } from 'sanity/studio';
+'use client';
+
+import { NextStudio } from 'next-sanity/studio';
 import config from '@/sanity.config';
 
 export default function StudioPage() {

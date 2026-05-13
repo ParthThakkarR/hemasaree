@@ -25,13 +25,13 @@ export async function generateMetadata(
     description: `Buy ${product.name} in ${product.color} color for ${product.ocassion}. Price: ₹${product.price}. High-quality Indian saree.`,
     openGraph: {
       title: product.name,
-      description: product.description || `Elegant ${product.name} saree.`,
+      description: product.category.description || `Elegant ${product.name} saree.`,
       images: [product.images[0], ...previousImages],
     },
     twitter: {
       card: 'summary_large_image',
       title: product.name,
-      description: product.description || `Elegant ${product.name} saree.`,
+      description: product.category.description || `Elegant ${product.name} saree.`,
       images: [product.images[0]],
     },
   };
@@ -59,7 +59,6 @@ export default async function Page({ params }: Props) {
     '@type': 'Product',
     name: product.name,
     image: product.images,
-    description: product.description,
     brand: {
       '@type': 'Brand',
       name: 'Hemasaree',

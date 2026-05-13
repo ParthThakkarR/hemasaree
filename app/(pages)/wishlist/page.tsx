@@ -3,12 +3,12 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Heart, ShoppingBag } from 'lucide-react';
-import { useWishlist } from '@/app/contexts/WishlistContext';
-import { useCart } from '@/app/contexts/CartContext';
-import { useAuth } from '@/app/contexts/AuthContext';
+import { useWishlist } from '../../contexts/WishlistContext';
+import { useCart } from '../../contexts/CartContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import ProductCard from '@/app/components/ui/ProductCard';
-import ProductSkeleton from '@/app/components/ui/ProductSkeleton';
+import ProductCard from '../../components/ui/ProductCard';
+import ProductSkeleton from '../../components/ui/ProductSkeleton';
 import toast from 'react-hot-toast';
 
 export default function WishlistPage() {

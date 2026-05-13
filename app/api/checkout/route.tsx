@@ -104,13 +104,14 @@ export async function POST(req: NextRequest) {
       include: { orderItems: true },
     });
 
-    // 7. Execute Transaction (your excellent logic)
-    const [_, newOrder] = await prisma.$transaction([
+    // 7. Execute Transaction
+    const results = await prisma.$transaction([
       ...stockUpdates,
       orderCreation,
     ]);
+    const newOrder = results[results.length - 1] as any;
 
-    // 8. Clear User Cart (your excellent logic)
+    // 8. Clear User Cart
     await prisma.cartItem.deleteMany({ where: { cartId: userCart.id } });
     await prisma.cart.update({
       where: { id: userCart.id },
