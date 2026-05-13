@@ -9,7 +9,7 @@ import React, {
   useRef,
   ReactNode,
 } from 'react';
-import { useAuth } from '@/app/contexts/AuthContext';
+import { useAuth } from '@/app/contexts/auth-context';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 

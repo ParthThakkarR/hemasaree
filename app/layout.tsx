@@ -1,11 +1,11 @@
 import type { Metadata, Viewport } from 'next';
 import '@/app/globals.css';
-import { AuthProvider } from '@/app/contexts/AuthContext';
-import { CartProvider } from '@/app/contexts/CartContext';
-import { WishlistProvider } from '@/app/contexts/WishlistContext';
-import Navbar from '@/app/components/Navbar';
-import Footer from '@/app/components/Footer';
-import MobileNav from '@/app/components/MobileNav';
+import { AuthProvider } from '@/app/contexts/auth-context';
+import { CartProvider } from '@/app/contexts/cart-context';
+import { WishlistProvider } from '@/app/contexts/wishlist-context';
+import Navbar from '@/app/components/navbar';
+import Footer from '@/app/components/footer';
+import MobileNav from '@/app/components/mobile-nav';
 import { Toaster } from 'react-hot-toast';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/lib/auth';
@@ -25,7 +25,7 @@ export const viewport: Viewport = {
   themeColor: '#ec4899',
 };
 
-import GlobalErrorBoundary from '@/app/components/GlobalErrorBoundary';
+import GlobalErrorBoundary from '@/app/components/global-error-boundary';
 
 export const dynamic = "force-dynamic";
 

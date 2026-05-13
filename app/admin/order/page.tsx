@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, Fragment } from 'react';
 import { Eye, Check, X, Image as ImageIcon, MessageSquare, ListTodo, ChevronDown, ChevronUp } from 'lucide-react';
-import { useAuth } from '@/app/contexts/AuthContext';
+import { useAuth } from '@/app/contexts/auth-context';
 import { useRouter } from 'next/navigation';
 
 enum OrderStatus { PENDING = 'PENDING', SHIPPED = 'SHIPPED', DELIVERED = 'DELIVERED', CANCELLED = 'CANCELLED' }

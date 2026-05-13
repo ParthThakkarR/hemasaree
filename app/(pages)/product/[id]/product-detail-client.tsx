@@ -6,9 +6,9 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { Heart, ShoppingBag, Check, Star, ChevronRight, Home, ChevronDown, Ruler } from 'lucide-react';
-import { useCart } from '@/app/contexts/CartContext';
-import { useWishlist } from '@/app/contexts/WishlistContext';
-import { useAuth } from '@/app/contexts/AuthContext';
+import { useCart } from '@/app/contexts/cart-context';
+import { useWishlist } from '@/app/contexts/wishlist-context';
+import { useAuth } from '@/app/contexts/auth-context';
 
 const POLISH_PRICE = 450;
 
