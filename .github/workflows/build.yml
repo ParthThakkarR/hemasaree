@@ -25,12 +25,12 @@ jobs:
       - name: Run Prisma Generate
         run: npx prisma generate
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'mongodb://localhost:27017/hemasaree_placeholder' }}
 
       - name: Type Check
         run: npm run type-check
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'mongodb://localhost:27017/hemasaree_placeholder' }}
 
       - name: Lint
         run: npm run lint
@@ -38,9 +38,9 @@ jobs:
       - name: Build Next.js
         run: npm run build
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'mongodb://localhost:27017/hemasaree_placeholder' }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'build-placeholder-secret' }}
+          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL || 'http://localhost:3000' }}
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
