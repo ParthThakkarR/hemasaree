@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev ",
-    "build": "npx prisma generate && next build",
+    "build": "npx prisma generate && next build && node scripts/ensure-next-export-detail.js",
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
