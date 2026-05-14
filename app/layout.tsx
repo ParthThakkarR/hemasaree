@@ -9,6 +9,7 @@ import MobileNav from '@components/mobile-nav';
 import { Toaster } from 'react-hot-toast';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@lib/auth';
+import NextTopLoader from 'nextjs-toploader';
 
 export const metadata: Metadata = {
   title: { default: 'Hema Sarees — Elegant Indian Sarees', template: '%s | Hema Sarees' },
@@ -34,6 +35,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en">
       <body className="bg-white text-ink antialiased">
+        <NextTopLoader color="#6B0F1A" showSpinner={false} height={4} />
         <GlobalErrorBoundary>
           <AuthProvider session={session}>
             <CartProvider>

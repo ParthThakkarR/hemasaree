@@ -30,7 +30,7 @@ describe('CartShipping Component', () => {
 
   const defaultProps = {
     savedAddresses: mockSavedAddresses,
-    addressMode: 'saved',
+    addressMode: 'saved' as 'saved' | 'new',
     setAddressMode: vi.fn(),
     selectedSavedAddress: mockSavedAddresses[0],
     setSelectedSavedAddress: vi.fn(),

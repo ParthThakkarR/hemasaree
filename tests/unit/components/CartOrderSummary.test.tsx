@@ -10,7 +10,7 @@ describe('CartOrderSummary Component', () => {
 
   const defaultProps = {
     cart: mockCart,
-    step: 1,
+    step: 1 as 1 | 2 | 3,
     setStep: vi.fn(),
     subtotal: 10000,
     deliveryCharge: 150,
