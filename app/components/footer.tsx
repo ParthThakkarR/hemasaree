@@ -119,7 +119,7 @@ export default function Footer() {
               <li><Link href="/orders" className="text-sm hover:text-accent transition-colors">Track Order</Link></li>
               <li><Link href="/terms" className="text-sm hover:text-accent transition-colors">Shipping & Delivery</Link></li>
               <li><Link href="/terms" className="text-sm hover:text-accent transition-colors">Returns & Exchanges</Link></li>
-              <li><Link href="/contact" className="text-sm hover:text-accent transition-colors">Contact Us</Link></li>
+              <li><a href="mailto:hello@hemasarees.com" className="text-sm hover:text-accent transition-colors">Contact Us</a></li>
             </ul>
           </div>
 

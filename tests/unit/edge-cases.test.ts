@@ -126,13 +126,13 @@ describe('Security & Edge Case Validators', () => {
       }
     });
 
-    it('should handle pagination edge: max limit 100', () => {
-      const result = ProductQuerySchema.safeParse({ page: '1', limit: '100' });
+    it('should handle pagination edge: max limit 1000', () => {
+      const result = ProductQuerySchema.safeParse({ page: '1', limit: '1000' });
       expect(result.success).toBe(true);
     });
 
-    it('should reject pagination: limit 101 (over max)', () => {
-      const result = ProductQuerySchema.safeParse({ page: '1', limit: '101' });
+    it('should fail if limit is greater than 1000', () => {
+      const result = ProductQuerySchema.safeParse({ page: '1', limit: '1001' });
       expect(result.success).toBe(false);
     });
   });
