@@ -16,6 +16,7 @@ COPY . .
 RUN npx prisma generate
 
 ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_OUTPUT_STANDALONE 1
 RUN npm run build
 
 # Stage 3: Runner

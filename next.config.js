@@ -2,9 +2,9 @@
 const path = require('path');
 
 const nextConfig = {
-  // STANDALONE MODE — required for Docker self-hosted builds.
-  // Vercel ignores this flag and uses its own optimized build pipeline.
-  output: 'standalone',
+  // Enable standalone output only when explicitly requested (e.g. Docker build).
+  // This avoids Vercel Next.js trace-copy failures with standalone output.
+  output: process.env.NEXT_OUTPUT_STANDALONE === '1' ? 'standalone' : undefined,
 
   images: {
     remotePatterns: [
