@@ -6,12 +6,6 @@ const nextConfig = {
   // This avoids Vercel Next.js trace-copy failures with standalone output.
   output: process.env.NEXT_OUTPUT_STANDALONE === '1' ? 'standalone' : undefined,
 
-  // Externalize packages that use filesystem scanning (glob) at build time.
-  // swagger-jsdoc / next-swagger-doc scan the apiFolder with glob, which
-  // corrupts Vercel's .next output and prevents export-detail.json creation.
-  experimental: {
-    serverComponentsExternalPackages: ['swagger-jsdoc', 'next-swagger-doc'],
-  },
 
   images: {
     remotePatterns: [
