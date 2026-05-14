@@ -6,6 +6,7 @@ const nextConfig = {
   // This avoids Vercel Next.js trace-copy failures with standalone output.
   output: process.env.NEXT_OUTPUT_STANDALONE === '1' ? 'standalone' : undefined,
 
+
   images: {
     remotePatterns: [
       {
