@@ -3,11 +3,13 @@ import { deskTool } from 'sanity/desk';
 import { schemaTypes } from './sanity/schemas';
 import { projectId, dataset } from './sanity/env';
 
+const fallbackProjectId = projectId || 'missing-project-id';
+
 export default defineConfig({
   basePath: '/studio',
   name: 'Hemasaree_Content_Studio',
   title: 'Hemasaree Content Studio',
-  projectId,
+  projectId: fallbackProjectId,
   dataset,
   plugins: [deskTool()],
   schema: {

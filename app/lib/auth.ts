@@ -5,6 +5,11 @@ import GoogleProvider from "next-auth/providers/google";
 import { prisma } from "@lib/prisma";
 import bcrypt from "bcryptjs";
 
+if (process.env.VERCEL_URL && (!process.env.NEXTAUTH_URL || process.env.NEXTAUTH_URL.includes('localhost'))) {
+  process.env.NEXTAUTH_URL = `https://${process.env.VERCEL_URL}`;
+  console.warn(`[AUTH] NEXTAUTH_URL auto-set to ${process.env.NEXTAUTH_URL} from VERCEL_URL`);
+}
+
 // Validate NEXTAUTH_URL at startup — the most common OAuth misconfiguration
 if (process.env.NEXTAUTH_URL && !process.env.NEXTAUTH_URL.startsWith('http')) {
   console.error(

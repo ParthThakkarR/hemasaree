@@ -1,3 +1,8 @@
+const appUrl =
+  process.env.NEXT_PUBLIC_APP_URL ||
+  process.env.NEXTAUTH_URL ||
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+
 export const welcomeTemplate = (name: string) => `
 <!DOCTYPE html>
 <html>
@@ -19,7 +24,7 @@ export const welcomeTemplate = (name: string) => `
             <p>Hi ${name},</p>
             <p>Thank you for joining Hemasaree. We're excited to have you with us!</p>
             <p>Explore our latest collections of beautiful sarees and more.</p>
-            <a href="${process.env.NEXTAUTH_URL}" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">Start Shopping</a>
+            <a href="${appUrl}" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">Start Shopping</a>
         </div>
         <div class="footer">
             <p>&copy; ${new Date().getFullYear()} Hemasaree. All rights reserved.</p>

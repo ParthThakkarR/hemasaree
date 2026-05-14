@@ -11,12 +11,16 @@ import nodemailer from 'nodemailer'; // (Or better: import { Resend } from 'rese
 // 3. (RECOMMENDED) Use a transactional email service
 // const resend = new Resend(process.env.RESEND_API_KEY);
 
+const smtpPort = parseInt(process.env.EMAIL_PORT || '465', 10);
+const smtpSecure = process.env.EMAIL_SECURE ? process.env.EMAIL_SECURE === 'true' : smtpPort === 465;
+const emailDomain = process.env.EMAIL_DOMAIN || 'hemasarees.com';
+
 // (Using nodemailer for this example as you had it)
 const transporter = nodemailer.createTransport({
   // 4. CRITICAL: Replace 'gmail' with a real service
   host: process.env.EMAIL_HOST, // e.g., 'smtp.resend.com' or 'smtp.sendgrid.net'
-  port: 465, // or 587
-  secure: true, // true for 465, false for 587
+  port: smtpPort, // or 587
+  secure: smtpSecure, // true for 465, false for 587
   auth: {
     user: process.env.EMAIL_USER, // e.g., 'apikey'
     pass: process.env.EMAIL_PASS, // Your API key
@@ -57,12 +61,16 @@ export async function POST(req: Request) {
         },
       });
 
-      const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${resetToken}`;
+      const appUrl =
+        process.env.NEXT_PUBLIC_APP_URL ||
+        process.env.NEXTAUTH_URL ||
+        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+      const resetUrl = `${appUrl}/reset-password?token=${resetToken}`;
 
       // 6. Send email with the new service
       await transporter.sendMail({
         to: email,
-        from: `"Your App" <onboarding@${process.env.EMAIL_DOMAIN}>`, // e.g., onboarding@resend.dev
+        from: `"Hema Sarees" <onboarding@${emailDomain}>`, // e.g., onboarding@resend.dev
         subject: 'Password Reset Request',
         html: `<p>You are receiving this because you (or someone else) have requested the reset of the password for your account.</p>
                <p>Please click on the following link, or paste this into your browser to complete the process:</p>
