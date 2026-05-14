@@ -54,7 +54,7 @@ export default function ProductAccordion({ product }: ProductAccordionProps) {
                     {[...Array(5)].map((_, i) => <Star key={i} size={14} fill="currentColor" />)}
                   </div>
                 </div>
-                <p className="text-sm text-ink-muted mb-3">Absolutely stunning saree! The fabric quality is much better than expected and the color perfectly matches the pictures. I wore it for my cousin's wedding and received so many compliments.</p>
+                <p className="text-sm text-ink-muted mb-3">Absolutely stunning saree! The fabric quality is much better than expected and the color perfectly matches the pictures. I wore it for my cousin&apos;s wedding and received so many compliments.</p>
                 <div className="flex gap-2">
                   <div className="w-16 h-16 relative rounded-md overflow-hidden bg-brand-50 border border-brand-100">
                     <Image src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=150&q=80" alt="Customer Photo" fill className="object-cover" />

@@ -61,6 +61,7 @@ export default function FilterSidebar({ categories, isMobileOpen, onMobileClose 
       }
     }, 500);
     return () => clearTimeout(handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery, searchParams]);
 
   const SidebarContent = (
