@@ -11,12 +11,16 @@ import nodemailer from 'nodemailer';
 // 3. (RECOMMENDED) Use a transactional email service
 // const resend = new Resend(process.env.RESEND_API_KEY);
 
+const smtpPort = parseInt(process.env.EMAIL_PORT || '465', 10);
+const smtpSecure = process.env.EMAIL_SECURE ? process.env.EMAIL_SECURE === 'true' : smtpPort === 465;
+const emailDomain = process.env.EMAIL_DOMAIN || 'hemasarees.com';
+
 // (Using nodemailer for this example as you had it)
 const transporter = nodemailer.createTransport({
   // 4. CRITICAL: Replace 'gmail' with a real service
   host: process.env.EMAIL_HOST, // e.g., 'smtp.resend.com'
-  port: 465,
-  secure: true,
+  port: smtpPort,
+  secure: smtpSecure,
   auth: {
     user: process.env.EMAIL_USER, // e.g., 'apikey'
     pass: process.env.EMAIL_PASS, // Your API key
@@ -88,7 +92,7 @@ export async function POST(req: Request) {
     }
 
     await transporter.sendMail({
-      from: `"Your App" <onboarding@${process.env.EMAIL_DOMAIN}>`,
+      from: `"Hema Sarees" <onboarding@${emailDomain}>`,
       to: email,
       subject: 'Your Verification Code',
       text: `Your OTP is ${otp}. It is valid for 10 minutes.`,

@@ -5,9 +5,17 @@ import { client } from '@/sanity/lib/client';
 import { PortableText } from '@portabletext/react';
 
 async function getAboutPage() {
+  if (!client) return null;
+
   const query = `*[_type == "page" && slug.current == "about"][0]`;
-  const page = await client.fetch(query);
-  return page;
+
+  try {
+    const page = await client.fetch(query);
+    return page;
+  } catch (error) {
+    console.error('[ABOUT_PAGE_SANITY_FETCH_ERROR]', error);
+    return null;
+  }
 }
 
 export default async function AboutPage() {

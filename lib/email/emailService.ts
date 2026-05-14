@@ -1,12 +1,18 @@
 import nodemailer from 'nodemailer';
 import { prisma } from '@lib/prisma';
 
+const emailHost = process.env.EMAIL_SERVER_HOST || process.env.EMAIL_HOST;
+const emailPort = parseInt(process.env.EMAIL_SERVER_PORT || process.env.EMAIL_PORT || '587', 10);
+const emailUser = process.env.EMAIL_SERVER_USER || process.env.EMAIL_USER;
+const emailPass = process.env.EMAIL_SERVER_PASSWORD || process.env.EMAIL_PASS;
+
 const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_SERVER_HOST,
-  port: parseInt(process.env.EMAIL_SERVER_PORT || '587'),
+  host: emailHost,
+  port: emailPort,
+  secure: process.env.EMAIL_SECURE ? process.env.EMAIL_SECURE === 'true' : emailPort === 465,
   auth: {
-    user: process.env.EMAIL_SERVER_USER,
-    pass: process.env.EMAIL_SERVER_PASSWORD,
+    user: emailUser,
+    pass: emailPass,
   },
 });
 
@@ -23,6 +29,10 @@ export async function sendEmail({
   text?: string;
   type: string;
 }) {
+  if (!emailHost || !emailUser || !emailPass) {
+    throw new Error('Email transport is not configured. Set EMAIL_HOST/EMAIL_USER/EMAIL_PASS (or EMAIL_SERVER_*).');
+  }
+
   const log = await prisma.emailLog.create({
     data: {
       email: to,
