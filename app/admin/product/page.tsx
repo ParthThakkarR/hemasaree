@@ -335,7 +335,7 @@ export default function ManageProductsPage() {
                    <div className="flex flex-wrap gap-3 mb-4">
                      {editingProduct.images.map((img, i) => (
                        <div key={i} className="relative group">
-                         <img src={img} className="w-20 h-20 rounded-xl object-cover border border-gray-200" />
+                         <img src={img} alt="Product image preview" className="w-20 h-20 rounded-xl object-cover border border-gray-200" />
                          <button type="button" onClick={() => handleDeleteImage(img)} className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white w-6 h-6 flex items-center justify-center rounded-full text-xs shadow-md opacity-0 group-hover:opacity-100 transition-opacity">×</button>
                        </div>
                      ))}
