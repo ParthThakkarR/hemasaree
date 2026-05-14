@@ -55,6 +55,14 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
+      - name: Build Next.js for Playwright start server
+        run: npm run build
+        env:
+          DATABASE_URL: mongodb://localhost:27017/hemasaree_test
+          REDIS_URL: redis://localhost:6379
+          NEXTAUTH_SECRET: test-secret-for-ci
+          NEXTAUTH_URL: http://localhost:3000
+
       - name: Run E2E Tests
         run: npm run test:e2e
         env:
