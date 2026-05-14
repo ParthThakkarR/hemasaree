@@ -105,26 +105,26 @@ export default function Home() {
       </section>
 
       {/* Trust Signals Strip */}
-      <section className="bg-[#3D1A24] text-white py-12">
+      <section className="bg-brand-950 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div className="flex flex-col items-center text-center gap-3">
-              <Truck size={32} className="text-[#C9A84C]" />
+              <Truck size={32} className="text-accent" />
               <h4 className="font-semibold tracking-wide text-brand-50">Free Shipping</h4>
               <p className="text-sm text-brand-100/70">On orders above ₹999</p>
             </div>
             <div className="flex flex-col items-center text-center gap-3">
-              <ShieldCheck size={32} className="text-[#C9A84C]" />
+              <ShieldCheck size={32} className="text-accent" />
               <h4 className="font-semibold tracking-wide text-brand-50">Premium Quality</h4>
               <p className="text-sm text-brand-100/70">100% Authentic Fabric</p>
             </div>
             <div className="flex flex-col items-center text-center gap-3">
-              <RefreshCw size={32} className="text-[#C9A84C]" />
+              <RefreshCw size={32} className="text-accent" />
               <h4 className="font-semibold tracking-wide text-brand-50">Easy Returns</h4>
               <p className="text-sm text-brand-100/70">7-day return policy</p>
             </div>
             <div className="flex flex-col items-center text-center gap-3">
-              <CreditCard size={32} className="text-[#C9A84C]" />
+              <CreditCard size={32} className="text-accent" />
               <h4 className="font-semibold tracking-wide text-brand-50">Secure Payment</h4>
               <p className="text-sm text-brand-100/70">Multiple payment options</p>
             </div>
@@ -197,7 +197,7 @@ export default function Home() {
       </section>
 
       {/* Artisan Story Strip */}
-      <section className="bg-[#1A0A12] text-[#C9A84C] py-20 lg:py-28">
+      <section className="bg-brand-950 text-accent py-20 lg:py-28">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="font-serif text-3xl md:text-5xl font-bold text-brand-50 mb-4">Each Saree Carries a Story</h2>
@@ -275,7 +275,7 @@ export default function Home() {
               <div className="flex justify-center">
                 <Link
                   href="/products?category=Bridal"
-                  className="inline-flex items-center justify-center bg-accent text-brand-950 hover:bg-[#dfc67a] px-8 py-4 rounded-[10px] font-bold transition-colors"
+                  className="inline-flex items-center justify-center bg-accent text-brand-950 hover:bg-accent-light px-8 py-4 rounded-[10px] font-bold transition-colors"
                 >
                   Claim Your Bridal Saree + Free Blouse Stitching
                 </Link>

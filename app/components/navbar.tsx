@@ -16,7 +16,7 @@ export default function Navbar() {
 
   const pathname = usePathname();
   const router = useRouter();
-  
+
   const { user, logout, isLoading } = useAuth();
   const { cartCount } = useCart();
   const { wishlistCount } = useWishlist();
@@ -56,24 +56,23 @@ export default function Navbar() {
   return (
     <>
       {/* Top Announcement Bar */}
-      <div className="bg-[#6B0F1A] text-white text-xs sm:text-sm py-2 px-4 text-center font-medium tracking-wide z-50 relative flex items-center justify-center gap-2">
+      <div className="bg-brand-900 text-white text-xs sm:text-sm py-2 px-4 text-center font-medium tracking-wide relative flex items-center justify-center gap-2">
         <span>Festive Season Sale: Free Shipping on Orders Over ₹999 |</span>
         <Link href="/products" className="underline hover:text-accent transition-colors font-bold">Shop Now</Link>
       </div>
 
       <header
-        className={`fixed left-0 right-0 z-40 transition-all duration-300 ${
-          isScrolled 
-            ? 'top-0 bg-white/95 backdrop-blur-md shadow-sm py-3 border-b border-surface-subtle' 
-            : 'top-[36px] bg-transparent py-5'
-        }`}
+        className={`sticky top-0 z-40 transition-colors duration-300 ${isScrolled
+            ? 'bg-surface/95 backdrop-blur-md shadow-sm border-b border-surface-subtle py-3'
+            : 'bg-surface py-4 border-b border-transparent'
+          }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-4 lg:gap-8">
-            
+
             {/* Mobile Menu Button */}
-            <button 
-              className="lg:hidden p-2 -ml-2 text-[#3D1A24] hover:text-brand-800 transition-colors"
+            <button
+              className="lg:hidden p-2 -ml-2 text-brand-950 hover:text-brand-800 transition-colors"
               onClick={() => setIsMobileMenuOpen(true)}
             >
               <Menu size={24} />
@@ -90,32 +89,30 @@ export default function Navbar() {
             <nav className="hidden lg:flex items-center gap-8">
               <Link
                 href="/"
-                className={`text-sm font-semibold uppercase tracking-wider transition-colors hover:text-brand-800 ${
-                  pathname === '/' ? 'text-brand-800' : 'text-[#3D1A24]/70'
-                }`}
+                className={`text-sm font-semibold uppercase tracking-wider transition-colors hover:text-brand-800 ${pathname === '/' ? 'text-brand-800' : 'text-brand-950/70'
+                  }`}
               >
                 Home
               </Link>
-              
+
               {/* Collections Dropdown */}
               <div className="relative group">
-                <button className={`flex items-center gap-1 text-sm font-semibold uppercase tracking-wider transition-colors hover:text-brand-800 ${pathname.includes('category') ? 'text-brand-800' : 'text-[#3D1A24]/70'}`}>
-                   Collections <ChevronDown size={14} className="group-hover:rotate-180 transition-transform duration-200" />
+                <button className={`flex items-center gap-1 text-sm font-semibold uppercase tracking-wider transition-colors hover:text-brand-800 ${pathname.includes('category') ? 'text-brand-800' : 'text-brand-950/70'}`}>
+                  Collections <ChevronDown size={14} className="group-hover:rotate-180 transition-transform duration-200" />
                 </button>
                 <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-brand-100 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 overflow-hidden">
-                   {collections.map(col => (
-                      <Link key={col.name} href={col.href} className="block px-4 py-3 text-sm text-[#3D1A24] hover:bg-brand-50 hover:text-brand-800 transition-colors border-b border-brand-50 last:border-0 font-medium">
-                         {col.name}
-                      </Link>
-                   ))}
+                  {collections.map(col => (
+                    <Link key={col.name} href={col.href} className="block px-4 py-3 text-sm text-brand-950 hover:bg-brand-50 hover:text-brand-800 transition-colors border-b border-brand-50 last:border-0 font-medium">
+                      {col.name}
+                    </Link>
+                  ))}
                 </div>
               </div>
 
               <Link
                 href="/products"
-                className={`text-sm font-semibold uppercase tracking-wider transition-colors hover:text-brand-800 ${
-                  pathname === '/products' && !pathname.includes('category') ? 'text-brand-800' : 'text-[#3D1A24]/70'
-                }`}
+                className={`text-sm font-semibold uppercase tracking-wider transition-colors hover:text-brand-800 ${pathname === '/products' && !pathname.includes('category') ? 'text-brand-800' : 'text-brand-950/70'
+                  }`}
               >
                 All Sarees
               </Link>
@@ -130,24 +127,24 @@ export default function Navbar() {
                   placeholder="Search elegant sarees..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-surface border border-brand-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-brand-800 focus:border-transparent transition-all placeholder:text-ink-faint text-[#3D1A24]"
+                  className="w-full pl-10 pr-4 py-2 bg-surface border border-brand-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-brand-800 focus:border-transparent transition-all placeholder:text-ink-faint text-brand-950"
                 />
               </form>
             </div>
 
             {/* Actions */}
             <div className="flex items-center gap-3 sm:gap-5">
-              
+
               {/* Desktop Wishlist & Cart */}
               <div className="hidden lg:flex items-center gap-4">
-                <Link href="/wishlist" aria-label="Wishlist" className="relative p-2 text-[#3D1A24] hover:text-brand-800 transition-colors group">
+                <Link href="/wishlist" aria-label="Wishlist" className="relative p-2 text-brand-950 hover:text-brand-800 transition-colors group">
                   <Heart size={22} className="group-hover:scale-110 transition-transform" />
                   {user && wishlistCount > 0 && (
                     <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-brand-600 rounded-full border-2 border-white"></span>
                   )}
                 </Link>
 
-                <Link href="/cart" className="relative p-2 text-[#3D1A24] hover:text-brand-800 transition-colors group">
+                <Link href="/cart" className="relative p-2 text-brand-950 hover:text-brand-800 transition-colors group">
                   <ShoppingBag size={22} className="group-hover:scale-110 transition-transform" />
                   {cartCount > 0 && (
                     <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-brand-600 rounded-full border-2 border-white"></span>
@@ -160,54 +157,54 @@ export default function Navbar() {
                 {isLoading ? (
                   <div className="w-8 h-8 rounded-full bg-brand-100 animate-pulse border border-brand-200" />
                 ) : user ? (
-                  <div 
+                  <div
                     className="relative"
                     onMouseEnter={() => setIsProfileDropdownOpen(true)}
                     onMouseLeave={() => setIsProfileDropdownOpen(false)}
                   >
-                      <button className="flex items-center gap-2 p-2 rounded-full hover:bg-brand-50 text-[#3D1A24] transition-colors">
-                        <div className="w-8 h-8 rounded-full bg-brand-800 text-accent flex items-center justify-center font-bold text-sm uppercase shadow-sm">
-                          {user.firstName?.charAt(0) || user.email?.charAt(0) || 'U'}
-                        </div>
-                      </button>
+                    <button className="flex items-center gap-2 p-2 rounded-full hover:bg-brand-50 text-brand-950 transition-colors">
+                      <div className="w-8 h-8 rounded-full bg-brand-800 text-accent flex items-center justify-center font-bold text-sm uppercase shadow-sm">
+                        {user.firstName?.charAt(0) || user.email?.charAt(0) || 'U'}
+                      </div>
+                    </button>
 
-                      {/* Dropdown */}
-                      {isProfileDropdownOpen && (
-                        <div className="absolute right-0 mt-1 w-48 bg-white rounded-xl shadow-xl border border-brand-100 overflow-hidden py-2 animate-scale-in origin-top-right">
-                          <div className="px-4 py-2 border-b border-brand-50 mb-1">
-                            <p className="text-sm font-semibold text-[#3D1A24] truncate">{user.firstName || 'User'}</p>
-                            <p className="text-xs text-[#3D1A24]/70 truncate">{user.email}</p>
-                          </div>
-                          {user.isAdmin && (
-                            <Link href="/admin" className="flex items-center gap-2 px-4 py-2 text-sm text-[#3D1A24]/80 hover:bg-brand-50 hover:text-brand-800 font-medium">
-                              <User size={16} /> Admin Dashboard
-                            </Link>
-                          )}
-                          <Link href="/profile" className="flex items-center gap-2 px-4 py-2 text-sm text-[#3D1A24]/80 hover:bg-brand-50 hover:text-brand-800 font-medium">
-                            <User size={16} /> My Profile
-                          </Link>
-                          <Link href="/orders" className="flex items-center gap-2 px-4 py-2 text-sm text-[#3D1A24]/80 hover:bg-brand-50 hover:text-brand-800 font-medium">
-                            <Package size={16} /> My Orders
-                          </Link>
-                          <button 
-                            onClick={logout}
-                            className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 text-left font-medium"
-                          >
-                            <LogOut size={16} /> Sign Out
-                          </button>
+                    {/* Dropdown */}
+                    {isProfileDropdownOpen && (
+                      <div className="absolute right-0 mt-1 w-48 bg-white rounded-xl shadow-xl border border-brand-100 overflow-hidden py-2 animate-scale-in origin-top-right">
+                        <div className="px-4 py-2 border-b border-brand-50 mb-1">
+                          <p className="text-sm font-semibold text-brand-950 truncate">{user.firstName || 'User'}</p>
+                          <p className="text-xs text-brand-950/70 truncate">{user.email}</p>
                         </div>
-                      )}
-                    </div>
-                  ) : (
-                    <Link 
-                      href="/login" 
-                      className="flex items-center gap-2 px-3 sm:px-5 py-1.5 sm:py-2 bg-brand-800 text-white rounded-full text-xs sm:text-sm font-medium hover:bg-brand-900 transition-colors shadow-md"
-                    >
-                      Sign In
-                    </Link>
-                  )}
+                        {user.isAdmin && (
+                          <Link href="/admin" className="flex items-center gap-2 px-4 py-2 text-sm text-brand-950/80 hover:bg-brand-50 hover:text-brand-800 font-medium">
+                            <User size={16} /> Admin Dashboard
+                          </Link>
+                        )}
+                        <Link href="/profile" className="flex items-center gap-2 px-4 py-2 text-sm text-brand-950/80 hover:bg-brand-50 hover:text-brand-800 font-medium">
+                          <User size={16} /> My Profile
+                        </Link>
+                        <Link href="/orders" className="flex items-center gap-2 px-4 py-2 text-sm text-brand-950/80 hover:bg-brand-50 hover:text-brand-800 font-medium">
+                          <Package size={16} /> My Orders
+                        </Link>
+                        <button
+                          onClick={logout}
+                          className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 text-left font-medium"
+                        >
+                          <LogOut size={16} /> Sign Out
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <Link
+                    href="/login"
+                    className="flex items-center gap-2 px-3 sm:px-5 py-1.5 sm:py-2 bg-brand-800 text-white rounded-full text-xs sm:text-sm font-medium hover:bg-brand-900 transition-colors shadow-md"
+                  >
+                    Sign In
+                  </Link>
+                )}
               </div>
-              
+
             </div>
           </div>
         </div>
@@ -216,12 +213,12 @@ export default function Navbar() {
       {/* Mobile Drawer Overlay */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 bg-[#3D1A24]/40 backdrop-blur-sm animate-fade-in" onClick={() => setIsMobileMenuOpen(false)} />
+          <div className="absolute inset-0 bg-brand-950/40 backdrop-blur-sm animate-fade-in" onClick={() => setIsMobileMenuOpen(false)} />
           <div className="absolute inset-y-0 left-0 w-4/5 max-w-sm bg-surface shadow-2xl animate-slide-right flex flex-col h-full">
-            
+
             <div className="p-4 flex items-center justify-between border-b border-brand-100">
               <span className="font-serif text-xl font-bold text-brand-800">Hema Sarees</span>
-              <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-[#3D1A24]/60 hover:text-[#3D1A24] bg-surface-muted rounded-full">
+              <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-brand-950/60 hover:text-brand-950 bg-surface-muted rounded-full">
                 <X size={20} />
               </button>
             </div>
@@ -241,43 +238,41 @@ export default function Navbar() {
               <nav className="flex flex-col gap-2">
                 <Link
                   href="/"
-                  className={`px-4 py-3 rounded-xl font-semibold transition-colors ${
-                    pathname === '/' ? 'bg-brand-50 text-brand-800' : 'text-[#3D1A24] hover:bg-surface-muted'
-                  }`}
+                  className={`px-4 py-3 rounded-xl font-semibold transition-colors ${pathname === '/' ? 'bg-brand-50 text-brand-800' : 'text-brand-950 hover:bg-surface-muted'
+                    }`}
                 >
                   Home
                 </Link>
                 <Link
                   href="/products"
-                  className={`px-4 py-3 rounded-xl font-semibold transition-colors ${
-                    pathname === '/products' && !pathname.includes('category') ? 'bg-brand-50 text-brand-800' : 'text-[#3D1A24] hover:bg-surface-muted'
-                  }`}
+                  className={`px-4 py-3 rounded-xl font-semibold transition-colors ${pathname === '/products' && !pathname.includes('category') ? 'bg-brand-50 text-brand-800' : 'text-brand-950 hover:bg-surface-muted'
+                    }`}
                 >
                   All Sarees
                 </Link>
-                
+
                 <div className="pt-4 pb-2">
-                   <p className="px-4 text-xs font-bold text-[#3D1A24]/50 uppercase tracking-wider mb-2">Collections</p>
-                   {collections.map(col => (
-                      <Link key={col.name} href={col.href} className="block px-4 py-2 text-sm font-medium text-[#3D1A24] hover:text-brand-800">
-                         {col.name}
-                      </Link>
-                   ))}
+                  <p className="px-4 text-xs font-bold text-brand-950/50 uppercase tracking-wider mb-2">Collections</p>
+                  {collections.map(col => (
+                    <Link key={col.name} href={col.href} className="block px-4 py-2 text-sm font-medium text-brand-950 hover:text-brand-800">
+                      {col.name}
+                    </Link>
+                  ))}
                 </div>
               </nav>
             </div>
 
             <div className="mt-auto p-4 border-t border-brand-100">
               {!isLoading && !user && (
-                <Link 
-                  href="/login" 
+                <Link
+                  href="/login"
                   className="w-full flex items-center justify-center py-3 bg-brand-800 text-white rounded-xl font-semibold hover:bg-brand-900 transition-colors shadow-md"
                 >
                   Sign In / Register
                 </Link>
               )}
             </div>
-            
+
           </div>
         </div>
       )}

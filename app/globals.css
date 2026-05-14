@@ -1,27 +1,27 @@
 :root {
-  --color-surface: #ffffff;
-  --color-surface-muted: #fbf5ec;
-  --color-surface-subtle: #f3ece1;
+  --color-surface: #fffdfa;
+  --color-surface-muted: #f5f0e6;
+  --color-surface-subtle: #ebe3d5;
   
-  --color-ink: #1c1917;
-  --color-ink-muted: #57534e;
-  --color-ink-faint: #a8a29e;
+  --color-ink: #2c2525;
+  --color-ink-muted: #5e5151;
+  --color-ink-faint: #a49898;
   
-  --color-brand-50: #fdf6f7;
-  --color-brand-100: #f9ecee;
-  --color-brand-200: #f1d6db;
-  --color-brand-300: #e6b5be;
-  --color-brand-400: #d58a9a;
-  --color-brand-500: #bf596d;
-  --color-brand-600: #a33b50;
-  --color-brand-700: #88293d;
-  --color-brand-800: #6b0f1a;
-  --color-brand-900: #5a0c16;
-  --color-brand-950: #3d1a24;
+  --color-brand-50: #fbf7f8;
+  --color-brand-100: #f5eaec;
+  --color-brand-200: #e7ced3;
+  --color-brand-300: #d3aab2;
+  --color-brand-400: #bc808b;
+  --color-brand-500: #a35766;
+  --color-brand-600: #89404f;
+  --color-brand-700: #72323f;
+  --color-brand-800: #5e2a35;
+  --color-brand-900: #50262f;
+  --color-brand-950: #2b1117;
   
-  --color-accent: #c9a84c;
-  --color-accent-light: #dfc67a;
-  --color-accent-dark: #a68731;
+  --color-accent: #d4af37;
+  --color-accent-light: #e8c96b;
+  --color-accent-dark: #aa8c2c;
 
   --background: var(--color-surface);
   --text-primary: var(--color-ink);
@@ -191,4 +191,4 @@ button { cursor: pointer; }
 .stagger-1 { animation-delay: 0.1s; }
 .stagger-2 { animation-delay: 0.2s; }
 .stagger-3 { animation-delay: 0.3s; }
-
+

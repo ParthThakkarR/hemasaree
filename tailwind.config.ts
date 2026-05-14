@@ -8,41 +8,41 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Brand Rani Red Palette
+        // Muted Maroon Palette
         brand: {
-          50:  '#fdf6f7',
-          100: '#f9ecee',
-          200: '#f1d6db',
-          300: '#e6b5be',
-          400: '#d58a9a',
-          500: '#bf596d',
-          600: '#a33b50',
-          700: '#88293d',
-          800: '#6b0f1a', // Primary Rani Red
-          900: '#5a0c16',
-          950: '#3d1a24',
+          50: '#fbf7f8',
+          100: '#f5eaec',
+          200: '#e7ced3',
+          300: '#d3aab2',
+          400: '#bc808b',
+          500: '#a35766',
+          600: '#89404f',
+          700: '#72323f',
+          800: '#5e2a35', // Primary Muted Maroon
+          900: '#50262f',
+          950: '#2b1117',
         },
         accent: {
-          DEFAULT: '#c9a84c', // Heritage Gold
-          light: '#dfc67a',
-          dark: '#a68731',
+          DEFAULT: '#d4af37', // Soft Gold
+          light: '#e8c96b',
+          dark: '#aa8c2c',
         },
         // Neutral / Surface
         surface: {
-          DEFAULT: '#ffffff',
-          muted:   '#fbf5ec', // Warm Ivory
-          subtle:  '#f3ece1',
+          DEFAULT: '#fffdfa', // Cream/Ivory
+          muted: '#f5f0e6', // Warm Beige
+          subtle: '#ebe3d5',
         },
         // Text
         ink: {
-          DEFAULT: '#1c1917',
-          muted:   '#57534e',
-          faint:   '#a8a29e',
+          DEFAULT: '#2c2525',
+          muted: '#5e5151',
+          faint: '#a49898',
         },
         // Semantic
-        success: '#16a34a',
+        success: '#2e5a3c', // Deep Green
         warning: '#d97706',
-        error:   '#dc2626',
+        error: '#9b2c2c',
       },
       fontFamily: {
         sans:  ['Inter', 'system-ui', 'sans-serif'],
