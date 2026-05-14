@@ -82,7 +82,7 @@ export default function WishlistPage() {
           <h1 className="font-serif text-4xl font-bold text-ink mb-4 flex items-center justify-center gap-3">
             Your Wishlist
             {wishlistCount > 0 && (
-              <span className="bg-brand-50 text-brand-600 text-base font-bold px-3 py-1 rounded-full align-middle">
+              <span className="bg-brand-50 text-brand-800 text-base font-bold px-3 py-1 rounded-full align-middle">
                 {wishlistCount}
               </span>
             )}
@@ -109,7 +109,7 @@ export default function WishlistPage() {
             </p>
             <Link 
               href="/products" 
-              className="premium-btn inline-flex items-center gap-2 px-8 py-3 rounded-full text-white bg-brand-600 hover:bg-brand-700 transition-colors font-medium"
+              className="premium-btn inline-flex items-center gap-2 px-8 py-3 rounded-full text-white bg-brand-800 hover:bg-brand-900 transition-colors font-medium shadow-md"
             >
               <ShoppingBag className="w-5 h-5" /> Browse Products
             </Link>
@@ -121,7 +121,7 @@ export default function WishlistPage() {
                 <ProductCard product={product} />
                 <button
                   onClick={() => handleMoveToCart(product)}
-                  className="w-full mt-3 py-2.5 bg-surface border border-brand-200 text-brand-700 font-medium rounded-lg hover:bg-brand-50 hover:border-brand-300 transition-colors shadow-sm flex items-center justify-center gap-2"
+                  className="w-full mt-3 py-2.5 bg-surface border border-brand-200 text-brand-800 font-medium rounded-lg hover:bg-brand-50 hover:border-brand-300 transition-colors shadow-sm flex items-center justify-center gap-2"
                 >
                   <ShoppingBag size={18} />
                   Move to Cart

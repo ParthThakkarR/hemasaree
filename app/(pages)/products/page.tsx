@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useCallback, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Filter } from 'lucide-react';
 import ProductCard from '@components/ui/product-card';
 import FilterSidebar from '@components/ui/filter-sidebar';
@@ -23,9 +23,12 @@ interface Product {
 
 function ProductsListingContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
   
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [suggestedProducts, setSuggestedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   
@@ -81,6 +84,15 @@ function ProductsListingContent() {
     }
   };
 
+  useEffect(() => {
+    if (!loading && products.length === 0) {
+      fetch('/api/products?limit=12')
+        .then(res => res.json())
+        .then(data => setSuggestedProducts(Array.isArray(data.products) ? data.products : []))
+        .catch(err => console.error('Failed to fetch suggested products', err));
+    }
+  }, [loading, products.length]);
+
   return (
     <div className="min-h-screen bg-surface pt-24 lg:pt-32 pb-16">
       
@@ -123,7 +135,7 @@ function ProductsListingContent() {
           <div className="flex-1">
             
             {/* Toolbar */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-4">
               <p className="text-sm text-ink-muted font-medium">
                 Showing <span className="text-ink font-bold">{products.length}</span> of {totalProducts} products
               </p>
@@ -135,6 +147,49 @@ function ProductsListingContent() {
                 <Filter size={16} /> Filters
               </button>
             </div>
+
+            {/* Active Filter Chips */}
+            {(searchParams.get('category') || searchParams.get('search') || (searchParams.get('maxPrice') && Number(searchParams.get('maxPrice')) < 10000)) && (
+              <div className="flex flex-wrap items-center gap-2 mb-6">
+                <span className="text-xs text-ink-muted font-medium mr-2">Applied Filters:</span>
+                {searchParams.get('category') && (
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-50 text-brand-800 text-xs font-semibold rounded-full border border-brand-100">
+                    <span>Category: {searchParams.get('category')}</span>
+                    <button onClick={() => {
+                      const newParams = new URLSearchParams(Array.from(searchParams.entries()));
+                      newParams.delete('category');
+                      router.push(`${pathname}?${newParams.toString()}`);
+                    }} className="hover:text-brand-950"><Filter size={12} className="rotate-45" /></button>
+                  </div>
+                )}
+                {searchParams.get('search') && (
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-50 text-brand-800 text-xs font-semibold rounded-full border border-brand-100">
+                    <span>Search: &quot;{searchParams.get('search')}&quot;</span>
+                    <button onClick={() => {
+                      const newParams = new URLSearchParams(Array.from(searchParams.entries()));
+                      newParams.delete('search');
+                      router.push(`${pathname}?${newParams.toString()}`);
+                    }} className="hover:text-brand-950"><Filter size={12} className="rotate-45" /></button>
+                  </div>
+                )}
+                {searchParams.get('maxPrice') && Number(searchParams.get('maxPrice')) < 10000 && (
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-50 text-brand-800 text-xs font-semibold rounded-full border border-brand-100">
+                    <span>Under ₹{searchParams.get('maxPrice')}</span>
+                    <button onClick={() => {
+                      const newParams = new URLSearchParams(Array.from(searchParams.entries()));
+                      newParams.delete('maxPrice');
+                      router.push(`${pathname}?${newParams.toString()}`);
+                    }} className="hover:text-brand-950"><Filter size={12} className="rotate-45" /></button>
+                  </div>
+                )}
+                <button 
+                  onClick={() => router.push(pathname)}
+                  className="text-xs font-semibold text-ink-muted hover:text-brand-800 underline underline-offset-2 ml-2 transition-colors"
+                >
+                  Clear All Filters
+                </button>
+              </div>
+            )}
 
             {/* Grid */}
             {loading ? (
@@ -166,14 +221,33 @@ function ProductsListingContent() {
               </>
             ) : (
               /* Empty State */
-              <div className="text-center py-20 bg-surface-muted rounded-2xl border border-surface-subtle">
-                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm text-ink-faint">
-                  <Filter size={24} />
+              <div className="space-y-12">
+                <div className="text-center py-20 bg-surface-muted rounded-2xl border border-surface-subtle">
+                  <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm text-ink-faint">
+                    <Filter size={24} />
+                  </div>
+                  <h3 className="text-xl font-serif font-bold text-ink mb-2">No sarees found</h3>
+                  <p className="text-ink-muted text-sm max-w-md mx-auto mb-6">
+                    We couldn&apos;t find any sarees matching your current filters. Try adjusting your search or explore our popular collections below.
+                  </p>
+                  <button 
+                    onClick={() => router.push(pathname)}
+                    className="inline-flex items-center justify-center px-6 py-2.5 bg-brand-800 text-white font-semibold rounded-xl hover:bg-brand-900 transition-colors shadow-sm"
+                  >
+                    Clear All Filters
+                  </button>
                 </div>
-                <h3 className="text-lg font-bold text-ink mb-2">No products found</h3>
-                <p className="text-ink-muted text-sm max-w-md mx-auto">
-                  We couldn&apos;t find any sarees matching your current filters. Try adjusting your search or clearing filters.
-                </p>
+
+                {suggestedProducts.length > 0 && (
+                  <div>
+                    <h3 className="text-2xl font-serif font-bold text-ink mb-6 text-center">Suggested For You</h3>
+                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
+                      {suggestedProducts.map((p, i) => (
+                        <ProductCard key={p.id} product={p} priority={i < 4} />
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
             
