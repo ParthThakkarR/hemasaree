@@ -1,23 +1,25 @@
-import { createClient } from 'redis';
+import { getRedisClient } from './redis';
 
-const redisClient = createClient({
-  url: process.env.REDIS_URL || 'redis://127.0.0.1:6379',
-});
-
-redisClient.on('error', (err) => console.error('Redis Client Error', err));
-
-if (!redisClient.isOpen) {
-  redisClient.connect().catch(console.error);
-}
-
+/**
+ * Redis-backed rate limiter with automatic fallback.
+ * When Redis is unavailable (e.g. on Vercel), requests are allowed through
+ * to avoid blocking legitimate traffic.
+ */
 export async function rateLimit(key: string, limit: number, windowInSeconds: number) {
   try {
-    const current = await redisClient.incr(key);
-    
-    if (current === 1) {
-      await redisClient.expire(key, windowInSeconds);
+    const redis = await getRedisClient();
+
+    if (!redis) {
+      // No Redis available — allow the request through
+      return { success: true, current: 0, limit, remaining: limit };
     }
-    
+
+    const current = await redis.incr(key);
+
+    if (current === 1) {
+      await redis.expire(key, windowInSeconds);
+    }
+
     return {
       success: current <= limit,
       current,

@@ -5,6 +5,16 @@ import GoogleProvider from "next-auth/providers/google";
 import { prisma } from "@lib/prisma";
 import bcrypt from "bcryptjs";
 
+// Validate NEXTAUTH_URL at startup — the most common OAuth misconfiguration
+if (process.env.NEXTAUTH_URL && !process.env.NEXTAUTH_URL.startsWith('http')) {
+  console.error(
+    `\n❌ NEXTAUTH_URL must include the protocol (http:// or https://)!\n` +
+    `   Current value: "${process.env.NEXTAUTH_URL}"\n` +
+    `   For local dev:  NEXTAUTH_URL=http://localhost:3000\n` +
+    `   For production: NEXTAUTH_URL=https://hemasarees.vercel.app\n`
+  );
+}
+
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as any,
   providers: [
@@ -104,7 +114,7 @@ export const authOptions: NextAuthOptions = {
     signIn: "/login",
     error: "/login",
   },
-  debug: process.env.NODE_ENV === 'development',
+  debug: process.env.NEXTAUTH_DEBUG === 'true',
   secret: process.env.NEXTAUTH_SECRET,
   logger: {
     error(code, metadata) {
@@ -114,7 +124,18 @@ export const authOptions: NextAuthOptions = {
       console.warn(`[NEXTAUTH_WARN] ${code}`);
     },
     debug(code, metadata) {
-      console.log(`[NEXTAUTH_DEBUG] ${code}`, metadata);
+      // Sanitize: never log client secrets or tokens to console
+      const safeMetadata = metadata ? { ...metadata } : {};
+      if (safeMetadata && typeof safeMetadata === 'object') {
+        const safe = safeMetadata as Record<string, any>;
+        if (safe.provider) {
+          safe.provider = {
+            ...safe.provider,
+            clientSecret: '[REDACTED]',
+          };
+        }
+      }
+      console.log(`[NEXTAUTH_DEBUG] ${code}`, safeMetadata);
     },
   },
 };

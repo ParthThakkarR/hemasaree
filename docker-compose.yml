@@ -12,6 +12,7 @@ services:
       - REDIS_URL=redis://redis:6379
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
       - NEXTAUTH_URL=http://localhost:3000
+      - ENABLE_CRON=true
     depends_on:
       - mongodb
       - redis
