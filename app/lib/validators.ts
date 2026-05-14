@@ -220,7 +220,7 @@ export const ProductQuerySchema = z.object({
   ),
   limit: z.preprocess(
     (val) => preprocessQueryParam(val, "12"), // Default limit 12
-    z.coerce.number().int().min(1).max(100).default(12) // Max 100
+    z.coerce.number().int().min(1).max(1000).default(12) // Max 1000
   ),
   // You could add more here, like:
   // category: z.string().optional(),

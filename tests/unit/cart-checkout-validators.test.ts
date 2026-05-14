@@ -255,8 +255,8 @@ describe('Pagination & Query Schemas', () => {
       }
     });
 
-    it('should reject limit above 100', () => {
-      const result = ProductQuerySchema.safeParse({ limit: '200' });
+    it('should reject limit greater than max (1000)', () => {
+      const result = ProductQuerySchema.safeParse({ limit: '1001' });
       expect(result.success).toBe(false);
     });
   });
