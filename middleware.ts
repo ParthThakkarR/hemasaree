@@ -27,11 +27,27 @@ export default withAuth(
   {
     callbacks: {
       authorized: ({ token, req }) => {
-        // Public routes that don't need auth
-        const publicPaths = ["/api/auth", "/api/products", "/api/categories", "/api/newsletter"];
-        const isPublic = publicPaths.some(path => req.nextUrl.pathname.startsWith(path));
-        
+        const { pathname } = req.nextUrl;
+
+        // Public API routes that unauthenticated users MUST access
+        const publicPaths = [
+          "/api/auth",           // NextAuth signin/signout/session/csrf
+          "/api/products",       // Product listings (public storefront)
+          "/api/categories",     // Category listings
+          "/api/newsletter",     // Newsletter subscription
+          "/api/send-otp",       // Signup: step 1 (send verification code)
+          "/api/verify-otp",     // Signup: step 2 (verify code)
+          "/api/signup",         // Signup: step 3 (create account)
+          "/api/verify",         // Email verification
+          "/api/forgot-password",// Password reset: request
+          "/api/reset-password", // Password reset: confirm
+          "/api/test",           // Health check
+        ];
+
+        const isPublic = publicPaths.some(path => pathname.startsWith(path));
         if (isPublic) return true;
+
+        // All other API routes require authentication
         return !!token;
       },
     },

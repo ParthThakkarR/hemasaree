@@ -1,8 +1,11 @@
 /** @type {import('next').NextConfig} */
+const path = require('path');
+
 const nextConfig = {
-  // STANDALONE MODE is required for robust artifact collection on Vercel
+  // STANDALONE MODE — required for Docker self-hosted builds.
+  // Vercel ignores this flag and uses its own optimized build pipeline.
   output: 'standalone',
-  
+
   images: {
     remotePatterns: [
       {
@@ -12,19 +15,33 @@ const nextConfig = {
     ],
     unoptimized: false, // Ensure image optimization is active
   },
-  
+
   // Disable powered by header for security and to keep headers clean
   poweredByHeader: false,
-  
+
   // Standardize build behavior
   reactStrictMode: true,
-  
+
   // Enable full build checks for production stability
   eslint: {
     ignoreDuringBuilds: false,
   },
   typescript: {
     ignoreBuildErrors: false,
+  },
+
+  // Explicit webpack aliases to guarantee module resolution on all platforms.
+  // This mirrors the tsconfig "paths" and fixes Vercel/CI builds where
+  // Next.js's built-in tsconfig path support can silently fail.
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@contexts': path.resolve(__dirname, 'app/contexts'),
+      '@components': path.resolve(__dirname, 'app/components'),
+      '@lib': path.resolve(__dirname, 'app/lib'),
+      '@utils': path.resolve(__dirname, 'app/utils'),
+    };
+    return config;
   },
 };
 
