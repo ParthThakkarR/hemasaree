@@ -40,6 +40,7 @@ const nextConfig = {
       '@components': path.resolve(__dirname, 'app/components'),
       '@lib': path.resolve(__dirname, 'app/lib'),
       '@utils': path.resolve(__dirname, 'app/utils'),
+      '@': path.resolve(__dirname),
     };
     return config;
   },
