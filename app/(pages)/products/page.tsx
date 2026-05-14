@@ -75,7 +75,6 @@ function ProductsListingContent() {
   // Trigger fetch when URL changes
   useEffect(() => {
     fetchProducts(1, false);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [searchParams, fetchProducts]);
 
   const loadMore = () => {
@@ -142,7 +141,7 @@ function ProductsListingContent() {
               
               <button 
                 onClick={() => setIsMobileFiltersOpen(true)}
-                className="lg:hidden flex items-center gap-2 px-4 py-2 bg-surface-muted border border-surface-subtle rounded-lg text-sm font-medium hover:bg-brand-50 hover:text-brand-600 transition-colors"
+                className="lg:hidden flex items-center gap-2 px-4 py-2 bg-surface-muted border border-surface-subtle rounded-lg text-sm font-medium hover:bg-brand-50 hover:text-brand-600 transition-all hover:-translate-y-0.5 active:scale-95"
               >
                 <Filter size={16} /> Filters
               </button>
@@ -153,7 +152,7 @@ function ProductsListingContent() {
               <div className="flex flex-wrap items-center gap-2 mb-6">
                 <span className="text-xs text-ink-muted font-medium mr-2">Applied Filters:</span>
                 {searchParams.get('category') && (
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-50 text-brand-800 text-xs font-semibold rounded-full border border-brand-100">
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-50 text-brand-800 text-xs font-semibold rounded-full border border-brand-100 hover:scale-105 transition-transform">
                     <span>Category: {searchParams.get('category')}</span>
                     <button onClick={() => {
                       const newParams = new URLSearchParams(Array.from(searchParams.entries()));
@@ -163,7 +162,7 @@ function ProductsListingContent() {
                   </div>
                 )}
                 {searchParams.get('search') && (
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-50 text-brand-800 text-xs font-semibold rounded-full border border-brand-100">
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-50 text-brand-800 text-xs font-semibold rounded-full border border-brand-100 hover:scale-105 transition-transform">
                     <span>Search: &quot;{searchParams.get('search')}&quot;</span>
                     <button onClick={() => {
                       const newParams = new URLSearchParams(Array.from(searchParams.entries()));
@@ -173,7 +172,7 @@ function ProductsListingContent() {
                   </div>
                 )}
                 {searchParams.get('maxPrice') && Number(searchParams.get('maxPrice')) < 10000 && (
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-50 text-brand-800 text-xs font-semibold rounded-full border border-brand-100">
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-50 text-brand-800 text-xs font-semibold rounded-full border border-brand-100 hover:scale-105 transition-transform">
                     <span>Under ₹{searchParams.get('maxPrice')}</span>
                     <button onClick={() => {
                       const newParams = new URLSearchParams(Array.from(searchParams.entries()));
@@ -212,7 +211,7 @@ function ProductsListingContent() {
                     <button 
                       onClick={loadMore} 
                       disabled={loadingMore}
-                      className="inline-flex items-center justify-center px-8 py-3 bg-brand-800 text-white font-semibold rounded-[10px] hover:bg-brand-900 transition-colors disabled:opacity-50 shadow-md"
+                      className="inline-flex items-center justify-center px-8 py-3 bg-brand-800 text-white font-semibold rounded-[10px] hover:bg-brand-900 transition-all active:scale-95 hover:-translate-y-0.5 disabled:opacity-50 shadow-md"
                     >
                       {loadingMore ? 'Loading...' : 'Load More Sarees'}
                     </button>

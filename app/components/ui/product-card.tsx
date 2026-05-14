@@ -73,7 +73,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
   };
 
   return (
-    <div className="group relative flex flex-col bg-surface rounded-2xl shadow-card hover:shadow-card-hover transition-smooth h-full overflow-hidden border border-brand-50">
+    <div className="group relative flex flex-col bg-surface rounded-2xl shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1 h-full overflow-hidden border border-brand-50">
       
       {/* Image Container */}
       <Link href={`/product/${product.id}`} className="relative aspect-[3/4] block overflow-hidden bg-surface-muted">
@@ -90,7 +90,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
         {/* Wishlist Button */}
         <button
           onClick={handleWishlist}
-          className="absolute top-3 right-3 z-10 w-9 h-9 flex items-center justify-center bg-white/90 backdrop-blur-sm rounded-full shadow-sm text-ink-muted hover:text-brand-500 hover:scale-110 transition-all focus:outline-none"
+          className="absolute top-3 right-3 z-10 w-9 h-9 flex items-center justify-center bg-white/90 backdrop-blur-sm rounded-full shadow-sm text-ink-muted hover:text-brand-500 hover:scale-110 active:scale-95 transition-all focus:outline-none"
           aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
         >
           <Heart size={18} className={inWishlist ? "fill-brand-500 text-brand-500" : ""} />
@@ -118,7 +118,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
            <button
             onClick={handleAddToCart}
             disabled={outOfStock || isAddingToCart}
-            className="w-full bg-white/95 backdrop-blur text-ink font-semibold py-2.5 rounded-xl shadow-md hover:bg-brand-50 hover:text-brand-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-white/95 backdrop-blur text-ink font-semibold py-2.5 rounded-xl shadow-md hover:bg-brand-50 hover:text-brand-600 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isAddingToCart ? (
               <div className="w-4 h-4 border-2 border-ink border-t-transparent rounded-full animate-spin" />
@@ -155,7 +155,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
           <button
             onClick={handleAddToCart}
             disabled={outOfStock || isAddingToCart}
-            className="lg:hidden w-8 h-8 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center hover:bg-brand-100 disabled:opacity-50"
+            className="lg:hidden w-8 h-8 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center hover:bg-brand-100 hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
             aria-label="Add to cart"
           >
             {isAddingToCart ? (
