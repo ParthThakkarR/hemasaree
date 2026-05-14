@@ -94,7 +94,7 @@ export default function FilterSidebar({ categories, isMobileOpen, onMobileClose 
       <div className="space-y-3">
         <h3 className="text-sm font-semibold text-ink uppercase tracking-wider">Category</h3>
         <div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
-          <label className="flex items-center gap-3 cursor-pointer group">
+          <label className="flex items-center gap-3 cursor-pointer group hover:translate-x-1 transition-transform">
             <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${selectedCategory === '' ? 'border-brand-800 bg-brand-800 text-white' : 'border-brand-200 group-hover:border-brand-800 bg-white'}`}>
               {selectedCategory === '' && <svg viewBox="0 0 14 14" fill="none" className="w-3.5 h-3.5"><path d="M3 7.5L5.5 10L11 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
             </div>
@@ -103,7 +103,7 @@ export default function FilterSidebar({ categories, isMobileOpen, onMobileClose 
           </label>
 
           {categories.map((cat) => (
-            <label key={cat.id} className="flex items-center gap-3 cursor-pointer group">
+            <label key={cat.id} className="flex items-center gap-3 cursor-pointer group hover:translate-x-1 transition-transform">
               <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${selectedCategory === cat.name ? 'border-brand-800 bg-brand-800 text-white' : 'border-brand-200 group-hover:border-brand-800 bg-white'}`}>
                 {selectedCategory === cat.name && <svg viewBox="0 0 14 14" fill="none" className="w-3.5 h-3.5"><path d="M3 7.5L5.5 10L11 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
               </div>
@@ -145,14 +145,14 @@ export default function FilterSidebar({ categories, isMobileOpen, onMobileClose 
       <div className="mt-auto pt-6 lg:pt-2">
         <button
           onClick={clearFilters}
-          className="w-full py-2.5 px-4 bg-surface-muted text-ink-muted hover:text-ink hover:bg-surface-subtle rounded-xl text-sm font-medium transition-colors"
+          className="w-full py-2.5 px-4 bg-surface-muted text-ink-muted hover:text-ink hover:bg-surface-subtle rounded-xl text-sm font-medium transition-all active:scale-95"
         >
           Clear All Filters
         </button>
         {/* Mobile Apply Button */}
         <button
           onClick={onMobileClose}
-          className="w-full mt-3 py-3 px-4 bg-brand-800 hover:bg-brand-900 text-white rounded-xl text-sm font-semibold lg:hidden shadow-md transition-colors"
+          className="w-full mt-3 py-3 px-4 bg-brand-800 hover:bg-brand-900 text-white rounded-xl text-sm font-semibold lg:hidden shadow-md transition-all active:scale-95"
         >
           View Results
         </button>
