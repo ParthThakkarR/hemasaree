@@ -10,22 +10,36 @@ import { prisma } from '@lib/prisma';
  */
 
 let _emailQueue: Queue.Queue | null = null;
+let _initializing = false;
 
-function getEmailQueue(): Queue.Queue | null {
+async function initializeQueue(): Promise<Queue.Queue | null> {
   if (_emailQueue) return _emailQueue;
 
-  const redisUrl = process.env.REDIS_URL;
-  if (!redisUrl) {
-    console.warn('[EmailQueue] REDIS_URL not set — emails will be sent directly (no queue).');
-    return null;
+  // Prevent concurrent initialization
+  if (_initializing) {
+    // Wait for initialization to complete
+    while (_initializing) {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+    return _emailQueue;
   }
 
+  _initializing = true;
   try {
-    const redisConfig = redisUrl || {
-      host: process.env.REDIS_HOST || '127.0.0.1',
-      port: parseInt(process.env.REDIS_PORT || '6379'),
-      password: process.env.REDIS_PASSWORD,
-    };
+    const redisUrl = process.env.REDIS_URL;
+    if (!redisUrl) {
+      console.warn('[EmailQueue] REDIS_URL not set — emails will be sent directly (no queue).');
+      return null;
+    }
+
+    // Parse Redis URL properly for Bull queue configuration
+    const redisConfig = redisUrl.startsWith('redis://') || redisUrl.startsWith('rediss://')
+      ? redisUrl
+      : {
+          host: process.env.REDIS_HOST || '127.0.0.1',
+          port: parseInt(process.env.REDIS_PORT || '6379', 10),
+          password: process.env.REDIS_PASSWORD,
+        };
 
     _emailQueue = new Queue('email-queue', redisConfig as any, {
       defaultJobOptions: {
@@ -128,8 +142,15 @@ function getEmailQueue(): Queue.Queue | null {
     return _emailQueue;
   } catch (err) {
     console.error('[EmailQueue] Failed to initialize Bull queue:', err);
+    _emailQueue = null;
     return null;
+  } finally {
+    _initializing = false;
   }
+}
+
+function getEmailQueue(): Queue.Queue | null {
+  return _emailQueue;
 }
 
 /**
@@ -139,7 +160,11 @@ function getEmailQueue(): Queue.Queue | null {
  */
 export const emailQueue = {
   async add(name: string, jobData: any) {
-    const queue = getEmailQueue();
+    let queue = getEmailQueue();
+    if (!queue) {
+      queue = await initializeQueue();
+    }
+
     if (queue) {
       return queue.add(name, jobData);
     }
@@ -177,7 +202,11 @@ export const emailQueue = {
 
   // Bulk add — used by /api/emails/send-newsletter
   async addBulk(jobs: Array<{ name: string; data: any }>) {
-    const queue = getEmailQueue();
+    let queue = getEmailQueue();
+    if (!queue) {
+      queue = await initializeQueue();
+    }
+
     if (queue) {
       return queue.addBulk(jobs);
     }

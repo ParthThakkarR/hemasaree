@@ -1,33 +1,41 @@
-const rateLimitMap = new Map();
+/**
+ * In-memory rate limiter for development/fallback use.
+ * Uses a proper sliding window with Map-based storage.
+ * Not recommended for production without Redis.
+ */
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
 
 export function rateLimiter({
-  interval = 60 * 1000, // 1 minute
+  interval = 60 * 1000, // 1 minute in ms
   uniqueTokenPerInterval = 500,
-  maxRequests = 10, // Max 10 requests per interval
+  maxRequests = 10, // Max requests per interval
 }) {
   return {
     check: (limit: number, token: string) =>
       new Promise<void>((resolve, reject) => {
-        const tokenCount = rateLimitMap.get(token) || [0];
-        if (tokenCount[0] === 0) {
-          rateLimitMap.set(token, tokenCount);
+        const now = Date.now();
+        const key = `${token}:${Math.floor(now / interval)}`;
+        const record = rateLimitStore.get(key) || { count: 0, resetTime: now + interval };
+
+        // Reset if window expired
+        if (now > record.resetTime) {
+          record.count = 0;
+          record.resetTime = now + interval;
         }
-        tokenCount[0] += 1;
 
-        const currentUsage = tokenCount[0];
-        const isRateLimited = currentUsage > limit;
+        // Increment before check to prevent race conditions
+        record.count++;
+        rateLimitStore.set(key, record);
 
-        // Reset rate limiter logic
-        setTimeout(() => {
-          const currentCount = rateLimitMap.get(token) || [0];
-          currentCount[0] -= 1;
-          if (currentCount[0] === 0) {
-            rateLimitMap.delete(token);
+        // Clean up old entries periodically (prevent memory leak)
+        if (rateLimitStore.size > uniqueTokenPerInterval * 2) {
+          for (const [k, v] of rateLimitStore.entries()) {
+            if (now > v.resetTime) rateLimitStore.delete(k);
           }
-        }, interval);
+        }
 
-        if (isRateLimited) {
-          reject('Rate limit exceeded');
+        if (record.count > limit) {
+          reject(new Error('Rate limit exceeded'));
         } else {
           resolve();
         }

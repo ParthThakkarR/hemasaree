@@ -1,15 +1,14 @@
 // /app/api/products/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@lib/prisma";
 import { ProductQuerySchema } from "@lib/validators";
+import { ProductService } from "@/lib/services/productService";
+import { cache } from "@/lib/cache";
 
 // 🟢 Always serve fresh data
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 export const fetchCache = "force-no-store";
 export const runtime = "nodejs";
-
-import { cache } from "@/lib/cache";
 
 export async function GET(req: NextRequest) {
   try {
@@ -38,95 +37,26 @@ export async function GET(req: NextRequest) {
         { status: 400 }
       );
     }
-    // ... rest of query logic
 
     const { page, limit } = validation.data;
-    const skip = (page - 1) * limit;
 
-    // ... where, search, sort logic ...
-
-    // ✅ Extract filters safely
-    const rawCategory = searchParams.get("category");
-    const category =
-      rawCategory && rawCategory !== "undefined" ? rawCategory.trim() : "";
-
-    const search = searchParams.get("search")?.trim() || "";
-    const sortPrice = searchParams.get("sortPrice")?.trim() || "";
-    const maxPrice = parseFloat(searchParams.get("maxPrice") || "10000");
-
-    const where: any = {
-      price: {
-        gte: 500,
-        lte: maxPrice,
-      },
-      AND: [],
+    // Extract filters
+    const filters = {
+      categoryId: searchParams.get("category") || undefined,
+      search: searchParams.get("search")?.trim() || undefined,
+      maxPrice: parseFloat(searchParams.get("maxPrice") || "10000"),
     };
 
-    if (category) {
-      const isValidObjectId = /^[a-f\d]{24}$/i.test(category);
-      if (isValidObjectId) {
-        where.AND.push({ categoryId: category });
-      } else {
-        where.AND.push({
-          category: { name: { equals: category, mode: "insensitive" } },
-        });
-      }
-    }
+    const sortBy = searchParams.get("sortPrice")?.trim() || "createdAt";
+    const sortOrder = sortBy === "asc" ? "asc" : "desc";
 
-    if (search) {
-      where.AND.push({
-        OR: [
-          { name: { contains: search, mode: "insensitive" } },
-          { color: { contains: search, mode: "insensitive" } },
-          { ocassion: { contains: search, mode: "insensitive" } },
-        ],
-      });
-    }
-
-    let orderBy: any = { createdAt: "desc" };
-    if (sortPrice === "asc") orderBy = { price: "asc" };
-    else if (sortPrice === "desc") orderBy = { price: "desc" };
-
-    const totalProducts = await prisma.product.count({ where });
-
-    const products = await prisma.product.findMany({
-      where,
-      orderBy,
-      skip,
-      take: limit,
-      include: {
-        category: { select: { id: true, name: true } },
-        _count: {
-          select: { reviews: { where: { isApproved: true } } },
-        },
-      },
-    });
-
-    // Attach review stats to each product
-    const productIds = products.map(p => p.id);
-    const reviewStats = await prisma.review.groupBy({
-      by: ['productId'],
-      where: { productId: { in: productIds }, isApproved: true },
-      _avg: { rating: true },
-      _count: { rating: true },
-    });
-
-    const enrichedProducts = products.map(p => {
-      const stats = reviewStats.find(r => r.productId === p.id);
-      return {
-        ...p,
-        reviewStats: stats ? {
-          avgRating: Math.round((stats._avg.rating || 0) * 10) / 10,
-          totalReviews: stats._count.rating,
-        } : undefined,
-      };
-    });
+    const result = await ProductService.getProducts(filters, { page, limit, sortBy: 'price', sortOrder });
 
     const responseData = {
-      products: enrichedProducts,
+      products: result.products,
       pagination: {
-        totalProducts,
-        totalPages: Math.ceil(totalProducts / limit),
+        totalProducts: result.total,
+        totalPages: result.pages,
         currentPage: page,
         limit,
       },

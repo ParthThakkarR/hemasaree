@@ -23,7 +23,7 @@ describe('In-Memory Rate Limiter', () => {
 
     await limiter.check(2, token); // 1
     await limiter.check(2, token); // 2
-    await expect(limiter.check(2, token)).rejects.toBe('Rate limit exceeded'); // 3
+    await expect(limiter.check(2, token)).rejects.toThrow('Rate limit exceeded'); // 3
   });
 
   it('should track separate tokens independently', async () => {
@@ -34,7 +34,7 @@ describe('In-Memory Rate Limiter', () => {
     await expect(limiter.check(1, tokenA)).resolves.toBeUndefined();
     await expect(limiter.check(1, tokenB)).resolves.toBeUndefined();
     // tokenA is now rate limited, but tokenB is separate
-    await expect(limiter.check(1, tokenA)).rejects.toBe('Rate limit exceeded');
+    await expect(limiter.check(1, tokenA)).rejects.toThrow('Rate limit exceeded');
   });
 
   it('should reset after the interval', async () => {
@@ -42,7 +42,7 @@ describe('In-Memory Rate Limiter', () => {
     const token = 'reset-' + Date.now();
 
     await limiter.check(1, token); // 1 — allowed
-    await expect(limiter.check(1, token)).rejects.toBe('Rate limit exceeded'); // 2 — blocked
+    await expect(limiter.check(1, token)).rejects.toThrow('Rate limit exceeded'); // 2 — blocked
 
     // Wait for rate limit to reset
     await new Promise((r) => setTimeout(r, 150));

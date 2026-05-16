@@ -131,32 +131,34 @@ model Category {
 }
 
 model Product {
-  id           String      @id @default(auto()) @map("_id") @db.ObjectId
-  name         String
-  description  String?
-  color        String
-  fabric       String?
-  ocassion     String
-  price        Float
-  mrp          Float?
-  stock        Int
-  images       String[] 
-  categoryId   String      @db.ObjectId
-  category     Category    @relation(fields: [categoryId], references: [id])
-  userId       String      @db.ObjectId
-  user         User        @relation("UserProducts", fields: [userId], references: [id])
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-  cartItems    CartItem[]
-  orderItems   OrderItem[]
-  wishlistItems WishlistItem[]
-  reviews      Review[]
+   id           String      @id @default(auto()) @map("_id") @db.ObjectId
+   name         String
+   description  String?
+   color        String
+   fabric       String?
+   ocassion     String
+   price        Float
+   mrp          Float?
+   stock        Int
+   images       String[] 
+   categoryId   String      @db.ObjectId
+   category     Category    @relation(fields: [categoryId], references: [id])
+   userId       String      @db.ObjectId
+   user         User        @relation("UserProducts", fields: [userId], references: [id])
+   createdAt    DateTime    @default(now())
+   updatedAt    DateTime    @updatedAt
+   cartItems    CartItem[]
+   orderItems   OrderItem[]
+   wishlistItems WishlistItem[]
+   reviews      Review[]
 
-  @@index([categoryId])
-  @@index([name])
-  @@index([createdAt])
-  @@index([price])
-}
+   @@index([categoryId])
+   @@index([name])
+   @@index([createdAt])
+   @@index([price])
+   @@index([ocassion])
+   @@index([color])
+ }
 
 model Cart {
   id         String     @id @default(auto()) @map("_id") @db.ObjectId
@@ -188,23 +190,25 @@ model CartItem {
 }
 
 model Order {
-  id              String      @id @default(auto()) @map("_id") @db.ObjectId
-  userId          String      @db.ObjectId
-  user            User        @relation(fields: [userId], references: [id])
-  orderItems      OrderItem[]
-  totalAmount     Float
-  deliveryCharge  Float       @default(0)
-  status          OrderStatus @default(PENDING)
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  payment         Payment?
-  shippingAddress String?
-  cancelledAt  DateTime?
+   id              String      @id @default(auto()) @map("_id") @db.ObjectId
+   userId          String      @db.ObjectId
+   user            User        @relation(fields: [userId], references: [id])
+   orderItems      OrderItem[]
+   totalAmount     Float
+   deliveryCharge  Float       @default(0)
+   status          OrderStatus @default(PENDING)
+   createdAt       DateTime    @default(now())
+   updatedAt       DateTime    @updatedAt
+   payment         Payment?
+   shippingAddress String?
+   cancelledAt  DateTime?
 
-  @@index([userId])
-  @@index([status])
-  @@index([createdAt])
-}
+   @@index([userId])
+   @@index([status])
+   @@index([createdAt])
+   @@index([userId, status])
+   @@index([createdAt, status])
+ }
 
 model OrderItem {
   id             String          @id @default(auto()) @map("_id") @db.ObjectId
