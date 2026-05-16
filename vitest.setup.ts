@@ -1,5 +1,10 @@
 import '@testing-library/jest-dom';
 
+// Set a mock DATABASE_URL for tests that import Prisma modules
+if (!process.env.DATABASE_URL) {
+  process.env.DATABASE_URL = 'mongodb://localhost:27017/test';
+}
+
 // Ensure Prisma enums are available for validator tests.
 // If @prisma/client isn't generated yet, provide stub enums so tests
 // can still load the validators module without crashing.
