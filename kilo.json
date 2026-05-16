@@ -1,0 +1,53 @@
+{
+  "$schema": "https://app.kilo.ai/config.json",
+  "model": "anthropic/claude-sonnet-4",
+  "enabled_providers": ["anthropic", "openai", "google", "kilo"],
+  "instructions": ["AGENTS.md"],
+  "permission": {
+    "edit": {
+      "*.test.ts": "allow",
+      "tests/**": "allow",
+      "lib/**": "allow",
+      "app/**": "allow",
+      "*.ts": "allow",
+      "*.tsx": "allow",
+      "package.json": "ask",
+      "*.json": "allow"
+    },
+    "bash": {
+      "npm test": "allow",
+      "npm run build": "allow",
+      "npm run lint": "allow",
+      "npm install": "allow",
+      "git status": "allow",
+      "git diff": "allow",
+      "git log": "allow",
+      "npx prisma": "allow"
+    }
+  },
+  "mcp": {
+    "filesystem": {
+      "type": "local",
+      "command": ["npx", "@modelcontextprotocol/server-filesystem", "/home/meet/Babar-Meet/hemasaree"],
+      "enabled": true
+    },
+    "git": {
+      "type": "local",
+      "command": ["npx", "@modelcontextprotocol/server-git"],
+      "enabled": true
+    },
+    "memory": {
+      "type": "local",
+      "command": ["npx", "@modelcontextprotocol/server-memory"],
+      "enabled": true
+    },
+    "sequentialthinking": {
+      "type": "local",
+      "command": ["npx", "@modelcontextprotocol/server-sequential-thinking"],
+      "enabled": true
+    }
+  },
+  "skills": {
+    "paths": ["./.kilo/skills"]
+  }
+}

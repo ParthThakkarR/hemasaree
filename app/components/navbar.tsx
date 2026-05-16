@@ -266,15 +266,15 @@ export default function Navbar() {
 
       {/* Mobile Drawer Overlay */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
+        <div className="fixed inset-0 z-50 lg:hidden" style={{ overscrollBehavior: 'none' }}>
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-brand-950/50 backdrop-blur-sm animate-fade-in"
+            className="absolute inset-0 bg-brand-950/50 backdrop-blur-sm animate-fade-in touch-none"
             onClick={() => setIsMobileMenuOpen(false)}
           />
 
           {/* Drawer */}
-          <div className="absolute inset-y-0 left-0 w-[82%] max-w-sm bg-surface shadow-2xl animate-slide-right flex flex-col h-full">
+          <div className="absolute inset-y-0 left-0 w-[82%] max-w-sm bg-surface shadow-2xl animate-slide-right flex flex-col h-[100dvh] overscroll-none">
 
             {/* Drawer Header */}
             <div className="p-5 flex items-center justify-between border-b border-surface-subtle">
@@ -313,7 +313,7 @@ export default function Navbar() {
             </div>
 
             {/* Navigation */}
-            <div className="flex-1 overflow-y-auto px-5 py-3">
+            <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-3">
               <nav className="flex flex-col gap-1">
                 <Link
                   href="/"
