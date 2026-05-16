@@ -11,9 +11,11 @@ interface Product {
   id: string;
   name: string;
   price: number;
+  mrp?: number;
   stock: number;
   images: string[];
   description?: string;
+  fabric?: string;
   categoryId: string;
   category?: { name: string };
   color: string;
@@ -36,9 +38,11 @@ export default function ManageProductsPage() {
   const [productData, setProductData] = useState({
     name: '',
     price: '',
+    mrp: '',
     stock: '',
     category: '',
     description: '',
+    fabric: '',
     color: '',
     ocassion: '',
   });
@@ -98,6 +102,7 @@ export default function ManageProductsPage() {
       const payload = {
         ...productData,
         price: Number(productData.price),
+        mrp: productData.mrp ? Number(productData.mrp) : null,
         stock: Number(productData.stock),
         images: finalImages,
         categoryId: productData.category
@@ -110,7 +115,7 @@ export default function ManageProductsPage() {
       if (!res.ok) throw new Error('Failed to add product');
       
       toast.success('Product added successfully');
-      setProductData({ name: '', price: '', stock: '', category: '', description: '', color: '', ocassion: '' });
+      setProductData({ name: '', price: '', mrp: '', stock: '', category: '', description: '', fabric: '', color: '', ocassion: '' });
       setProductImageUrls([]);
       setProductImages(null);
       if (fileRef.current) fileRef.current.value = '';
@@ -208,6 +213,18 @@ export default function ManageProductsPage() {
               <input className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-[#6B0F1A]" placeholder="https://image1.jpg, https://image2.jpg" value={productImageUrls.join(', ')} onChange={e => setProductImageUrls(e.target.value.split(',').map(u => u.trim()).filter(Boolean))} />
             </div>
           </div>
+          <div className="md:col-span-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Fabric</label>
+              <input className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-[#6B0F1A]" placeholder="Pure Silk, Cotton, Banarasi" value={productData.fabric} onChange={e => setProductData({ ...productData, fabric: e.target.value })} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">MRP (₹) <span className="text-gray-400 font-normal">optional</span></label>
+              <input type="number" className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-[#6B0F1A]" placeholder="6999" value={productData.mrp} onChange={e => setProductData({ ...productData, mrp: e.target.value })} />
+            </div>
+            <div className="md:col-span-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <textarea className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-[#6B0F1A] resize-none" rows={3} placeholder="Describe this saree..." value={productData.description} onChange={e => setProductData({ ...productData, description: e.target.value })} />
+            </div>
           <div className="mt-6 flex justify-end">
              <button className="bg-[#6B0F1A] hover:bg-[#5a0c16] text-white px-8 py-3 rounded-xl font-semibold transition-colors shadow-sm" disabled={isLoading}>{isLoading ? 'Adding...' : 'Save Product'}</button>
           </div>
@@ -318,6 +335,18 @@ export default function ManageProductsPage() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>
                     <input type="number" className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-[#6B0F1A]" value={editingProduct.stock} onChange={e => setEditingProduct({ ...editingProduct, stock: Number(e.target.value) })} required />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Fabric</label>
+                    <input type="text" className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-[#6B0F1A]" value={editingProduct.fabric || ''} onChange={e => setEditingProduct({ ...editingProduct, fabric: e.target.value })} placeholder="Pure Silk" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">MRP (₹) <span className="text-gray-400 font-normal">optional</span></label>
+                    <input type="number" className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-[#6B0F1A]" value={editingProduct.mrp || ''} onChange={e => setEditingProduct({ ...editingProduct, mrp: Number(e.target.value) || undefined })} placeholder="6999" />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <textarea className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-[#6B0F1A] resize-none" rows={3} value={editingProduct.description || ''} onChange={e => setEditingProduct({ ...editingProduct, description: e.target.value })} placeholder="Describe this saree..." />
                   </div>
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>

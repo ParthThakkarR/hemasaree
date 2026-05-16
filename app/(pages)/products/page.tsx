@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
-import { Filter } from 'lucide-react';
+import { Filter, X, SlidersHorizontal } from 'lucide-react';
 import ProductCard from '@components/ui/product-card';
 import FilterSidebar from '@components/ui/filter-sidebar';
 import ProductSkeleton from '@components/ui/product-skeleton';
@@ -10,6 +10,7 @@ import ProductSkeleton from '@components/ui/product-skeleton';
 interface Category {
   id: string;
   name: string;
+  image?: string;
 }
 
 interface Product {
@@ -19,6 +20,7 @@ interface Product {
   stock: number;
   images: string[];
   category?: { id: string; name: string } | string;
+  createdAt?: string;
 }
 
 function ProductsListingContent() {
@@ -53,7 +55,7 @@ function ProductsListingContent() {
       
       const params = new URLSearchParams(Array.from(searchParams.entries()));
       params.set('page', page.toString());
-      params.set('limit', '12'); // 12 items per page for better grid filling
+      params.set('limit', '12');
 
       const res = await fetch(`/api/products?${params.toString()}`, { cache: 'no-store' });
       const data = await res.json();
@@ -72,7 +74,6 @@ function ProductsListingContent() {
     }
   }, [searchParams]);
 
-  // Trigger fetch when URL changes
   useEffect(() => {
     fetchProducts(1, false);
   }, [searchParams, fetchProducts]);
@@ -83,6 +84,7 @@ function ProductsListingContent() {
     }
   };
 
+  // Fetch suggested products when no results
   useEffect(() => {
     if (!loading && products.length === 0) {
       fetch('/api/products?limit=12')
@@ -92,26 +94,52 @@ function ProductsListingContent() {
     }
   }, [loading, products.length]);
 
+  // Active filter chips helper
+  const removeFilter = (key: string) => {
+    const newParams = new URLSearchParams(Array.from(searchParams.entries()));
+    newParams.delete(key);
+    newParams.set('page', '1');
+    router.push(`${pathname}?${newParams.toString()}`, { scroll: false });
+  };
+
+  const activeFilters: { key: string; label: string }[] = [];
+  if (searchParams.get('category')) activeFilters.push({ key: 'category', label: searchParams.get('category')! });
+  if (searchParams.get('search')) activeFilters.push({ key: 'search', label: `"${searchParams.get('search')}"` });
+  if (searchParams.get('color')) activeFilters.push({ key: 'color', label: searchParams.get('color')! });
+  if (searchParams.get('fabric')) activeFilters.push({ key: 'fabric', label: searchParams.get('fabric')! });
+  if (searchParams.get('occasion')) activeFilters.push({ key: 'occasion', label: searchParams.get('occasion')! });
+  if (searchParams.get('maxPrice') && Number(searchParams.get('maxPrice')) < 10000) {
+    activeFilters.push({ key: 'maxPrice', label: `Under ₹${Number(searchParams.get('maxPrice')).toLocaleString('en-IN')}` });
+  }
+  if (searchParams.get('sortPrice')) {
+    const sortLabel = { newest: 'Newest', low: 'Price: Low-High', high: 'Price: High-Low', popular: 'Popular' }[searchParams.get('sortPrice')!] || searchParams.get('sortPrice')!;
+    activeFilters.push({ key: 'sortPrice', label: sortLabel });
+  }
+
   return (
-    <div className="min-h-screen bg-surface pt-24 lg:pt-32 pb-16">
+    <div className="min-h-screen bg-surface pt-8 lg:pt-12 pb-16">
       
-      {/* Header */}
-      <div className="relative h-[300px] md:h-[400px] mb-8 lg:mb-12 rounded-b-3xl overflow-hidden mx-4 sm:mx-6 lg:mx-8">
+      {/* Header Banner */}
+      <div className="relative h-[220px] sm:h-[280px] md:h-[320px] mb-8 lg:mb-12 rounded-2xl overflow-hidden mx-4 sm:mx-6 lg:mx-8 max-w-7xl lg:mx-auto">
         <img 
-          src={
-            searchParams.get('category') === 'Bridal' ? 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&q=80&w=1600' :
-            searchParams.get('category') === 'Festive' ? 'https://images.unsplash.com/photo-1585848529285-d858348ee7ed?auto=format&fit=crop&q=80&w=1600' :
-            'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&q=80&w=1600'
-          }
+          src={(() => {
+            const selectedCategory = searchParams.get('category');
+            if (selectedCategory) {
+              const catData = categories.find(c => c.name === selectedCategory);
+              if (catData?.image) return catData.image;
+            }
+            // Default fallback
+            return 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&q=80&w=1600';
+          })()}
           alt="Collection Hero"
           className="absolute inset-0 w-full h-full object-cover object-top"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-brand-950 via-brand-950/40 to-transparent flex flex-col justify-end p-8 md:p-16">
-          <div className="max-w-3xl">
-            <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4">
+        <div className="absolute inset-0 bg-gradient-to-t from-brand-950/90 via-brand-950/30 to-transparent flex flex-col justify-end p-6 sm:p-8 md:p-12">
+          <div className="max-w-2xl">
+            <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-2">
               {searchParams.get('category') ? `${searchParams.get('category')} Collection` : 'All Sarees'}
             </h1>
-            <p className="text-brand-50 text-base md:text-lg opacity-90 max-w-xl">
+            <p className="text-brand-50/80 text-sm sm:text-base max-w-lg">
               {searchParams.get('search') 
                 ? `Search results for "${searchParams.get('search')}"`
                 : 'Discover our handpicked collection of exquisite sarees, woven with love and tradition.'}
@@ -135,71 +163,55 @@ function ProductsListingContent() {
             
             {/* Toolbar */}
             <div className="flex items-center justify-between mb-4">
-              <p className="text-sm text-ink-muted font-medium">
-                Showing <span className="text-ink font-bold">{products.length}</span> of {totalProducts} products
+              <p className="text-sm text-ink-muted">
+                Showing <span className="text-ink font-semibold">{products.length}</span> of {totalProducts} sarees
               </p>
               
               <button 
                 onClick={() => setIsMobileFiltersOpen(true)}
-                className="lg:hidden flex items-center gap-2 px-4 py-2 bg-surface-muted border border-surface-subtle rounded-lg text-sm font-medium hover:bg-brand-50 hover:text-brand-600 transition-all hover:-translate-y-0.5 active:scale-95"
+                className="lg:hidden flex items-center gap-2 px-4 py-2 bg-surface-muted border border-surface-subtle rounded-xl text-sm font-medium hover:bg-brand-50 hover:text-brand-800 transition-all active:scale-[0.98]"
               >
-                <Filter size={16} /> Filters
+                <SlidersHorizontal size={15} /> Filters
+                {activeFilters.length > 0 && (
+                  <span className="bg-brand-800 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                    {activeFilters.length}
+                  </span>
+                )}
               </button>
             </div>
 
             {/* Active Filter Chips */}
-            {(searchParams.get('category') || searchParams.get('search') || (searchParams.get('maxPrice') && Number(searchParams.get('maxPrice')) < 10000)) && (
+            {activeFilters.length > 0 && (
               <div className="flex flex-wrap items-center gap-2 mb-6">
-                <span className="text-xs text-ink-muted font-medium mr-2">Applied Filters:</span>
-                {searchParams.get('category') && (
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-50 text-brand-800 text-xs font-semibold rounded-full border border-brand-100 hover:scale-105 transition-transform">
-                    <span>Category: {searchParams.get('category')}</span>
-                    <button onClick={() => {
-                      const newParams = new URLSearchParams(Array.from(searchParams.entries()));
-                      newParams.delete('category');
-                      router.push(`${pathname}?${newParams.toString()}`);
-                    }} className="hover:text-brand-950"><Filter size={12} className="rotate-45" /></button>
-                  </div>
-                )}
-                {searchParams.get('search') && (
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-50 text-brand-800 text-xs font-semibold rounded-full border border-brand-100 hover:scale-105 transition-transform">
-                    <span>Search: &quot;{searchParams.get('search')}&quot;</span>
-                    <button onClick={() => {
-                      const newParams = new URLSearchParams(Array.from(searchParams.entries()));
-                      newParams.delete('search');
-                      router.push(`${pathname}?${newParams.toString()}`);
-                    }} className="hover:text-brand-950"><Filter size={12} className="rotate-45" /></button>
-                  </div>
-                )}
-                {searchParams.get('maxPrice') && Number(searchParams.get('maxPrice')) < 10000 && (
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-50 text-brand-800 text-xs font-semibold rounded-full border border-brand-100 hover:scale-105 transition-transform">
-                    <span>Under ₹{searchParams.get('maxPrice')}</span>
-                    <button onClick={() => {
-                      const newParams = new URLSearchParams(Array.from(searchParams.entries()));
-                      newParams.delete('maxPrice');
-                      router.push(`${pathname}?${newParams.toString()}`);
-                    }} className="hover:text-brand-950"><Filter size={12} className="rotate-45" /></button>
-                  </div>
-                )}
+                {activeFilters.map(filter => (
+                  <button
+                    key={filter.key}
+                    onClick={() => removeFilter(filter.key)}
+                    className="group flex items-center gap-1.5 px-3 py-1.5 bg-brand-50 text-brand-800 text-xs font-semibold rounded-full border border-brand-100 hover:bg-brand-100 transition-all"
+                  >
+                    <span>{filter.label}</span>
+                    <X size={13} className="text-brand-400 group-hover:text-brand-800 transition-colors" />
+                  </button>
+                ))}
                 <button 
-                  onClick={() => router.push(pathname)}
-                  className="text-xs font-semibold text-ink-muted hover:text-brand-800 underline underline-offset-2 ml-2 transition-colors"
+                  onClick={() => router.push(pathname, { scroll: false })}
+                  className="text-xs font-semibold text-ink-muted hover:text-brand-800 underline underline-offset-2 ml-1 transition-colors"
                 >
-                  Clear All Filters
+                  Clear All
                 </button>
               </div>
             )}
 
-            {/* Grid */}
+            {/* Product Grid */}
             {loading ? (
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 lg:gap-6">
                 {Array.from({ length: 9 }).map((_, i) => (
                   <ProductSkeleton key={i} />
                 ))}
               </div>
             ) : products.length > 0 ? (
               <>
-                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 lg:gap-6">
                   {products.map((p, i) => (
                     <ProductCard key={p.id} product={p} priority={i < 4} />
                   ))}
@@ -211,7 +223,7 @@ function ProductsListingContent() {
                     <button 
                       onClick={loadMore} 
                       disabled={loadingMore}
-                      className="inline-flex items-center justify-center px-8 py-3 bg-brand-800 text-white font-semibold rounded-[10px] hover:bg-brand-900 transition-all active:scale-95 hover:-translate-y-0.5 disabled:opacity-50 shadow-md"
+                      className="inline-flex items-center justify-center px-8 py-3 bg-brand-800 text-white font-semibold rounded-xl hover:bg-brand-900 transition-all active:scale-[0.98] disabled:opacity-50 shadow-brand-sm"
                     >
                       {loadingMore ? 'Loading...' : 'Load More Sarees'}
                     </button>
@@ -219,19 +231,19 @@ function ProductsListingContent() {
                 )}
               </>
             ) : (
-              /* Empty State */
+              /* Empty State with Recommendations */
               <div className="space-y-12">
-                <div className="text-center py-20 bg-surface-muted rounded-2xl border border-surface-subtle">
-                  <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm text-ink-faint">
-                    <Filter size={24} />
+                <div className="text-center py-16 bg-surface-muted rounded-2xl border border-surface-subtle">
+                  <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm text-ink-faint">
+                    <Filter size={22} />
                   </div>
                   <h3 className="text-xl font-serif font-bold text-ink mb-2">No sarees found</h3>
                   <p className="text-ink-muted text-sm max-w-md mx-auto mb-6">
-                    We couldn&apos;t find any sarees matching your current filters. Try adjusting your search or explore our popular collections below.
+                    We couldn&apos;t find any sarees matching your filters. Try adjusting your search or explore our recommendations below.
                   </p>
                   <button 
-                    onClick={() => router.push(pathname)}
-                    className="inline-flex items-center justify-center px-6 py-2.5 bg-brand-800 text-white font-semibold rounded-xl hover:bg-brand-900 transition-colors shadow-sm"
+                    onClick={() => router.push(pathname, { scroll: false })}
+                    className="inline-flex items-center justify-center px-6 py-2.5 bg-brand-800 text-white font-semibold rounded-xl hover:bg-brand-900 transition-colors shadow-brand-sm"
                   >
                     Clear All Filters
                   </button>
@@ -239,8 +251,8 @@ function ProductsListingContent() {
 
                 {suggestedProducts.length > 0 && (
                   <div>
-                    <h3 className="text-2xl font-serif font-bold text-ink mb-6 text-center">Suggested For You</h3>
-                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
+                    <h3 className="text-2xl font-serif font-bold text-ink mb-6 text-center">Recommended For You</h3>
+                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 lg:gap-6">
                       {suggestedProducts.map((p, i) => (
                         <ProductCard key={p.id} product={p} priority={i < 4} />
                       ))}
@@ -257,17 +269,14 @@ function ProductsListingContent() {
   );
 }
 
-// Wrap in Suspense because we use useSearchParams
 export default function ProductsListingPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-surface pt-32 px-4 flex justify-center">
-        <div className="w-8 h-8 border-4 border-brand-200 border-t-brand-600 rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-3 border-brand-200 border-t-brand-800 rounded-full animate-spin"></div>
       </div>
     }>
       <ProductsListingContent />
     </Suspense>
   );
 }
-
-

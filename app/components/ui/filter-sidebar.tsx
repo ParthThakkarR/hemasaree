@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { ChevronDown, X, Filter } from 'lucide-react';
+import { ChevronDown, X, Filter, SlidersHorizontal } from 'lucide-react';
 
 interface Category {
   id: string;
@@ -15,36 +15,79 @@ interface FilterSidebarProps {
   onMobileClose: () => void;
 }
 
+const FABRIC_OPTIONS = ['Silk', 'Cotton', 'Banarasi', 'Linen', 'Chiffon', 'Georgette'];
+const COLOR_OPTIONS = [
+  { name: 'Red', hex: '#C0392B' },
+  { name: 'Maroon', hex: '#6B0F1A' },
+  { name: 'Green', hex: '#1B3A2D' },
+  { name: 'Blue', hex: '#2E4057' },
+  { name: 'Gold', hex: '#D4AF37' },
+  { name: 'Pink', hex: '#D4838F' },
+  { name: 'Yellow', hex: '#D4A520' },
+  { name: 'White', hex: '#F5F0E6' },
+  { name: 'Orange', hex: '#D97706' },
+  { name: 'Purple', hex: '#6B3A8A' },
+];
+const OCCASION_OPTIONS = ['Bridal', 'Festival', 'Casual', 'Party Wear', 'Office', 'Puja'];
+const PRICE_PRESETS = [
+  { label: 'Under ₹1,000', max: 1000 },
+  { label: '₹1,000 - ₹3,000', min: 1000, max: 3000 },
+  { label: '₹3,000 - ₹5,000', min: 3000, max: 5000 },
+  { label: 'Above ₹5,000', min: 5000 },
+];
+const SORT_OPTIONS = [
+  { label: 'Newest First', value: 'newest' },
+  { label: 'Price: Low to High', value: 'low' },
+  { label: 'Price: High to Low', value: 'high' },
+  { label: 'Popular', value: 'popular' },
+];
+
 export default function FilterSidebar({ categories, isMobileOpen, onMobileClose }: FilterSidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // Local state synced from URL
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || '');
   const [maxPrice, setMaxPrice] = useState(Number(searchParams.get('maxPrice')) || 10000);
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
+  const [selectedColor, setSelectedColor] = useState(searchParams.get('color') || '');
+  const [selectedOccasion, setSelectedOccasion] = useState(searchParams.get('occasion') || '');
+  const [selectedFabric, setSelectedFabric] = useState(searchParams.get('fabric') || '');
+  const [sortBy, setSortBy] = useState(searchParams.get('sortPrice') || '');
+
+  // Accordion states
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    category: true,
+    price: true,
+    fabric: false,
+    color: false,
+    occasion: false,
+    sort: false,
+  });
+
+  const toggleSection = (key: string) => {
+    setOpenSections(prev => ({ ...prev, [key]: !prev[key] }));
+  };
 
   // Sync state when URL changes externally
   useEffect(() => {
     setSelectedCategory(searchParams.get('category') || '');
     setMaxPrice(Number(searchParams.get('maxPrice')) || 10000);
     setSearchQuery(searchParams.get('search') || '');
+    setSelectedColor(searchParams.get('color') || '');
+    setSelectedOccasion(searchParams.get('occasion') || '');
+    setSelectedFabric(searchParams.get('fabric') || '');
+    setSortBy(searchParams.get('sortPrice') || '');
   }, [searchParams]);
 
-  // Push updates to URL
   const updateFilters = (key: string, value: string | null) => {
     const current = new URLSearchParams(Array.from(searchParams.entries()));
-    
-    // Reset page to 1 when filters change
     current.set('page', '1');
-
     if (value) {
       current.set(key, value);
     } else {
       current.delete(key);
     }
-    
     router.push(`${pathname}?${current.toString()}`, { scroll: false });
   };
 
@@ -53,106 +96,237 @@ export default function FilterSidebar({ categories, isMobileOpen, onMobileClose 
     onMobileClose();
   };
 
-  // Debounce search update
+  // Debounce search
   useEffect(() => {
     const handler = setTimeout(() => {
       if (searchQuery !== (searchParams.get('search') || '')) {
-         updateFilters('search', searchQuery);
+        updateFilters('search', searchQuery || null);
       }
     }, 500);
     return () => clearTimeout(handler);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery, searchParams]);
+  }, [searchQuery]);
+
+  const hasActiveFilters = selectedCategory || selectedColor || selectedFabric || selectedOccasion || searchParams.get('search') || (maxPrice < 10000) || sortBy;
+
+  const AccordionHeader = ({ label, sectionKey }: { label: string; sectionKey: string }) => (
+    <button
+      onClick={() => toggleSection(sectionKey)}
+      className="w-full flex items-center justify-between py-2 text-sm font-semibold text-ink uppercase tracking-wider hover:text-brand-800 transition-colors"
+    >
+      {label}
+      <ChevronDown size={16} className={`text-ink-faint transition-transform duration-200 ${openSections[sectionKey] ? 'rotate-180' : ''}`} />
+    </button>
+  );
+
+  const CheckOption = ({ label, isSelected, onChange }: { label: string; isSelected: boolean; onChange: () => void }) => (
+    <label className="flex items-center gap-2.5 cursor-pointer group py-1">
+      <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${isSelected ? 'border-brand-800 bg-brand-800' : 'border-surface-subtle group-hover:border-brand-300 bg-white'}`}>
+        {isSelected && <svg viewBox="0 0 14 14" fill="none" className="w-3 h-3 text-white"><path d="M3 7.5L5.5 10L11 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+      </div>
+      <span className={`text-sm ${isSelected ? 'font-medium text-ink' : 'text-ink-muted group-hover:text-ink'}`}>{label}</span>
+      <input type="radio" className="hidden" checked={isSelected} onChange={onChange} />
+    </label>
+  );
 
   const SidebarContent = (
-    <div className="flex flex-col gap-8 h-full">
+    <div className="flex flex-col gap-6 h-full">
       {/* Header (Mobile Only) */}
-      <div className="flex items-center justify-between lg:hidden mb-4">
-        <h2 className="text-xl font-serif font-bold text-ink flex items-center gap-2">
-          <Filter size={20} /> Filters
+      <div className="flex items-center justify-between lg:hidden">
+        <h2 className="text-lg font-serif font-bold text-ink flex items-center gap-2">
+          <SlidersHorizontal size={18} /> Filters
         </h2>
-        <button onClick={onMobileClose} className="p-2 text-ink-muted hover:text-ink bg-surface-muted rounded-full">
-          <X size={20} />
+        <button onClick={onMobileClose} className="p-2 text-ink-muted hover:text-ink bg-surface-muted rounded-full transition-colors">
+          <X size={18} />
         </button>
       </div>
 
       {/* Search */}
-      <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-ink uppercase tracking-wider">Search</h3>
+      <div>
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search sarees..."
-          className="w-full px-4 py-2.5 bg-surface-muted border border-surface-subtle rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-300 transition-shadow placeholder:text-ink-faint"
+          className="w-full px-4 py-2.5 bg-surface-muted border border-surface-subtle rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent/40 transition-all placeholder:text-ink-faint"
         />
+      </div>
+
+      <div className="h-px bg-surface-subtle" />
+
+      {/* Sort */}
+      <div>
+        <AccordionHeader label="Sort By" sectionKey="sort" />
+        {openSections.sort && (
+          <div className="flex flex-col gap-0.5 mt-1 animate-fade-in">
+            {SORT_OPTIONS.map(opt => (
+              <CheckOption
+                key={opt.value}
+                label={opt.label}
+                isSelected={sortBy === opt.value}
+                onChange={() => updateFilters('sortPrice', sortBy === opt.value ? null : opt.value)}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="h-px bg-surface-subtle" />
 
       {/* Category */}
-      <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-ink uppercase tracking-wider">Category</h3>
-        <div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
-          <label className="flex items-center gap-3 cursor-pointer group hover:translate-x-1 transition-transform">
-            <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${selectedCategory === '' ? 'border-brand-800 bg-brand-800 text-white' : 'border-brand-200 group-hover:border-brand-800 bg-white'}`}>
-              {selectedCategory === '' && <svg viewBox="0 0 14 14" fill="none" className="w-3.5 h-3.5"><path d="M3 7.5L5.5 10L11 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-            </div>
-            <span className={`text-sm ${selectedCategory === '' ? 'font-medium text-ink' : 'text-ink-muted group-hover:text-ink'}`}>All Categories</span>
-            <input type="radio" className="hidden" checked={selectedCategory === ''} onChange={() => updateFilters('category', null)} />
-          </label>
-
-          {categories.map((cat) => (
-            <label key={cat.id} className="flex items-center gap-3 cursor-pointer group hover:translate-x-1 transition-transform">
-              <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${selectedCategory === cat.name ? 'border-brand-800 bg-brand-800 text-white' : 'border-brand-200 group-hover:border-brand-800 bg-white'}`}>
-                {selectedCategory === cat.name && <svg viewBox="0 0 14 14" fill="none" className="w-3.5 h-3.5"><path d="M3 7.5L5.5 10L11 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-              </div>
-              <span className={`text-sm ${selectedCategory === cat.name ? 'font-medium text-ink' : 'text-ink-muted group-hover:text-ink'}`}>{cat.name}</span>
-              <input type="radio" className="hidden" checked={selectedCategory === cat.name} onChange={() => updateFilters('category', cat.name)} />
-            </label>
-          ))}
-        </div>
+      <div>
+        <AccordionHeader label="Category" sectionKey="category" />
+        {openSections.category && (
+          <div className="flex flex-col gap-0.5 mt-1 max-h-44 overflow-y-auto pr-1 animate-fade-in">
+            <CheckOption label="All Categories" isSelected={selectedCategory === ''} onChange={() => updateFilters('category', null)} />
+            {categories.map((cat) => (
+              <CheckOption key={cat.id} label={cat.name} isSelected={selectedCategory === cat.name} onChange={() => updateFilters('category', selectedCategory === cat.name ? null : cat.name)} />
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="h-px bg-surface-subtle" />
 
       {/* Price Range */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-ink uppercase tracking-wider">Price Range</h3>
-          <span className="text-sm font-medium text-brand-800">Up to ₹{maxPrice.toLocaleString('en-IN')}</span>
-        </div>
-        
-        <input
-          type="range"
-          min={500}
-          max={10000}
-          step={500}
-          value={maxPrice}
-          onChange={(e) => setMaxPrice(Number(e.target.value))}
-          onMouseUp={() => updateFilters('maxPrice', maxPrice.toString())}
-          onTouchEnd={() => updateFilters('maxPrice', maxPrice.toString())}
-          className="w-full h-1.5 bg-brand-100 rounded-full appearance-none cursor-pointer accent-brand-800 hover:accent-brand-900 transition-all"
-        />
-        
-        <div className="flex items-center justify-between text-xs text-ink-faint font-medium">
-          <span>₹500</span>
-          <span>₹10,000+</span>
-        </div>
+      <div>
+        <AccordionHeader label="Price Range" sectionKey="price" />
+        {openSections.price && (
+          <div className="mt-2 space-y-4 animate-fade-in">
+            {/* Quick Presets */}
+            <div className="flex flex-wrap gap-1.5">
+              {PRICE_PRESETS.map(preset => (
+                <button
+                  key={preset.label}
+                  onClick={() => {
+                    if (preset.max) {
+                      setMaxPrice(preset.max);
+                      updateFilters('maxPrice', preset.max.toString());
+                    } else {
+                      setMaxPrice(10000);
+                      updateFilters('maxPrice', null);
+                    }
+                  }}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                    (preset.max && maxPrice === preset.max) 
+                      ? 'bg-brand-800 text-white border-brand-800' 
+                      : 'bg-white text-ink-muted border-surface-subtle hover:border-brand-200 hover:text-ink'
+                  }`}
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Slider */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs text-ink-faint">₹500</span>
+                <span className="text-sm font-semibold text-brand-800">Up to ₹{maxPrice.toLocaleString('en-IN')}</span>
+                <span className="text-xs text-ink-faint">₹10,000+</span>
+              </div>
+              <input
+                type="range"
+                min={500}
+                max={10000}
+                step={500}
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(Number(e.target.value))}
+                onMouseUp={() => updateFilters('maxPrice', maxPrice < 10000 ? maxPrice.toString() : null)}
+                onTouchEnd={() => updateFilters('maxPrice', maxPrice < 10000 ? maxPrice.toString() : null)}
+                className="w-full"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="h-px bg-surface-subtle" />
+
+      {/* Fabric */}
+      <div>
+        <AccordionHeader label="Fabric" sectionKey="fabric" />
+        {openSections.fabric && (
+          <div className="flex flex-wrap gap-1.5 mt-2 animate-fade-in">
+            {FABRIC_OPTIONS.map(fabric => (
+              <button
+                key={fabric}
+                onClick={() => updateFilters('fabric', selectedFabric === fabric ? null : fabric)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                  selectedFabric === fabric
+                    ? 'bg-brand-800 text-white border-brand-800'
+                    : 'bg-white text-ink-muted border-surface-subtle hover:border-brand-200 hover:text-ink'
+                }`}
+              >
+                {fabric}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="h-px bg-surface-subtle" />
+
+      {/* Color */}
+      <div>
+        <AccordionHeader label="Color" sectionKey="color" />
+        {openSections.color && (
+          <div className="flex flex-wrap gap-2 mt-2 animate-fade-in">
+            {COLOR_OPTIONS.map(color => (
+              <button
+                key={color.name}
+                onClick={() => updateFilters('color', selectedColor === color.name ? null : color.name)}
+                title={color.name}
+                className={`w-8 h-8 rounded-full border-2 transition-all hover:scale-110 ${
+                  selectedColor === color.name
+                    ? 'border-brand-800 ring-2 ring-brand-800/30 scale-110'
+                    : 'border-surface-subtle hover:border-brand-200'
+                }`}
+                style={{ backgroundColor: color.hex }}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="h-px bg-surface-subtle" />
+
+      {/* Occasion */}
+      <div>
+        <AccordionHeader label="Occasion" sectionKey="occasion" />
+        {openSections.occasion && (
+          <div className="flex flex-wrap gap-1.5 mt-2 animate-fade-in">
+            {OCCASION_OPTIONS.map(occ => (
+              <button
+                key={occ}
+                onClick={() => updateFilters('occasion', selectedOccasion === occ ? null : occ)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                  selectedOccasion === occ
+                    ? 'bg-brand-800 text-white border-brand-800'
+                    : 'bg-white text-ink-muted border-surface-subtle hover:border-brand-200 hover:text-ink'
+                }`}
+              >
+                {occ}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Actions */}
-      <div className="mt-auto pt-6 lg:pt-2">
-        <button
-          onClick={clearFilters}
-          className="w-full py-2.5 px-4 bg-surface-muted text-ink-muted hover:text-ink hover:bg-surface-subtle rounded-xl text-sm font-medium transition-all active:scale-95"
-        >
-          Clear All Filters
-        </button>
+      <div className="mt-auto pt-4">
+        {hasActiveFilters && (
+          <button
+            onClick={clearFilters}
+            className="w-full py-2.5 px-4 bg-surface-muted text-ink-muted hover:text-ink hover:bg-surface-subtle rounded-xl text-sm font-medium transition-all active:scale-[0.98]"
+          >
+            Clear All Filters
+          </button>
+        )}
         {/* Mobile Apply Button */}
         <button
           onClick={onMobileClose}
-          className="w-full mt-3 py-3 px-4 bg-brand-800 hover:bg-brand-900 text-white rounded-xl text-sm font-semibold lg:hidden shadow-md transition-all active:scale-95"
+          className="w-full mt-3 py-3 px-4 bg-brand-800 hover:bg-brand-900 text-white rounded-xl text-sm font-semibold lg:hidden shadow-brand-sm transition-all active:scale-[0.98]"
         >
           View Results
         </button>
@@ -163,18 +337,15 @@ export default function FilterSidebar({ categories, isMobileOpen, onMobileClose 
   return (
     <>
       {/* Desktop Sidebar (Sticky) */}
-      <aside className="hidden lg:block w-64 flex-shrink-0 sticky top-24 h-[calc(100vh-8rem)] overflow-y-auto pr-6 custom-scrollbar pb-8">
+      <aside className="hidden lg:block w-64 flex-shrink-0 sticky top-24 h-[calc(100vh-8rem)] overflow-y-auto pr-4 hide-scrollbar pb-8">
         {SidebarContent}
       </aside>
 
       {/* Mobile Sidebar (Drawer) */}
       {isMobileOpen && (
         <div className="fixed inset-0 z-[100] lg:hidden flex">
-          {/* Backdrop */}
-          <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm animate-fade-in" onClick={onMobileClose} />
-          
-          {/* Drawer */}
-          <div className="relative w-[85%] max-w-sm bg-surface h-full shadow-2xl animate-slide-right ml-auto flex flex-col p-6 overflow-y-auto">
+          <div className="fixed inset-0 bg-brand-950/40 backdrop-blur-sm animate-fade-in" onClick={onMobileClose} />
+          <div className="relative w-[85%] max-w-sm bg-surface h-full shadow-2xl animate-slide-right ml-auto flex flex-col p-5 overflow-y-auto">
             {SidebarContent}
           </div>
         </div>
@@ -182,4 +353,3 @@ export default function FilterSidebar({ categories, isMobileOpen, onMobileClose 
     </>
   );
 }
-

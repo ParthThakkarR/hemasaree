@@ -95,9 +95,12 @@ export const DeleteCategorySchema = z.object({
 
 export const ProductSchema = z.object({
   name: z.string().min(1, { message: 'Product name is required' }),
+  description: z.string().optional().nullable(),
   color: z.string().min(1, { message: 'Color is required' }),
+  fabric: z.string().optional().nullable(),
   ocassion: z.string().min(1, { message: 'Ocassion is required' }),
   price: z.coerce.number().positive({ message: 'Price must be a positive number' }),
+  mrp: z.coerce.number().positive().optional().nullable(),
   stock: z.coerce.number().int().min(0, { message: 'Stock must be 0 or more' }),
   categoryId: z.string().min(1, { message: 'Category ID is required' }),
   images: z
@@ -108,9 +111,12 @@ export const ProductSchema = z.object({
 export const UpdateProductSchema = z.object({
   id: z.string().min(1, { message: 'Product ID is required' }),
   name: z.string().min(1).optional(),
+  description: z.string().optional().nullable(),
   color: z.string().min(1).optional(),
+  fabric: z.string().optional().nullable(),
   ocassion: z.string().min(1).optional(),
   price: z.coerce.number().positive().optional(),
+  mrp: z.coerce.number().positive().optional().nullable(),
   stock: z.coerce.number().int().min(0).optional(),
   categoryId: z.string().min(1).optional(),
   images: z.array(z.string().min(1)).min(1).optional(),

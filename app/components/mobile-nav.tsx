@@ -14,20 +14,20 @@ export default function MobileNav() {
   const { wishlistCount } = useWishlist();
   const { user } = useAuth();
 
-  // Hidden on admin pages or specific checkout pages if needed
-  if (pathname.startsWith('/admin')) return null;
+  // Hidden on admin and studio pages
+  if (pathname?.startsWith('/admin') || pathname?.startsWith('/studio')) return null;
 
   const navItems = [
     { name: 'Home', href: '/', icon: Home },
-    { name: 'Search', href: '/products', icon: Search },
+    { name: 'Shop', href: '/products', icon: Search },
     { name: 'Wishlist', href: '/wishlist', icon: Heart, badge: user ? wishlistCount : 0 },
     { name: 'Cart', href: '/cart', icon: ShoppingBag, badge: cartCount },
     { name: user ? 'Profile' : 'Sign In', href: user ? '/profile' : '/login', icon: User },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-surface-subtle pb-safe pt-2 lg:hidden shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
-      <div className="flex items-center justify-around px-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-surface/95 backdrop-blur-xl border-t border-surface-subtle pb-safe lg:hidden shadow-[0_-2px_12px_rgba(0,0,0,0.04)]">
+      <div className="flex items-center justify-around px-1 pt-1.5 pb-1">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
@@ -36,19 +36,24 @@ export default function MobileNav() {
             <Link
               key={item.name}
               href={item.href}
-              className={`relative flex flex-col items-center justify-center w-16 h-12 transition-colors ${
-                isActive ? 'text-brand-600' : 'text-ink-muted hover:text-ink'
+              className={`relative flex flex-col items-center justify-center w-16 py-1.5 transition-colors ${
+                isActive ? 'text-brand-800' : 'text-ink-muted hover:text-ink'
               }`}
             >
+              {/* Gold accent line for active item */}
+              {isActive && (
+                <span className="absolute -top-1.5 w-8 h-0.5 bg-accent rounded-full" />
+              )}
+
               <div className="relative">
-                <Icon size={24} strokeWidth={isActive ? 2.5 : 2} className={isActive ? 'animate-bounce-soft' : ''} />
+                <Icon size={22} strokeWidth={isActive ? 2.5 : 1.8} />
                 {item.badge !== undefined && item.badge > 0 && (
-                  <span className="absolute -top-1.5 -right-2 bg-brand-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border-2 border-white">
+                  <span className="absolute -top-1 -right-2 bg-brand-800 text-white text-[9px] font-bold min-w-[16px] h-4 flex items-center justify-center rounded-full border-2 border-surface px-0.5">
                     {item.badge > 99 ? '99+' : item.badge}
                   </span>
                 )}
               </div>
-              <span className={`text-[10px] mt-1 font-medium ${isActive ? 'opacity-100' : 'opacity-0'}`}>
+              <span className={`text-[10px] mt-0.5 font-medium ${isActive ? 'text-brand-800' : 'text-ink-faint'}`}>
                 {item.name}
               </span>
             </Link>
@@ -58,5 +63,3 @@ export default function MobileNav() {
     </nav>
   );
 }
-
-

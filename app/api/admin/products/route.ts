@@ -31,14 +31,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: validation.error.issues[0].message }, { status: 400 });
     }
 
-    const { name, color, ocassion, price, stock, categoryId, images } = validation.data;
+    const { name, description, color, fabric, ocassion, price, mrp, stock, categoryId, images } = validation.data;
 
     const newProduct = await prisma.product.create({
       data: {
         name,
+        description: description || null,
         color,
+        fabric: fabric || null,
         ocassion,
         price,
+        mrp: mrp || null,
         stock,
         categoryId,
         images,

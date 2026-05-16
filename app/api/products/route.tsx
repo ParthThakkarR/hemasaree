@@ -96,11 +96,34 @@ export async function GET(req: NextRequest) {
       take: limit,
       include: {
         category: { select: { id: true, name: true } },
+        _count: {
+          select: { reviews: { where: { isApproved: true } } },
+        },
       },
     });
 
+    // Attach review stats to each product
+    const productIds = products.map(p => p.id);
+    const reviewStats = await prisma.review.groupBy({
+      by: ['productId'],
+      where: { productId: { in: productIds }, isApproved: true },
+      _avg: { rating: true },
+      _count: { rating: true },
+    });
+
+    const enrichedProducts = products.map(p => {
+      const stats = reviewStats.find(r => r.productId === p.id);
+      return {
+        ...p,
+        reviewStats: stats ? {
+          avgRating: Math.round((stats._avg.rating || 0) * 10) / 10,
+          totalReviews: stats._count.rating,
+        } : undefined,
+      };
+    });
+
     const responseData = {
-      products,
+      products: enrichedProducts,
       pagination: {
         totalProducts,
         totalPages: Math.ceil(totalProducts / limit),
