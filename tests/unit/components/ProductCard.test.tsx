@@ -51,7 +51,7 @@ describe('ProductCard Component', () => {
     { ...mockProduct, id: 'prod-2', price: 9999999 },
     { ...mockProduct, id: 'prod-3', name: 'A'.repeat(200) },
     { ...mockProduct, id: 'prod-4', name: '' },
-    { ...mockProduct, id: 'prod-5', category: null },
+    { ...mockProduct, id: 'prod-5', category: undefined },
     { ...mockProduct, id: 'prod-6', images: [] },
     { ...mockProduct, id: 'prod-7', images: ['img1.jpg', 'img2.jpg', 'img3.jpg'] },
     { ...mockProduct, id: 'prod-8', price: -500 }, // Corrupted data
