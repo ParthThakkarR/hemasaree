@@ -1,4 +1,4 @@
-import { prisma } from '@lib/prisma';
+import { prisma } from '../../app/lib/prisma';
 import { OrderStatus, OrderItemStatus } from '@prisma/client';
 import { NotFoundError, ConflictError, ValidationError } from '../errors';
 
