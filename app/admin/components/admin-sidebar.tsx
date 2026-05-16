@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutDashboard, Package, Tags, ShoppingCart, LogOut, Store, Mail, Menu, X, Palette, MessageSquare } from 'lucide-react';
@@ -20,6 +20,16 @@ export default function AdminSidebar() {
   const pathname = usePathname();
   const { logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+
+  // Lock body scroll when mobile sidebar is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [isOpen]);
 
   return (
     <>
