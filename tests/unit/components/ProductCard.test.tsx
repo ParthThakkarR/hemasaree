@@ -42,7 +42,7 @@ describe('ProductCard Component', () => {
     id: 'prod-1',
     name: 'Test Saree',
     price: 1599,
-    category: { name: 'Bridal' },
+    category: { id: 'cat-1', name: 'Bridal' },
     images: ['test-image.jpg']
   };
 
