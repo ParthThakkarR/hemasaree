@@ -48,6 +48,7 @@ export default function FilterSidebar({ categories, isMobileOpen, onMobileClose 
   const searchParams = useSearchParams();
 
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || '');
+  const [minPrice, setMinPrice] = useState(Number(searchParams.get('minPrice')) || 0);
   const [maxPrice, setMaxPrice] = useState(Number(searchParams.get('maxPrice')) || 10000);
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
   const [selectedColor, setSelectedColor] = useState(searchParams.get('color') || '');
@@ -82,6 +83,7 @@ export default function FilterSidebar({ categories, isMobileOpen, onMobileClose 
   // Sync state when URL changes externally
   useEffect(() => {
     setSelectedCategory(searchParams.get('category') || '');
+    setMinPrice(Number(searchParams.get('minPrice')) || 0);
     setMaxPrice(Number(searchParams.get('maxPrice')) || 10000);
     setSearchQuery(searchParams.get('search') || '');
     setSelectedColor(searchParams.get('color') || '');
@@ -101,6 +103,19 @@ export default function FilterSidebar({ categories, isMobileOpen, onMobileClose 
     router.push(`${pathname}?${current.toString()}`, { scroll: false });
   };
 
+  const updateMultipleFilters = (updates: Record<string, string | null>) => {
+    const current = new URLSearchParams(Array.from(searchParams.entries()));
+    current.set('page', '1');
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value) {
+        current.set(key, value);
+      } else {
+        current.delete(key);
+      }
+    });
+    router.push(`${pathname}?${current.toString()}`, { scroll: false });
+  };
+
   const clearFilters = () => {
     router.push(pathname, { scroll: false });
     onMobileClose();
@@ -117,7 +132,7 @@ export default function FilterSidebar({ categories, isMobileOpen, onMobileClose 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery]);
 
-  const hasActiveFilters = selectedCategory || selectedColor || selectedFabric || selectedOccasion || searchParams.get('search') || (maxPrice < 10000) || sortBy;
+  const hasActiveFilters = selectedCategory || selectedColor || selectedFabric || selectedOccasion || searchParams.get('search') || (maxPrice < 10000) || (minPrice > 0) || sortBy;
 
   const AccordionHeader = ({ label, sectionKey }: { label: string; sectionKey: string }) => (
     <button
@@ -209,16 +224,18 @@ export default function FilterSidebar({ categories, isMobileOpen, onMobileClose 
                 <button
                   key={preset.label}
                   onClick={() => {
-                    if (preset.max) {
-                      setMaxPrice(preset.max);
-                      updateFilters('maxPrice', preset.max.toString());
-                    } else {
-                      setMaxPrice(10000);
-                      updateFilters('maxPrice', null);
-                    }
+                    const newMin = preset.min || 0;
+                    const newMax = preset.max || 10000;
+                    setMinPrice(newMin);
+                    setMaxPrice(newMax);
+                    
+                    updateMultipleFilters({
+                      minPrice: newMin > 0 ? newMin.toString() : null,
+                      maxPrice: newMax < 10000 ? newMax.toString() : null,
+                    });
                   }}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
-                    (preset.max && maxPrice === preset.max) 
+                    ((preset.min || 0) === minPrice && (preset.max || 10000) === maxPrice) 
                       ? 'bg-brand-800 text-white border-brand-800' 
                       : 'bg-white text-ink-muted border-surface-subtle hover:border-brand-200 hover:text-ink'
                   }`}
@@ -230,22 +247,57 @@ export default function FilterSidebar({ categories, isMobileOpen, onMobileClose 
 
             {/* Slider */}
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-ink-faint">₹500</span>
-                <span className="text-sm font-semibold text-brand-800">Up to ₹{maxPrice.toLocaleString('en-IN')}</span>
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-xs text-ink-faint">₹0</span>
+                <span className="text-sm font-semibold text-brand-800">
+                  ₹{minPrice.toLocaleString('en-IN')} - ₹{maxPrice === 10000 ? '10,000+' : maxPrice.toLocaleString('en-IN')}
+                </span>
                 <span className="text-xs text-ink-faint">₹10,000+</span>
               </div>
-              <input
-                type="range"
-                min={500}
-                max={10000}
-                step={500}
-                value={maxPrice}
-                onChange={(e) => setMaxPrice(Number(e.target.value))}
-                onMouseUp={() => updateFilters('maxPrice', maxPrice < 10000 ? maxPrice.toString() : null)}
-                onTouchEnd={() => updateFilters('maxPrice', maxPrice < 10000 ? maxPrice.toString() : null)}
-                className="w-full"
-              />
+              <div className="relative h-2 w-full flex items-center">
+                {/* Track */}
+                <div className="absolute w-full h-1 bg-surface-subtle rounded-full z-0" />
+                {/* Active Track */}
+                <div 
+                  className="absolute h-1 bg-brand-800 rounded-full z-10" 
+                  style={{ 
+                    left: `${(minPrice / 10000) * 100}%`, 
+                    width: `${((maxPrice - minPrice) / 10000) * 100}%` 
+                  }} 
+                />
+                
+                {/* Min Input */}
+                <input
+                  type="range"
+                  min={0}
+                  max={10000}
+                  step={500}
+                  value={minPrice}
+                  onChange={(e) => {
+                    const value = Math.min(Number(e.target.value), maxPrice - 500);
+                    setMinPrice(value);
+                  }}
+                  onMouseUp={() => updateFilters('minPrice', minPrice > 0 ? minPrice.toString() : null)}
+                  onTouchEnd={() => updateFilters('minPrice', minPrice > 0 ? minPrice.toString() : null)}
+                  className="absolute w-full h-1 appearance-none bg-transparent pointer-events-none z-20 [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-brand-800 [&::-webkit-slider-thumb]:rounded-full [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-brand-800 [&::-moz-range-thumb]:rounded-full"
+                />
+                
+                {/* Max Input */}
+                <input
+                  type="range"
+                  min={0}
+                  max={10000}
+                  step={500}
+                  value={maxPrice}
+                  onChange={(e) => {
+                    const value = Math.max(Number(e.target.value), minPrice + 500);
+                    setMaxPrice(value);
+                  }}
+                  onMouseUp={() => updateFilters('maxPrice', maxPrice < 10000 ? maxPrice.toString() : null)}
+                  onTouchEnd={() => updateFilters('maxPrice', maxPrice < 10000 ? maxPrice.toString() : null)}
+                  className="absolute w-full h-1 appearance-none bg-transparent pointer-events-none z-20 [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-brand-800 [&::-webkit-slider-thumb]:rounded-full [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-brand-800 [&::-moz-range-thumb]:rounded-full"
+                />
+              </div>
             </div>
           </div>
         )}
