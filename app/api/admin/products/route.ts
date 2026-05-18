@@ -2,8 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@lib/prisma';
 import { verifyAdminToken } from '@utils/auth';
 import { ProductSchema, UpdateProductSchema, DeleteProductSchema } from '@lib/validators';
+import { cache } from '@/lib/cache';
 
 export const dynamic = "force-dynamic";
+
+/** Bust every cached product-list entry so the public API serves fresh data. */
+async function invalidateProductCache() {
+  await cache.clearPattern('products:*');
+  console.log('[ADMIN] Product cache invalidated');
+}
 
 // GET all products (Public)
 export async function GET() {
@@ -49,6 +56,9 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // ✅ Invalidate cache so public API serves fresh data
+    await invalidateProductCache();
+
     return NextResponse.json({ message: 'Product added successfully', newProduct });
   } catch (err) {
     console.error('[PRODUCTS_POST_ERROR]', err);
@@ -82,6 +92,9 @@ export async function PUT(req: NextRequest) {
       },
     });
 
+    // ✅ Invalidate cache so public API serves fresh data
+    await invalidateProductCache();
+
     return NextResponse.json(updated);
   } catch (error) {
     console.error('[PRODUCTS_PUT_ERROR]', error);
@@ -113,6 +126,9 @@ export async function DELETE(req: NextRequest) {
 
     await prisma.cartItem.deleteMany({ where: { productId: id } });
     await prisma.product.delete({ where: { id } });
+
+    // ✅ Invalidate cache so public API serves fresh data
+    await invalidateProductCache();
 
     return NextResponse.json({ message: 'Product deleted successfully' });
   } catch (error) {
