@@ -1,82 +1,3 @@
-// // /app/api/admin/upload/route.ts
-// import { NextRequest, NextResponse } from "next/server";
-// import { writeFile, mkdir } from "fs/promises";
-// import { join } from "path";
-// import { verifyAdminToken } from "@utils/auth";
-
-// export async function POST(request: NextRequest) {
-//   // ✅ Verify admin authentication
-//   const adminId = await verifyAdminToken(request);
-//   if (!adminId) {
-//     return NextResponse.json(
-//       { error: "Unauthorized: Admin access required" },
-//       { status: 401 }
-//     );
-//   }
-
-//   try {
-//     const formData = await request.formData();
-
-//     // ✅ Support multiple file uploads
-//     const files = formData.getAll("files") as File[];
-
-//     if (!files || files.length === 0) {
-//       return NextResponse.json({ error: "No files provided." }, { status: 400 });
-//     }
-
-//     const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
-//     const maxSize = 5 * 1024 * 1024; // 5MB
-
-//     const uploadDir = join(process.cwd(), "public/uploads/products");
-//     await mkdir(uploadDir, { recursive: true });
-
-//     const uploadedUrls: string[] = [];
-
-//     for (const file of files) {
-//       // ✅ Type validation
-//       if (!allowedTypes.includes(file.type)) {
-//         return NextResponse.json(
-//           { error: `Invalid file type: ${file.name}.` },
-//           { status: 400 }
-//         );
-//       }
-
-//       // ✅ Size validation
-//       if (file.size > maxSize) {
-//         return NextResponse.json(
-//           { error: `File ${file.name} is too large (max 5MB).` },
-//           { status: 400 }
-//         );
-//       }
-
-//       // ✅ Sanitize filename and write file
-//       const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
-//       const timestamp = Date.now();
-//       const finalName = `${timestamp}_${sanitizedName}`;
-//       const filePath = join(uploadDir, finalName);
-
-//       const bytes = await file.arrayBuffer();
-//       await writeFile(filePath, Buffer.from(bytes));
-
-//       // ✅ Add to URL list
-//       uploadedUrls.push(`/uploads/products/${finalName}`);
-//     }
-
-//     // ✅ Return all uploaded URLs
-//     return NextResponse.json({
-//       message: "Files uploaded successfully",
-//       urls: uploadedUrls,
-//     });
-//   } catch (error) {
-//     console.error("[FILE_UPLOAD_ERROR]", error);
-//     return NextResponse.json(
-//       { error: "Failed to upload files. Please try again later." },
-//       { status: 500 }
-//     );
-//   }
-// }
-
-
 // /app/api/admin/upload/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
@@ -86,6 +7,13 @@ import { verifyAdminToken } from '@utils/auth';
 import { optimizeImage } from '@/lib/imageService';
 
 export const dynamic = "force-dynamic";
+
+// Allow up to 10MB uploads (default is 1MB which breaks image uploads)
+export const maxDuration = 30; // seconds — give sharp time to process
+export const fetchCache = 'force-no-store';
+
+const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB per file
 
 export async function POST(req: NextRequest) {
   const adminId = await verifyAdminToken(req);
@@ -100,25 +28,46 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No files provided.' }, { status: 400 });
     }
 
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    // Validate files before processing
+    for (const file of files) {
+      if (!ALLOWED_TYPES.includes(file.type)) {
+        return NextResponse.json(
+          { error: `Invalid file type for "${file.name}". Allowed: JPEG, PNG, WebP.` },
+          { status: 400 }
+        );
+      }
+      if (file.size > MAX_FILE_SIZE) {
+        return NextResponse.json(
+          { error: `"${file.name}" is too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Max 5MB per file.` },
+          { status: 400 }
+        );
+      }
+    }
 
     const urls: string[] = [];
 
     for (const file of files) {
-      if (!allowedTypes.includes(file.type)) continue;
-      if (file.size > maxSize) continue;
-
       const buffer = Buffer.from(await file.arrayBuffer());
-      const optimizedUrl = await optimizeImage(buffer, file.name);
-      urls.push(optimizedUrl);
+
+      try {
+        // Try optimized upload via sharp
+        const optimizedUrl = await optimizeImage(buffer, file.name);
+        urls.push(optimizedUrl);
+      } catch (optimizeErr) {
+        // Fallback: save the original file without sharp optimization
+        console.warn(`[UPLOAD] Sharp optimization failed for "${file.name}", saving original:`, optimizeErr);
+        const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+        const finalName = `${Date.now()}_${sanitizedName}`;
+        const uploadDir = path.join(process.cwd(), 'public/uploads/products');
+        await mkdir(uploadDir, { recursive: true });
+        await writeFile(path.join(uploadDir, finalName), buffer);
+        urls.push(`/uploads/products/${finalName}`);
+      }
     }
 
-    return NextResponse.json({ urls });
+    return NextResponse.json({ message: 'Files uploaded successfully', urls });
   } catch (error) {
     console.error('[FILE_UPLOAD_ERROR]', error);
-    return NextResponse.json({ error: 'File upload failed.' }, { status: 500 });
+    return NextResponse.json({ error: 'File upload failed. Please try again.' }, { status: 500 });
   }
 }
-
-

@@ -6,6 +6,9 @@ const nextConfig = {
   // This avoids Vercel Next.js trace-copy failures with standalone output.
   output: process.env.NEXT_OUTPUT_STANDALONE === '1' ? 'standalone' : undefined,
 
+  // Sharp is a native C++ addon — exclude it from webpack bundling
+  serverExternalPackages: ['sharp'],
+
 
   images: {
     remotePatterns: [

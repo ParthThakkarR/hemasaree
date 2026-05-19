@@ -50,7 +50,7 @@ export const authOptions: NextAuthOptions = {
         try {
           if (!credentials?.email || !credentials?.password) {
             console.error("[AUTH] Missing email or password in credentials");
-            return null;
+            throw new Error("Please provide both email and password.");
           }
           
           const user = await prisma.user.findUnique({
@@ -59,12 +59,12 @@ export const authOptions: NextAuthOptions = {
           
           if (!user) {
             console.error(`[AUTH] User not found: ${credentials.email}`);
-            return null;
+            throw new Error("No account found with this email address.");
           }
 
           if (!user.password) {
             console.error(`[AUTH] User exists but has no password (OAuth user?): ${credentials.email}`);
-            return null;
+            throw new Error("Please sign in with Google or reset your password.");
           }
 
           const isCorrectPassword = await bcrypt.compare(
@@ -74,7 +74,7 @@ export const authOptions: NextAuthOptions = {
 
           if (!isCorrectPassword) {
             console.error(`[AUTH] Incorrect password for: ${credentials.email}`);
-            return null;
+            throw new Error("Invalid email or password. Please try again.");
           }
 
           console.log(`[AUTH] Successful authorize for: ${user.email}`);
@@ -86,7 +86,10 @@ export const authOptions: NextAuthOptions = {
           };
         } catch (error: any) {
           console.error("[AUTH_AUTHORIZE_ERROR]", error);
-          return null;
+          if (error instanceof Error) {
+             throw error;
+          }
+          throw new Error("An unexpected error occurred during sign in.");
         }
       }
     })

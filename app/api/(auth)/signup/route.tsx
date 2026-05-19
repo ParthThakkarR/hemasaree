@@ -86,7 +86,7 @@ async function signupHandler(req: NextRequest) {
   } catch (err: any) {
     console.error('[SIGNUP_ERROR]', err);
     return NextResponse.json(
-      { message: err.message || 'Internal Server Error' },
+      { message: 'An unexpected error occurred during signup. Please try again.' },
       { status: 500 }
     );
   }

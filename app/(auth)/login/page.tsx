@@ -45,6 +45,9 @@ function LoginContent() {
       });
 
       if (res?.error) {
+        if (res.error === 'CredentialsSignin') {
+          throw new Error('Invalid email or password.');
+        }
         throw new Error(res.error || 'Login failed.');
       }
 

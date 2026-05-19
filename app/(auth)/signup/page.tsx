@@ -262,6 +262,9 @@ function SignupContent() {
       });
 
       if (loginRes?.error) {
+        if (loginRes.error === 'CredentialsSignin') {
+          throw new Error('Account created, but automatic login failed. Please sign in manually.');
+        }
         throw new Error(loginRes.error);
       }
 
