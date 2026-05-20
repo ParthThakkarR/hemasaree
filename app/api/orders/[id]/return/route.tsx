@@ -13,14 +13,14 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  // ✅ FIX: getUserFromToken returns full user object, not just id
-  const decodedUser = await getUserFromToken(req);
-  if (!decodedUser || !decodedUser.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-  const userId = decodedUser.id; // ✅ extract only ID
-
   try {
+    // ✅ FIX: getUserFromToken returns full user object, not just id
+    const decodedUser = await getUserFromToken(req);
+    if (!decodedUser || !decodedUser.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const userId = decodedUser.id; // ✅ extract only ID
+
     const formData = await req.formData();
     const orderId = params.id;
 

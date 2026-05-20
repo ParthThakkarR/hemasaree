@@ -37,6 +37,11 @@ export async function getUserFromToken(
 
     const userId = (session.user as any).id;
 
+    if (!userId || typeof userId !== 'string') {
+      console.warn('[getUserFromToken] Invalid user ID format');
+      return null;
+    }
+
     // ✅ Fetch user with addresses (MongoDB-compatible)
     const userRecord = await prisma.user.findUnique({
       where: { id: userId },

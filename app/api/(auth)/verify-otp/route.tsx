@@ -71,14 +71,12 @@ export async function POST(req: Request) {
   try {
     // parse raw body
     const rawBody = await req.json();
-console.log('🔍 VERIFY-OTP: Raw body received =>', rawBody);
 
     // Normalize incoming values BEFORE validation to avoid transient-state validation errors
     const body = {
       email: typeof rawBody?.email !== 'undefined' ? String(rawBody.email).trim().toLowerCase() : '',
       otp: typeof rawBody?.otp !== 'undefined' ? String(rawBody.otp).trim() : '',
     };
-console.log('✅ VERIFY-OTP: Normalized body =>', body);
 
     // Validate with Zod (schema will expect email + otp)
     const validation = VerifyOtpSchema.safeParse(body);

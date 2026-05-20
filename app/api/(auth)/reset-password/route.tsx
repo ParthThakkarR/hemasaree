@@ -9,7 +9,7 @@ import bcrypt from 'bcryptjs';
 import { z } from 'zod'; // 2. (Optional but cleaner) Use Zod
 
 // 3. Define the password regex and Zod schema
-const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+const passwordRegex = /^(?=.*\p{Lu})(?=.*\p{Ll})(?=.*\d)(?=.*[@$!%*?&])[\p{Lu}\p{Ll}\d@$!%*?&]{8,}$/u;
 
 const ResetPasswordSchema = z.object({
   token: z.string().min(1, { message: 'Token is required' }),

@@ -29,10 +29,10 @@ async function recalcCartTotal(cartId: string) {
    ✅ GET - Fetch User's Cart
 ---------------------------------------------- */
 export async function GET(req: NextRequest) {
-  const user = await getUserFromToken(req);
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   try {
+    const user = await getUserFromToken(req);
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
     const cart = await prisma.cart.findFirst({
       where: { userId: user.id },
       include: {
@@ -54,10 +54,10 @@ export async function GET(req: NextRequest) {
    🛒 POST - Add Item to Cart
 ---------------------------------------------- */
 export async function POST(req: NextRequest) {
-  const user = await getUserFromToken(req);
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   try {
+    const user = await getUserFromToken(req);
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
     const body = await req.json();
     const valid = CartAddSchema.safeParse(body);
     if (!valid.success) {
@@ -127,10 +127,10 @@ export async function POST(req: NextRequest) {
    ✏️ PUT - Update Quantity
 ---------------------------------------------- */
 export async function PUT(req: NextRequest) {
-  const user = await getUserFromToken(req);
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   try {
+    const user = await getUserFromToken(req);
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
     const body = await req.json();
     const valid = CartUpdateSchema.safeParse(body);
     if (!valid.success) {
@@ -187,10 +187,10 @@ export async function PUT(req: NextRequest) {
    ❌ DELETE - Remove Item
 ---------------------------------------------- */
 export async function DELETE(req: NextRequest) {
-  const user = await getUserFromToken(req);
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   try {
+    const user = await getUserFromToken(req);
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
     const body = await req.json();
     const valid = CartDeleteSchema.safeParse(body);
     if (!valid.success) {

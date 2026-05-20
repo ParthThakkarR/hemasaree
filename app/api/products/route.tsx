@@ -47,10 +47,11 @@ export async function GET(req: NextRequest) {
       maxPrice: parseFloat(searchParams.get("maxPrice") || "10000"),
     };
 
-    const sortBy = searchParams.get("sortPrice")?.trim() || "createdAt";
-    const sortOrder = sortBy === "asc" ? "asc" : "desc";
+    const sortPrice = searchParams.get("sortPrice")?.trim();
+    const sortBy = 'price';
+    const sortOrder = sortPrice === "asc" ? "asc" : "desc";
 
-    const result = await ProductService.getProducts(filters, { page, limit, sortBy: 'price', sortOrder });
+    const result = await ProductService.getProducts(filters, { page, limit, sortBy, sortOrder });
 
     const responseData = {
       products: result.products,

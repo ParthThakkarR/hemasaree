@@ -4,7 +4,8 @@ import { OrderStatus, OrderItemStatus } from '@prisma/client';
 
 // --- Reusable Regex & Constants ---
 const phoneRegex = /^\d{10}$/;
-const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+// 8-128 chars: min is security floor; max prevents DoS via extremely long bcrypt inputs
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,128}$/;
 const passwordError = 'Password must be at least 8 characters long and include an uppercase, lowercase, number, and special character.';
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
@@ -36,7 +37,7 @@ export const SignUpSchema = z.object({
   password: z
     .string()
     .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,128}$/, // Max 128 prevents bcrypt DoS
       { message: 'Password must include uppercase, lowercase, number & special character.' }
     ),
   // ✅ changed from string → structured address
