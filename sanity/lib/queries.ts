@@ -1,4 +1,5 @@
 import { client } from './client';
+import { cache } from 'react';
 
 export interface SiteSettings {
   title?: string;
@@ -25,7 +26,7 @@ export const siteSettingsQuery = `*[_type == "siteSettings"] | order(_updatedAt 
   footerText
 }`;
 
-export async function getSiteSettings(): Promise<SiteSettings | null> {
+async function fetchSiteSettings(): Promise<SiteSettings | null> {
   if (!client) {
     console.warn('Sanity client not configured. Using fallback settings.');
     return null;
@@ -45,3 +46,6 @@ export async function getSiteSettings(): Promise<SiteSettings | null> {
     return null;
   }
 }
+
+// Deduplicate calls within the same request (generateMetadata + RootLayout)
+export const getSiteSettings = cache(fetchSiteSettings);
