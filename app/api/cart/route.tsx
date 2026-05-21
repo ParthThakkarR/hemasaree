@@ -64,11 +64,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: valid.error.issues[0].message }, { status: 400 });
     }
 
-    const { productId, quantity, productName, productImage, price, withPolish } = valid.data;
+    const { productId, quantity, productName, productImage, withPolish } = valid.data;
 
     // 🧩 Find product
     const product = await prisma.product.findUnique({ where: { id: productId } });
     if (!product) return NextResponse.json({ error: "Product not found" }, { status: 404 });
+
+    // 🔒 Always use server-side price, never trust client-supplied price
+    const price = product.price;
 
     // 🧮 Compute available stock safely
     const availableStock = typeof product.stock === "number" && product.stock > 0 ? product.stock : Infinity;

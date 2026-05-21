@@ -73,10 +73,19 @@ export async function POST(
     if (imageFile) {
       try {
         const buffer = Buffer.from(await imageFile.arrayBuffer());
-        const filename = `${Date.now()}_${imageFile.name.replace(/\s+/g, '_')}`;
+        const sanitizedName = imageFile.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+        const filename = `${Date.now()}_${sanitizedName}`;
         const uploadDir = path.join(process.cwd(), 'public/uploads/returns');
         await mkdir(uploadDir, { recursive: true });
         const imagePath = path.join(uploadDir, filename);
+        const resolvedPath = path.resolve(imagePath);
+        const resolvedDir = path.resolve(uploadDir);
+        if (!resolvedPath.startsWith(resolvedDir)) {
+          return NextResponse.json(
+            { error: 'Invalid filename detected.' },
+            { status: 400 }
+          );
+        }
         await writeFile(imagePath, buffer);
         imageUrl = `/uploads/returns/${filename}`;
       } catch (err) {

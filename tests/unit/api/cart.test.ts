@@ -197,7 +197,7 @@ describe('POST /api/cart (add item)', () => {
 
   it('creates new cartItem when variant does not exist', async () => {
     vi.mocked(getUserFromToken).mockResolvedValue(mockUser);
-    mockPrisma.product.findUnique.mockResolvedValue({ id: 'p1', stock: 10 });
+    mockPrisma.product.findUnique.mockResolvedValue({ id: 'p1', stock: 10, price: 50 });
     mockPrisma.cart.findFirst.mockResolvedValue({ id: 'cart1' });
     mockPrisma.cartItem.findMany.mockResolvedValue([]);
     mockPrisma.cartItem.create.mockResolvedValue({ id: 'ci1' });

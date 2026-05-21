@@ -46,7 +46,6 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        console.log(`[AUTH] Authorize call for: ${credentials?.email}`);
         try {
           if (!credentials?.email || !credentials?.password) {
             console.error("[AUTH] Missing email or password in credentials");
@@ -58,12 +57,10 @@ export const authOptions: NextAuthOptions = {
           });
           
           if (!user) {
-            console.error(`[AUTH] User not found: ${credentials.email}`);
             throw new Error("No account found with this email address.");
           }
 
           if (!user.password) {
-            console.error(`[AUTH] User exists but has no password (OAuth user?): ${credentials.email}`);
             throw new Error("Please sign in with Google or reset your password.");
           }
 
@@ -73,11 +70,9 @@ export const authOptions: NextAuthOptions = {
           );
 
           if (!isCorrectPassword) {
-            console.error(`[AUTH] Incorrect password for: ${credentials.email}`);
             throw new Error("Invalid email or password. Please try again.");
           }
 
-          console.log(`[AUTH] Successful authorize for: ${user.email}`);
           return {
             id: user.id,
             email: user.email,
@@ -100,7 +95,6 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async signIn({ user, account, profile }) {
-      console.log(`[AUTH] signIn callback: provider=${account?.provider}, email=${user.email}`);
       return true;
     },
     async jwt({ token, user }) {

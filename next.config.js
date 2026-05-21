@@ -14,10 +14,14 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '**',
+        hostname: 'cdn.sanity.io',
+      },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
       },
     ],
-    unoptimized: false, // Ensure image optimization is active
+    unoptimized: false,
   },
 
   // Disable powered by header for security and to keep headers clean

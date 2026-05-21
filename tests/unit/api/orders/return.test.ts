@@ -44,6 +44,7 @@ vi.mock('fs/promises', () => ({
 vi.mock('path', () => ({
   default: {
     join: vi.fn((...args) => args.join('/')),
+    resolve: vi.fn((p) => p),
   },
 }));
 
