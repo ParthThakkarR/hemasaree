@@ -153,14 +153,17 @@ export class ProductService {
       _avg: { rating: true },
     });
 
-    const distribution = await Promise.all(
-      [5, 4, 3, 2, 1].map(async star => {
-        const count = await prisma.review.count({
-          where: { productId: id, isApproved: true, rating: star },
-        });
-        return { stars: star, count };
-      })
-    );
+    const ratingDistribution = await prisma.review.groupBy({
+      by: ['rating'],
+      where: { productId: id, isApproved: true },
+      _count: { rating: true },
+    });
+
+    const distributionMap = new Map(ratingDistribution.map(d => [d.rating, d._count.rating]));
+    const distribution = [5, 4, 3, 2, 1].map(star => ({
+      stars: star,
+      count: distributionMap.get(star) || 0,
+    }));
 
     return {
       ...product,

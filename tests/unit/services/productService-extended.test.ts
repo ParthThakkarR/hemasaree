@@ -361,7 +361,7 @@ describe('ProductService - Extended', () => {
     it('handles distribution with all 5-star reviews', async () => {
       mockPrisma.product.findUnique.mockResolvedValue(mockProduct);
       mockPrisma.review.aggregate.mockResolvedValue({ _avg: { rating: 5 } });
-      mockPrisma.review.count.mockResolvedValueOnce(10).mockResolvedValue(0);
+      mockPrisma.review.groupBy.mockResolvedValue([{ rating: 5, _count: { rating: 10 } }]);
       const result = await ProductService.getProductById('p1');
       expect(result.reviewStats.distribution[0].count).toBe(10);
     });

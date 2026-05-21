@@ -77,4 +77,43 @@ export async function GET(req: NextRequest) {
   }
 }
 
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const { sections } = body as { sections: Array<{ key: string; limit: number; sortPrice?: string; category?: string }> };
+
+    if (!sections || !Array.isArray(sections)) {
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    }
+
+    const results: Record<string, any> = {};
+
+    await Promise.all(
+      sections.map(async (section) => {
+        const filters = {
+          categoryId: section.category || undefined,
+          maxPrice: 10000,
+        };
+        const sortPrice = section.sortPrice;
+        const sortOrder = sortPrice === 'asc' || sortPrice === 'low' ? 'asc' : 'desc';
+        const sortBy = 'price';
+
+        const result = await ProductService.getProducts(filters, {
+          page: 1,
+          limit: section.limit,
+          sortBy,
+          sortOrder,
+        });
+
+        results[section.key] = result.products;
+      })
+    );
+
+    return NextResponse.json({ sections: results });
+  } catch (err: any) {
+    console.error("[PRODUCTS_BATCH_ERROR]", err);
+    return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 });
+  }
+}
+
 

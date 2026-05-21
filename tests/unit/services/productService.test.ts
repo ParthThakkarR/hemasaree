@@ -303,12 +303,12 @@ describe('ProductService', () => {
     it('should calculate review distribution', async () => {
       mockPrisma.product.findUnique.mockResolvedValue(mockProduct);
       mockPrisma.review.aggregate.mockResolvedValue({ _avg: { rating: 4.0 } });
-      mockPrisma.review.count
-        .mockResolvedValueOnce(10) // 5 stars
-        .mockResolvedValueOnce(5)  // 4 stars
-        .mockResolvedValueOnce(2)  // 3 stars
-        .mockResolvedValueOnce(1)  // 2 stars
-        .mockResolvedValueOnce(0); // 1 star
+      mockPrisma.review.groupBy.mockResolvedValue([
+        { rating: 5, _count: { rating: 10 } },
+        { rating: 4, _count: { rating: 5 } },
+        { rating: 3, _count: { rating: 2 } },
+        { rating: 2, _count: { rating: 1 } },
+      ]);
 
       const result = await ProductService.getProductById('p1');
 

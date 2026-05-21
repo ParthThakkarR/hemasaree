@@ -17,21 +17,24 @@ export default function Home() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const [newRes, trendRes, bestRes] = await Promise.all([
-          fetch('/api/products?limit=4&sortPrice=newest'),
-          fetch('/api/products?limit=4&sortPrice=high'),
-          fetch('/api/products?limit=4&sortPrice=low'),
-        ]);
+        const res = await fetch('/api/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sections: [
+              { key: 'newArrivals', limit: 4, sortPrice: 'newest' },
+              { key: 'trending', limit: 4, sortPrice: 'high' },
+              { key: 'bestSellers', limit: 4, sortPrice: 'low' },
+            ],
+          }),
+        });
 
-        const [newData, trendData, bestData] = await Promise.all([
-          newRes.json(),
-          trendRes.json(),
-          bestRes.json(),
-        ]);
+        if (!res.ok) throw new Error('Failed to fetch products');
 
-        setNewArrivals(Array.isArray(newData.products) ? newData.products : []);
-        setTrending(Array.isArray(trendData.products) ? trendData.products : []);
-        setBestSellers(Array.isArray(bestData.products) ? bestData.products : []);
+        const data = await res.json();
+        setNewArrivals(data.sections.newArrivals || []);
+        setTrending(data.sections.trending || []);
+        setBestSellers(data.sections.bestSellers || []);
       } catch (err) {
         console.error('Failed to fetch products', err);
       } finally {
