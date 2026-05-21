@@ -22,7 +22,7 @@ export async function generateMetadata(
 
   return {
     title: product.name,
-    description: `Buy ${product.name} in ${product.color} color for ${product.ocassion}. Price: ₹${product.price}. High-quality Indian saree.`,
+    description: `Buy ${product.name} in ${product.color} color for ${product.occasion}. Price: ₹${product.price}. High-quality Indian saree.`,
     openGraph: {
       title: product.name,
       description: product.category.description || `Elegant ${product.name} saree.`,

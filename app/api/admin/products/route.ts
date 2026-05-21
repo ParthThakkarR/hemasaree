@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: validation.error.issues[0].message }, { status: 400 });
     }
 
-    const { name, description, color, fabric, ocassion, price, mrp, stock, categoryId, images } = validation.data;
+    const { name, description, color, fabric, occasion, price, mrp, stock, categoryId, images } = validation.data;
 
     const newProduct = await prisma.product.create({
       data: {
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
         description: description || null,
         color,
         fabric: fabric || null,
-        ocassion,
+        occasion,
         price,
         mrp: mrp || null,
         stock,

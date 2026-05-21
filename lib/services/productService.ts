@@ -7,7 +7,7 @@ export interface ProductFilters {
   minPrice?: number;
   maxPrice?: number;
   color?: string;
-  ocassion?: string;
+  occasion?: string;
 }
 
 export interface ProductListOptions {
@@ -37,7 +37,7 @@ export class ProductService {
       where.OR = [
         { name: { contains: filters.search, mode: 'insensitive' } },
         { color: { contains: filters.search, mode: 'insensitive' } },
-        { ocassion: { contains: filters.search, mode: 'insensitive' } },
+        { occasion: { contains: filters.search, mode: 'insensitive' } },
       ];
     }
 
@@ -51,8 +51,8 @@ export class ProductService {
       where.color = { contains: filters.color, mode: 'insensitive' };
     }
 
-    if (filters.ocassion) {
-      where.ocassion = { contains: filters.ocassion, mode: 'insensitive' };
+    if (filters.occasion) {
+      where.occasion = { contains: filters.occasion, mode: 'insensitive' };
     }
 
     return where;
@@ -185,7 +185,7 @@ export class ProductService {
     description?: string;
     color: string;
     fabric?: string;
-    ocassion: string;
+    occasion: string;
     price: number;
     mrp?: number;
     stock: number;
@@ -205,7 +205,7 @@ export class ProductService {
         description: data.description || null,
         color: data.color,
         fabric: data.fabric || null,
-        ocassion: data.ocassion,
+        occasion: data.occasion,
         price: data.price,
         mrp: data.mrp || null,
         stock: data.stock,
@@ -226,7 +226,7 @@ export class ProductService {
       description: string;
       color: string;
       fabric: string;
-      ocassion: string;
+      occasion: string;
       price: number;
       mrp: number;
       stock: number;

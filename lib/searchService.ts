@@ -22,14 +22,14 @@ export const searchProducts = async ({
       OR: [
         { name: { contains: query, mode: 'insensitive' } },
         { color: { contains: query, mode: 'insensitive' } },
-        { ocassion: { contains: query, mode: 'insensitive' } },
+        { occasion: { contains: query, mode: 'insensitive' } },
       ],
     });
   }
 
   if (category) where.AND.push({ categoryId: category });
   if (color) where.AND.push({ color: { equals: color, mode: 'insensitive' } });
-  if (occasion) where.AND.push({ ocassion: { equals: occasion, mode: 'insensitive' } });
+  if (occasion) where.AND.push({ occasion: { equals: occasion, mode: 'insensitive' } });
   
   if (minPrice || maxPrice) {
     where.AND.push({

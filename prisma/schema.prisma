@@ -136,7 +136,7 @@ model Product {
    description  String?
    color        String
    fabric       String?
-   ocassion     String
+    occasion     String
    price        Float
    mrp          Float?
    stock        Int
@@ -156,7 +156,7 @@ model Product {
    @@index([name])
    @@index([createdAt])
    @@index([price])
-   @@index([ocassion])
+   @@index([occasion])
    @@index([color])
  }
 

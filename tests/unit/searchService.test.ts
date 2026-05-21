@@ -116,7 +116,7 @@ describe('searchService.searchProducts', () => {
     );
   });
 
-  it('searches by query in ocassion', async () => {
+  it('searches by query in occasion', async () => {
     mocks.mockPrisma.product.findMany.mockResolvedValue([]);
     mocks.mockPrisma.product.count.mockResolvedValue(0);
     const { searchProducts } = await import('@/lib/searchService');
@@ -127,7 +127,7 @@ describe('searchService.searchProducts', () => {
           AND: expect.arrayContaining([
             expect.objectContaining({
               OR: expect.arrayContaining([
-                expect.objectContaining({ ocassion: expect.any(Object) }),
+                expect.objectContaining({ occasion: expect.any(Object) }),
               ]),
             }),
           ]),
@@ -187,7 +187,7 @@ describe('searchService.searchProducts', () => {
       expect.objectContaining({
         where: expect.objectContaining({
           AND: expect.arrayContaining([
-            expect.objectContaining({ ocassion: expect.any(Object) }),
+            expect.objectContaining({ occasion: expect.any(Object) }),
           ]),
         }),
       })

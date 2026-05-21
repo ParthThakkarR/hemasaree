@@ -20,13 +20,13 @@ describe('ProductService - Extended', () => {
   describe('buildWhereClause - Extended', () => {
     it('handles combined filters', () => {
       const where = ProductService.buildWhereClause({
-        categoryId: 'sarees', search: 'silk', minPrice: 100, maxPrice: 1000, color: 'red', ocassion: 'wedding',
+        categoryId: 'sarees', search: 'silk', minPrice: 100, maxPrice: 1000, color: 'red', occasion: 'wedding',
       });
       expect(where.category).toBeDefined();
       expect(where.OR).toBeDefined();
       expect(where.price).toBeDefined();
       expect(where.color).toBeDefined();
-      expect(where.ocassion).toBeDefined();
+      expect(where.occasion).toBeDefined();
     });
 
     it('handles only categoryId', () => {
@@ -57,9 +57,9 @@ describe('ProductService - Extended', () => {
       expect(where.color.contains).toBe('blue');
     });
 
-    it('handles only ocassion', () => {
-      const where = ProductService.buildWhereClause({ ocassion: 'party' });
-      expect(where.ocassion.contains).toBe('party');
+    it('handles only occasion', () => {
+      const where = ProductService.buildWhereClause({ occasion: 'party' });
+      expect(where.occasion.contains).toBe('party');
     });
 
     it('handles empty filters', () => {
@@ -77,9 +77,9 @@ describe('ProductService - Extended', () => {
       expect(where.color.mode).toBe('insensitive');
     });
 
-    it('handles case insensitive ocassion', () => {
-      const where = ProductService.buildWhereClause({ ocassion: 'WEDDING' });
-      expect(where.ocassion.mode).toBe('insensitive');
+    it('handles case insensitive occasion', () => {
+      const where = ProductService.buildWhereClause({ occasion: 'WEDDING' });
+      expect(where.occasion.mode).toBe('insensitive');
     });
 
     it('handles category name with spaces', () => {
@@ -140,9 +140,9 @@ describe('ProductService - Extended', () => {
       expect(where.color.contains).toBe('a'.repeat(1000));
     });
 
-    it('handles long ocassion string', () => {
-      const where = ProductService.buildWhereClause({ ocassion: 'a'.repeat(1000) });
-      expect(where.ocassion.contains).toBe('a'.repeat(1000));
+    it('handles long occasion string', () => {
+      const where = ProductService.buildWhereClause({ occasion: 'a'.repeat(1000) });
+      expect(where.occasion.contains).toBe('a'.repeat(1000));
     });
   });
 
@@ -434,7 +434,7 @@ describe('ProductService - Extended', () => {
 
   describe('createProduct - Extended', () => {
     const validData = {
-      name: 'New Saree', color: 'Red', ocassion: 'Wedding', price: 2999, stock: 50,
+      name: 'New Saree', color: 'Red', occasion: 'Wedding', price: 2999, stock: 50,
       categoryId: 'cat1', images: ['img1.jpg', 'img2.jpg'], userId: 'user1',
     };
 

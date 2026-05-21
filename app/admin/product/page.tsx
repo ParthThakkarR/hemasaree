@@ -19,7 +19,7 @@ interface Product {
   categoryId: string;
   category?: { name: string };
   color: string;
-  ocassion: string;
+  occasion: string;
 }
 
 export default function ManageProductsPage() {
@@ -44,7 +44,7 @@ export default function ManageProductsPage() {
     description: '',
     fabric: '',
     color: '',
-    ocassion: '',
+    occasion: '',
   });
   const [productImages, setProductImages] = useState<FileList | null>(null);
   const [productImageUrls, setProductImageUrls] = useState<string[]>([]);
@@ -115,7 +115,7 @@ export default function ManageProductsPage() {
       if (!res.ok) throw new Error('Failed to add product');
       
       toast.success('Product added successfully');
-      setProductData({ name: '', price: '', mrp: '', stock: '', category: '', description: '', fabric: '', color: '', ocassion: '' });
+      setProductData({ name: '', price: '', mrp: '', stock: '', category: '', description: '', fabric: '', color: '', occasion: '' });
       setProductImageUrls([]);
       setProductImages(null);
       if (fileRef.current) fileRef.current.value = '';
@@ -187,7 +187,7 @@ export default function ManageProductsPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Occasion</label>
-              <input className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-[#6B0F1A]" placeholder="Bridal" value={productData.ocassion} onChange={e => setProductData({ ...productData, ocassion: e.target.value })} required />
+              <input className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-[#6B0F1A]" placeholder="Bridal" value={productData.occasion} onChange={e => setProductData({ ...productData, occasion: e.target.value })} required />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹)</label>
@@ -258,7 +258,7 @@ export default function ManageProductsPage() {
                   </td>
                   <td className="p-4 font-medium text-[#1A0A12]">{p.name}</td>
                   <td className="p-4 text-gray-600 capitalize">{p.color}</td>
-                  <td className="p-4 text-gray-600 capitalize">{p.ocassion}</td>
+                  <td className="p-4 text-gray-600 capitalize">{p.occasion}</td>
                   <td className="p-4 font-semibold text-[#6B0F1A]">₹{p.price.toLocaleString('en-IN')}</td>
                   <td className="p-4">
                     <span className={`px-2 py-1 rounded-md text-xs font-bold ${p.stock < 5 ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
@@ -326,7 +326,7 @@ export default function ManageProductsPage() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Occasion</label>
-                    <input type="text" className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-[#6B0F1A]" value={editingProduct.ocassion} onChange={e => setEditingProduct({ ...editingProduct, ocassion: e.target.value })} required />
+                    <input type="text" className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-[#6B0F1A]" value={editingProduct.occasion} onChange={e => setEditingProduct({ ...editingProduct, occasion: e.target.value })} required />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹)</label>

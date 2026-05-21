@@ -102,7 +102,7 @@ export default function ProductAccordion({ product, reviews, reviewStats, onRevi
             {[
               { label: 'Fabric', value: product.fabric || 'Handloom' },
               { label: 'Color', value: product.color },
-              { label: 'Occasion', value: product.ocassion },
+              { label: 'Occasion', value: product.occasion },
               { label: 'Blouse Piece', value: 'Included (Unstitched)' },
               { label: 'Saree Length', value: '5.5 meters' },
               { label: 'Blouse Length', value: '0.8 meters' },

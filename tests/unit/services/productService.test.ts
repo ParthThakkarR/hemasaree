@@ -69,10 +69,10 @@ describe('ProductService', () => {
       expect(where.color.contains).toBe('red');
     });
 
-    it('should build where clause with ocassion filter', () => {
-      const filters = { ocassion: 'wedding' };
+    it('should build where clause with occasion filter', () => {
+      const filters = { occasion: 'wedding' };
       const where = ProductService.buildWhereClause(filters);
-      expect(where.ocassion.contains).toBe('wedding');
+      expect(where.occasion.contains).toBe('wedding');
     });
 
     it('should build empty where clause', () => {
@@ -372,7 +372,7 @@ describe('ProductService', () => {
     const validProductData = {
       name: 'New Silk Saree',
       color: 'Red',
-      ocassion: 'Wedding',
+      occasion: 'Wedding',
       price: 2999,
       stock: 50,
       categoryId: 'cat1',
@@ -393,7 +393,7 @@ describe('ProductService', () => {
           description: null,
           color: 'Red',
           fabric: null,
-          ocassion: 'Wedding',
+          occasion: 'Wedding',
           price: 2999,
           mrp: null,
           stock: 50,

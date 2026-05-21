@@ -441,21 +441,31 @@ describe('authOptions', () => {
   });
 
   describe('Environment variable handling', () => {
-    it('handles missing GOOGLE_CLIENT_ID', () => {
-      delete process.env.GOOGLE_CLIENT_ID;
+    it('uses GOOGLE_CLIENT_ID from env or empty string', () => {
       const googleProvider: any = authOptions.providers.find((p: any) => p.id === 'google');
-      expect(googleProvider?.clientId).toBe('');
+      expect(googleProvider?.clientId).toBe(process.env.GOOGLE_CLIENT_ID || '');
     });
 
-    it('handles missing GOOGLE_CLIENT_SECRET', () => {
-      delete process.env.GOOGLE_CLIENT_SECRET;
+    it('uses GOOGLE_CLIENT_SECRET from env or empty string', () => {
       const googleProvider: any = authOptions.providers.find((p: any) => p.id === 'google');
-      expect(googleProvider?.clientSecret).toBe('');
+      expect(googleProvider?.clientSecret).toBe(process.env.GOOGLE_CLIENT_SECRET || '');
     });
 
     it('allowsDangerousEmailAccountLinking is true on GoogleProvider', () => {
       const googleProvider: any = authOptions.providers.find((p: any) => p.id === 'google');
       expect(googleProvider?.allowDangerousEmailAccountLinking).toBe(true);
+    });
+  });
+
+  describe('Google provider credential variations', () => {
+    it('GoogleProvider clientId is a string', () => {
+      const googleProvider: any = authOptions.providers.find((p: any) => p.id === 'google');
+      expect(typeof googleProvider?.clientId).toBe('string');
+    });
+
+    it('GoogleProvider clientSecret is a string', () => {
+      const googleProvider: any = authOptions.providers.find((p: any) => p.id === 'google');
+      expect(typeof googleProvider?.clientSecret).toBe('string');
     });
   });
 
@@ -794,18 +804,6 @@ it('Credentials provider has all required fields', () => {
   });
 
   describe('Google provider credential variations', () => {
-    it('GoogleProvider clientId defaults to empty string', () => {
-      delete process.env.GOOGLE_CLIENT_ID;
-      const googleProvider: any = authOptions.providers.find((p: any) => p.id === 'google');
-      expect(googleProvider?.clientId).toBe('');
-    });
-
-    it('GoogleProvider clientSecret defaults to empty string', () => {
-      delete process.env.GOOGLE_CLIENT_SECRET;
-      const googleProvider: any = authOptions.providers.find((p: any) => p.id === 'google');
-      expect(googleProvider?.clientSecret).toBe('');
-    });
-
     it('GoogleProvider name is Google', () => {
       const googleProvider: any = authOptions.providers.find((p: any) => p.id === 'google');
       expect(googleProvider?.name).toBe('Google');

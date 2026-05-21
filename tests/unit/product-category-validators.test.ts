@@ -12,7 +12,7 @@ describe('Product Validators', () => {
   const validProduct = {
     name: 'Banarasi Silk Saree',
     color: 'Maroon',
-    ocassion: 'Bridal',
+    occasion: 'Bridal',
     price: 4999,
     stock: 10,
     categoryId: '507f1f77bcf86cd799439011',
@@ -95,8 +95,8 @@ describe('Product Validators', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should reject missing ocassion', () => {
-      const result = ProductSchema.safeParse({ ...validProduct, ocassion: '' });
+    it('should reject missing occasion', () => {
+      const result = ProductSchema.safeParse({ ...validProduct, occasion: '' });
       expect(result.success).toBe(false);
     });
   });

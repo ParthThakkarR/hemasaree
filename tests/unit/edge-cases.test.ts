@@ -24,7 +24,7 @@ describe('Security & Edge Case Validators', () => {
       const result = ProductSchema.safeParse({
         name: '<script>alert("xss")</script>',
         color: 'Red',
-        ocassion: 'Festive',
+        occasion: 'Festive',
         price: 100,
         stock: 5,
         categoryId: 'abc123',
@@ -61,7 +61,7 @@ describe('Security & Edge Case Validators', () => {
       const result = ProductSchema.safeParse({
         name: 'A'.repeat(10000),
         color: 'Red',
-        ocassion: 'Bridal',
+        occasion: 'Bridal',
         price: 1,
         stock: 0,
         categoryId: 'id123',
@@ -75,7 +75,7 @@ describe('Security & Edge Case Validators', () => {
       const result = ProductSchema.safeParse({
         name: 'Expensive Saree',
         color: 'Gold',
-        ocassion: 'Bridal',
+        occasion: 'Bridal',
         price: Number.MAX_SAFE_INTEGER,
         stock: 1,
         categoryId: 'id123',
@@ -88,7 +88,7 @@ describe('Security & Edge Case Validators', () => {
       const result = ProductSchema.safeParse({
         name: 'Saree',
         color: 'Blue',
-        ocassion: 'Casual',
+        occasion: 'Casual',
         price: 999.99,
         stock: 10,
         categoryId: 'id123',
@@ -179,7 +179,7 @@ describe('Security & Edge Case Validators', () => {
       const result = ProductSchema.safeParse({
         name: 'Out of Stock Saree',
         color: 'Pink',
-        ocassion: 'Casual',
+        occasion: 'Casual',
         price: 500,
         stock: '0',
         categoryId: 'cat1',
@@ -197,7 +197,7 @@ describe('Security & Edge Case Validators', () => {
       const result = ProductSchema.safeParse({
         name: '   ',
         color: 'Red',
-        ocassion: 'Bridal',
+        occasion: 'Bridal',
         price: 100,
         stock: 1,
         categoryId: 'cat1',
@@ -212,7 +212,7 @@ describe('Security & Edge Case Validators', () => {
       const result = ProductSchema.safeParse({
         name: 'Saree',
         color: 'Blue',
-        ocassion: 'Festive',
+        occasion: 'Festive',
         price: 100,
         stock: 1,
         categoryId: 'cat1',
