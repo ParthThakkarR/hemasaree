@@ -6,6 +6,7 @@ import React, {
   useCallback,
   useEffect,
   useState,
+  useRef,
   ReactNode,
 } from 'react';
 import { useAuth } from '@contexts/auth-context';
@@ -31,6 +32,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [isHydrated, setIsHydrated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const pendingOps = useRef<Set<string>>(new Set());
 
   const getStorageKey = useCallback(() => {
     return user?.id ? `${STORAGE_KEY_PREFIX}${user.id}` : `${STORAGE_KEY_PREFIX}guest`;
@@ -82,17 +84,18 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   const isInWishlist = useCallback((id: string) => wishlist.includes(id), [wishlist]);
 
   const toggleWishlist = useCallback(async (id: string) => {
-    // Optimistic UI update
+    if (pendingOps.current.has(id)) return;
+    pendingOps.current.add(id);
+
+    const wasInWishlist = wishlist.includes(id);
     setWishlist(prev => {
-        const updated = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id];
-        // If not logged in, persist to localStorage immediately
+        const updated = wasInWishlist ? prev.filter(x => x !== id) : [...prev, id];
         if (!user?.id) {
             localStorage.setItem(getStorageKey(), JSON.stringify(updated));
         }
         return updated;
     });
 
-    // Server-side update if logged in
     if (user?.id) {
         try {
             const res = await fetch('/api/wishlist', {
@@ -102,16 +105,22 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
             });
             if (!res.ok) throw new Error('DB update failed');
             
-            // Sync with actual DB state just in case
             const dbWishlist = await fetch('/api/wishlist').then(r => r.json());
             setWishlist(dbWishlist);
             localStorage.setItem(getStorageKey(), JSON.stringify(dbWishlist));
         } catch (err) {
             console.error('Failed to update DB wishlist', err);
-            // Revert might be needed here in a more complex app
+            setWishlist(prev => {
+                const reverted = wasInWishlist ? [...prev, id] : prev.filter(x => x !== id);
+                return reverted;
+            });
+        } finally {
+            pendingOps.current.delete(id);
         }
+    } else {
+        pendingOps.current.delete(id);
     }
-  }, [user, getStorageKey]);
+  }, [user, getStorageKey, wishlist]);
 
   const clearWishlist = useCallback(async () => {
     setWishlist([]);

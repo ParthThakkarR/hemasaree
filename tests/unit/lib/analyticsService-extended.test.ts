@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
   mockPrisma: {
-    order: { count: vi.fn(), aggregate: vi.fn(), groupBy: vi.fn() },
+    order: { count: vi.fn(), aggregate: vi.fn(), groupBy: vi.fn(), findMany: vi.fn() },
     user: { count: vi.fn() },
     product: { count: vi.fn() },
     orderItem: { groupBy: vi.fn() },
@@ -205,18 +205,25 @@ describe('getDashboardStats', () => {
 describe('getSalesReport', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
-  it('returns sales data', async () => {
-    const mockSales = [{ createdAt: new Date(), _sum: { totalAmount: 5000 } }];
-    mocks.mockPrisma.order.groupBy.mockResolvedValue(mockSales);
+  it('returns sales data grouped by date', async () => {
+    const mockOrders = [
+      { createdAt: new Date('2024-01-01'), totalAmount: 1000 },
+      { createdAt: new Date('2024-01-01'), totalAmount: 500 },
+      { createdAt: new Date('2024-01-02'), totalAmount: 2000 },
+    ];
+    mocks.mockPrisma.order.findMany.mockResolvedValue(mockOrders);
 
     const result = await getSalesReport();
-    expect(result).toEqual(mockSales);
+    expect(result).toEqual([
+      { date: '2024-01-01', total: 1500 },
+      { date: '2024-01-02', total: 2000 },
+    ]);
   });
 
   it('uses default 30 days', async () => {
-    mocks.mockPrisma.order.groupBy.mockResolvedValue([]);
+    mocks.mockPrisma.order.findMany.mockResolvedValue([]);
     await getSalesReport();
-    expect(mocks.mockPrisma.order.groupBy).toHaveBeenCalledWith(
+    expect(mocks.mockPrisma.order.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
           createdAt: expect.objectContaining({ gte: expect.any(Date) }),
@@ -226,89 +233,73 @@ describe('getSalesReport', () => {
   });
 
   it('filters by DELIVERED status', async () => {
-    mocks.mockPrisma.order.groupBy.mockResolvedValue([]);
+    mocks.mockPrisma.order.findMany.mockResolvedValue([]);
     await getSalesReport();
-    expect(mocks.mockPrisma.order.groupBy).toHaveBeenCalledWith(
+    expect(mocks.mockPrisma.order.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({ status: 'DELIVERED' }),
       })
     );
   });
 
-  it('groups by createdAt', async () => {
-    mocks.mockPrisma.order.groupBy.mockResolvedValue([]);
-    await getSalesReport();
-    expect(mocks.mockPrisma.order.groupBy).toHaveBeenCalledWith(
-      expect.objectContaining({ by: ['createdAt'] })
-    );
-  });
-
-  it('aggregates totalAmount sum', async () => {
-    mocks.mockPrisma.order.groupBy.mockResolvedValue([]);
-    await getSalesReport();
-    expect(mocks.mockPrisma.order.groupBy).toHaveBeenCalledWith(
-      expect.objectContaining({ _sum: { totalAmount: true } })
-    );
-  });
-
   it('orders by createdAt ascending', async () => {
-    mocks.mockPrisma.order.groupBy.mockResolvedValue([]);
+    mocks.mockPrisma.order.findMany.mockResolvedValue([]);
     await getSalesReport();
-    expect(mocks.mockPrisma.order.groupBy).toHaveBeenCalledWith(
+    expect(mocks.mockPrisma.order.findMany).toHaveBeenCalledWith(
       expect.objectContaining({ orderBy: { createdAt: 'asc' } })
     );
   });
 
   it('accepts custom days parameter', async () => {
-    mocks.mockPrisma.order.groupBy.mockResolvedValue([]);
+    mocks.mockPrisma.order.findMany.mockResolvedValue([]);
     await getSalesReport(7);
-    expect(mocks.mockPrisma.order.groupBy).toHaveBeenCalled();
+    expect(mocks.mockPrisma.order.findMany).toHaveBeenCalled();
   });
 
   it('returns empty array when no sales', async () => {
-    mocks.mockPrisma.order.groupBy.mockResolvedValue([]);
+    mocks.mockPrisma.order.findMany.mockResolvedValue([]);
     const result = await getSalesReport();
     expect(result).toEqual([]);
   });
 
   it('returns multiple sales entries', async () => {
-    const mockSales = [
-      { createdAt: new Date('2024-01-01'), _sum: { totalAmount: 1000 } },
-      { createdAt: new Date('2024-01-02'), _sum: { totalAmount: 2000 } },
+    const mockOrders = [
+      { createdAt: new Date('2024-01-01'), totalAmount: 1000 },
+      { createdAt: new Date('2024-01-02'), totalAmount: 2000 },
     ];
-    mocks.mockPrisma.order.groupBy.mockResolvedValue(mockSales);
+    mocks.mockPrisma.order.findMany.mockResolvedValue(mockOrders);
     const result = await getSalesReport();
     expect(result).toHaveLength(2);
   });
 
   it('handles 7 day report', async () => {
-    mocks.mockPrisma.order.groupBy.mockResolvedValue([]);
+    mocks.mockPrisma.order.findMany.mockResolvedValue([]);
     await getSalesReport(7);
-    expect(mocks.mockPrisma.order.groupBy).toHaveBeenCalled();
+    expect(mocks.mockPrisma.order.findMany).toHaveBeenCalled();
   });
 
   it('handles 90 day report', async () => {
-    mocks.mockPrisma.order.groupBy.mockResolvedValue([]);
+    mocks.mockPrisma.order.findMany.mockResolvedValue([]);
     await getSalesReport(90);
-    expect(mocks.mockPrisma.order.groupBy).toHaveBeenCalled();
+    expect(mocks.mockPrisma.order.findMany).toHaveBeenCalled();
   });
 
   it('handles 365 day report', async () => {
-    mocks.mockPrisma.order.groupBy.mockResolvedValue([]);
+    mocks.mockPrisma.order.findMany.mockResolvedValue([]);
     await getSalesReport(365);
-    expect(mocks.mockPrisma.order.groupBy).toHaveBeenCalled();
+    expect(mocks.mockPrisma.order.findMany).toHaveBeenCalled();
   });
 
   it('handles 1 day report', async () => {
-    mocks.mockPrisma.order.groupBy.mockResolvedValue([]);
+    mocks.mockPrisma.order.findMany.mockResolvedValue([]);
     await getSalesReport(1);
-    expect(mocks.mockPrisma.order.groupBy).toHaveBeenCalled();
+    expect(mocks.mockPrisma.order.findMany).toHaveBeenCalled();
   });
 
   it('handles zero days', async () => {
-    mocks.mockPrisma.order.groupBy.mockResolvedValue([]);
+    mocks.mockPrisma.order.findMany.mockResolvedValue([]);
     await getSalesReport(0);
-    expect(mocks.mockPrisma.order.groupBy).toHaveBeenCalled();
+    expect(mocks.mockPrisma.order.findMany).toHaveBeenCalled();
   });
 });
 

@@ -126,20 +126,22 @@ describe('analyticsService.getDashboardStats', () => {
 describe('analyticsService.getSalesReport', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
-  it('returns sales data', async () => {
-    mocks.mockPrisma.order.groupBy.mockResolvedValue([
-      { createdAt: new Date(), _sum: { totalAmount: 1000 } },
+  it('returns sales data grouped by date', async () => {
+    mocks.mockPrisma.order.findMany.mockResolvedValue([
+      { createdAt: new Date('2024-01-01'), totalAmount: 1000 },
+      { createdAt: new Date('2024-01-01'), totalAmount: 500 },
     ]);
     const { getSalesReport } = await import('@/lib/analyticsService');
     const report = await getSalesReport();
     expect(Array.isArray(report)).toBe(true);
+    expect(report).toEqual([{ date: '2024-01-01', total: 1500 }]);
   });
 
   it('uses default 30 days', async () => {
-    mocks.mockPrisma.order.groupBy.mockResolvedValue([]);
+    mocks.mockPrisma.order.findMany.mockResolvedValue([]);
     const { getSalesReport } = await import('@/lib/analyticsService');
     await getSalesReport();
-    expect(mocks.mockPrisma.order.groupBy).toHaveBeenCalledWith(
+    expect(mocks.mockPrisma.order.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
           createdAt: expect.objectContaining({ gte: expect.any(Date) }),
@@ -149,17 +151,17 @@ describe('analyticsService.getSalesReport', () => {
   });
 
   it('uses custom days parameter', async () => {
-    mocks.mockPrisma.order.groupBy.mockResolvedValue([]);
+    mocks.mockPrisma.order.findMany.mockResolvedValue([]);
     const { getSalesReport } = await import('@/lib/analyticsService');
     await getSalesReport(7);
-    expect(mocks.mockPrisma.order.groupBy).toHaveBeenCalled();
+    expect(mocks.mockPrisma.order.findMany).toHaveBeenCalled();
   });
 
   it('filters by DELIVERED status', async () => {
-    mocks.mockPrisma.order.groupBy.mockResolvedValue([]);
+    mocks.mockPrisma.order.findMany.mockResolvedValue([]);
     const { getSalesReport } = await import('@/lib/analyticsService');
     await getSalesReport();
-    expect(mocks.mockPrisma.order.groupBy).toHaveBeenCalledWith(
+    expect(mocks.mockPrisma.order.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({ status: 'DELIVERED' }),
       })
@@ -167,80 +169,62 @@ describe('analyticsService.getSalesReport', () => {
   });
 
   it('orders by createdAt asc', async () => {
-    mocks.mockPrisma.order.groupBy.mockResolvedValue([]);
+    mocks.mockPrisma.order.findMany.mockResolvedValue([]);
     const { getSalesReport } = await import('@/lib/analyticsService');
     await getSalesReport();
-    expect(mocks.mockPrisma.order.groupBy).toHaveBeenCalledWith(
+    expect(mocks.mockPrisma.order.findMany).toHaveBeenCalledWith(
       expect.objectContaining({ orderBy: { createdAt: 'asc' } })
     );
   });
 
-  it('groups by createdAt', async () => {
-    mocks.mockPrisma.order.groupBy.mockResolvedValue([]);
-    const { getSalesReport } = await import('@/lib/analyticsService');
-    await getSalesReport();
-    expect(mocks.mockPrisma.order.groupBy).toHaveBeenCalledWith(
-      expect.objectContaining({ by: ['createdAt'] })
-    );
-  });
-
-  it('sums totalAmount', async () => {
-    mocks.mockPrisma.order.groupBy.mockResolvedValue([]);
-    const { getSalesReport } = await import('@/lib/analyticsService');
-    await getSalesReport();
-    expect(mocks.mockPrisma.order.groupBy).toHaveBeenCalledWith(
-      expect.objectContaining({ _sum: { totalAmount: true } })
-    );
-  });
-
   it('returns empty array when no sales', async () => {
-    mocks.mockPrisma.order.groupBy.mockResolvedValue([]);
+    mocks.mockPrisma.order.findMany.mockResolvedValue([]);
     const { getSalesReport } = await import('@/lib/analyticsService');
     const report = await getSalesReport();
     expect(report).toEqual([]);
   });
 
   it('handles 7 day report', async () => {
-    mocks.mockPrisma.order.groupBy.mockResolvedValue([]);
+    mocks.mockPrisma.order.findMany.mockResolvedValue([]);
     const { getSalesReport } = await import('@/lib/analyticsService');
     await getSalesReport(7);
-    expect(mocks.mockPrisma.order.groupBy).toHaveBeenCalled();
+    expect(mocks.mockPrisma.order.findMany).toHaveBeenCalled();
   });
 
   it('handles 90 day report', async () => {
-    mocks.mockPrisma.order.groupBy.mockResolvedValue([]);
+    mocks.mockPrisma.order.findMany.mockResolvedValue([]);
     const { getSalesReport } = await import('@/lib/analyticsService');
     await getSalesReport(90);
-    expect(mocks.mockPrisma.order.groupBy).toHaveBeenCalled();
+    expect(mocks.mockPrisma.order.findMany).toHaveBeenCalled();
   });
 
   it('handles 365 day report', async () => {
-    mocks.mockPrisma.order.groupBy.mockResolvedValue([]);
+    mocks.mockPrisma.order.findMany.mockResolvedValue([]);
     const { getSalesReport } = await import('@/lib/analyticsService');
     await getSalesReport(365);
-    expect(mocks.mockPrisma.order.groupBy).toHaveBeenCalled();
+    expect(mocks.mockPrisma.order.findMany).toHaveBeenCalled();
   });
 
   it('handles 0 days', async () => {
-    mocks.mockPrisma.order.groupBy.mockResolvedValue([]);
+    mocks.mockPrisma.order.findMany.mockResolvedValue([]);
     const { getSalesReport } = await import('@/lib/analyticsService');
     await getSalesReport(0);
-    expect(mocks.mockPrisma.order.groupBy).toHaveBeenCalled();
+    expect(mocks.mockPrisma.order.findMany).toHaveBeenCalled();
   });
 
   it('handles negative days', async () => {
-    mocks.mockPrisma.order.groupBy.mockResolvedValue([]);
+    mocks.mockPrisma.order.findMany.mockResolvedValue([]);
     const { getSalesReport } = await import('@/lib/analyticsService');
     await getSalesReport(-30);
-    expect(mocks.mockPrisma.order.groupBy).toHaveBeenCalled();
+    expect(mocks.mockPrisma.order.findMany).toHaveBeenCalled();
   });
 
   it('handles multiple sales entries', async () => {
     const entries = Array.from({ length: 30 }, (_, i) => ({
       createdAt: new Date(Date.now() - i * 86400000),
-      _sum: { totalAmount: 1000 + i * 100 },
+      totalAmount: 1000 + i * 100,
     }));
-    mocks.mockPrisma.order.groupBy.mockResolvedValue(entries);
+    mocks.mockPrisma.order.findMany.mockResolvedValue(entries);
     const { getSalesReport } = await import('@/lib/analyticsService');
     const report = await getSalesReport();
     expect(report).toHaveLength(30);

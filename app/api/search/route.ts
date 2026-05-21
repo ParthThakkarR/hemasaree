@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
       color: searchParams.get('color'),
       occasion: searchParams.get('occasion'),
       minPrice: parseFloat(searchParams.get('minPrice') || '0'),
-      maxPrice: parseFloat(searchParams.get('maxPrice') || '0'),
+      maxPrice: parseFloat(searchParams.get('maxPrice') || '1000000'),
       sort: searchParams.get('sort'),
       page: parseInt(searchParams.get('page') || '1'),
       limit: parseInt(searchParams.get('limit') || '12'),

@@ -23,17 +23,25 @@ export const getSalesReport = async (days = 30) => {
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
 
-  const sales = await prisma.order.groupBy({
-    by: ['createdAt'],
-    _sum: { totalAmount: true },
+  const orders = await prisma.order.findMany({
     where: {
       createdAt: { gte: startDate },
       status: 'DELIVERED',
     },
+    select: {
+      createdAt: true,
+      totalAmount: true,
+    },
     orderBy: { createdAt: 'asc' },
   });
 
-  return sales;
+  const dailySales: Record<string, number> = {};
+  orders.forEach(order => {
+    const dateKey = order.createdAt.toISOString().split('T')[0];
+    dailySales[dateKey] = (dailySales[dateKey] || 0) + order.totalAmount;
+  });
+
+  return Object.entries(dailySales).map(([date, total]) => ({ date, total }));
 };
 
 export const getTopProducts = async (limit = 5) => {

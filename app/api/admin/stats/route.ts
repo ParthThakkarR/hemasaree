@@ -18,18 +18,23 @@ export async function GET(req: Request) {
     });
 
     // 2. Revenue & Orders
-    const orders = await prisma.order.findMany({
-      where: { status: { not: "CANCELLED" } },
-      select: { totalAmount: true }
+    const revenueAggregate = await prisma.order.aggregate({
+      _sum: { totalAmount: true },
+      _count: true,
+      where: { status: { not: "CANCELLED" } }
     });
-    const totalRevenue = orders.reduce((sum, order) => sum + order.totalAmount, 0);
-    const totalOrders = orders.length;
+    const totalRevenue = revenueAggregate._sum.totalAmount || 0;
+    const totalOrders = revenueAggregate._count;
 
     // 3. Inventory Value
-    const products = await prisma.product.findMany({
+    const inventoryAggregate = await prisma.product.aggregate({
+      _sum: { price: true },
+      where: {}
+    });
+    const allProducts = await prisma.product.findMany({
       select: { price: true, stock: true }
     });
-    const inventoryValue = products.reduce((sum, p) => sum + (p.price * p.stock), 0);
+    const inventoryValue = allProducts.reduce((sum, p) => sum + (p.price * p.stock), 0);
 
     // 4. Visitors (Last 7 days)
     const sevenDaysAgo = new Date();
@@ -51,21 +56,17 @@ export async function GET(req: Request) {
     });
 
     // 6. Top Products
-    const orderItems = await prisma.orderItem.findMany({
-       select: { productId: true, quantity: true, productName: true }
-    });
-    
-    const productSales: Record<string, { name: string, count: number }> = {};
-    orderItems.forEach(item => {
-        if (!productSales[item.productId]) {
-            productSales[item.productId] = { name: item.productName, count: 0 };
-        }
-        productSales[item.productId].count += item.quantity;
+    const topProductsAggregate = await prisma.orderItem.groupBy({
+      by: ['productId', 'productName'],
+      _sum: { quantity: true },
+      orderBy: { _sum: { quantity: 'desc' } },
+      take: 5,
     });
 
-    const topProducts = Object.values(productSales)
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 5);
+    const topProducts = topProductsAggregate.map(item => ({
+      name: item.productName,
+      count: item._sum.quantity || 0,
+    }));
 
     return NextResponse.json({
       totalProducts,

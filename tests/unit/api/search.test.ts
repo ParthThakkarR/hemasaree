@@ -69,11 +69,11 @@ describe('GET /api/search', () => {
     );
   });
 
-  it('uses default maxPrice 0 when not provided', async () => {
+  it('uses default maxPrice 1000000 when not provided', async () => {
     mockSearchProducts.mockResolvedValue({ products: [], total: 0 });
     await GET(makeReq('http://localhost:3000/api/search'));
     expect(mockSearchProducts).toHaveBeenCalledWith(
-      expect.objectContaining({ maxPrice: 0 })
+      expect.objectContaining({ maxPrice: 1000000 })
     );
   });
 
