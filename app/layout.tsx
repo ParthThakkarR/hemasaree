@@ -27,6 +27,7 @@ export async function generateMetadata(): Promise<Metadata> {
       type: 'website',
       locale: 'en_IN',
       siteName: siteTitle,
+      images: ['/og-image.png'],
     },
   };
 }

@@ -2,6 +2,8 @@ import { Metadata, ResolvingMetadata } from 'next';
 import { prisma } from '@lib/prisma';
 import ProductDetailClient from '@/app/(pages)/product/[id]/product-detail-client';
 import { notFound } from 'next/navigation';
+import Link from 'next/link';
+import { ChevronRight } from 'lucide-react';
 
 type Props = {
   params: { id: string };
@@ -78,6 +80,17 @@ export default async function Page({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 lg:pt-36 pb-4">
+        <nav className="flex items-center gap-1 text-sm text-ink-muted" aria-label="Breadcrumb">
+          <Link href="/" className="hover:text-brand-800 transition-colors">Home</Link>
+          <ChevronRight size={14} />
+          <Link href="/products" className="hover:text-brand-800 transition-colors">Products</Link>
+          <ChevronRight size={14} />
+          <Link href={`/products?category=${product.categoryId}`} className="hover:text-brand-800 transition-colors">{product.category.name}</Link>
+          <ChevronRight size={14} />
+          <span className="text-ink font-medium truncate max-w-[200px]">{product.name}</span>
+        </nav>
+      </div>
       <ProductDetailClient initialProduct={product} initialRelated={related} />
     </>
   );
