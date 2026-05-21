@@ -2,8 +2,27 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@lib/prisma';
 import { getUserFromToken } from '@lib/getUserFromToken';
 import type { User } from '@lib/getUserFromToken';
+import { z } from 'zod';
 
 export const dynamic = "force-dynamic";
+
+const AddressInputSchema = z.object({
+  streetAddress: z.string().min(1, 'Street address is required'),
+  city: z.string().min(1, 'City is required'),
+  state: z.string().min(1, 'State is required'),
+  zipCode: z.string().min(1, 'ZIP code is required'),
+  label: z.string().optional(),
+  isDefault: z.boolean().optional(),
+});
+
+const ProfileUpdateSchema = z.object({
+  firstName: z.string().min(1, 'First name cannot be empty').optional(),
+  lastName: z.string().min(1, 'Last name cannot be empty').optional(),
+  phone: z.preprocess(
+    (val) => typeof val === 'string' ? val.trim() : val,
+    z.string().regex(/^\d{10}$/, 'Phone must be 10 digits').optional().or(z.literal('')),
+  ),
+});
 
 /**
  * ✅ GET  /api/me  → Return logged-in user + all saved addresses
@@ -54,15 +73,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { streetAddress, city, state, zipCode, label, isDefault } =
-      await req.json();
-
-    if (!streetAddress || !city || !state || !zipCode) {
+    const body = await req.json();
+    const validation = AddressInputSchema.safeParse(body);
+    if (!validation.success) {
       return NextResponse.json(
-        { error: 'All fields required' },
+        { error: validation.error.issues[0].message },
         { status: 400 }
       );
     }
+
+    const { streetAddress, city, state, zipCode, label, isDefault } = validation.data;
 
     // If a default is being added, unset old default
     if (isDefault) {
@@ -102,29 +122,19 @@ export async function PUT(req: Request) {
     }
 
     const body = await req.json();
-    const { firstName, lastName, phone } = body as {
-      firstName?: string;
-      lastName?: string;
-      phone?: string;
-    };
+    const validation = ProfileUpdateSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: validation.error.issues[0].message },
+        { status: 400 }
+      );
+    }
+
+    const { firstName, lastName, phone } = validation.data;
 
     if (!firstName && !lastName && !phone) {
       return NextResponse.json(
         { error: 'Nothing to update. Provide at least one field.' },
-        { status: 400 }
-      );
-    }
-
-    if (firstName !== undefined && firstName.trim().length === 0) {
-      return NextResponse.json(
-        { error: 'First name cannot be empty.' },
-        { status: 400 }
-      );
-    }
-
-    if (phone !== undefined && phone.trim().length > 0 && !/^\d{10}$/.test(phone.trim())) {
-      return NextResponse.json(
-        { error: 'Phone number must be exactly 10 digits.' },
         { status: 400 }
       );
     }
