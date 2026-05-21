@@ -4,9 +4,9 @@ const bcrypt = require('bcryptjs');
 const prisma = new PrismaClient();
 
 const CATEGORIES = [
-  { name: 'Bridal', description: 'Exquisite bridal sarees for your special day', image: '/uploads/placeholder.png' },
-  { name: 'Silk', description: 'Pure silk sarees with timeless elegance', image: '/uploads/placeholder.png' },
-  { name: 'Cotton', description: 'Comfortable cotton sarees for everyday wear', image: '/uploads/placeholder.png' },
+  { name: 'Bridal', description: 'Exquisite bridal sarees for your special day', image: '/uploads/categories/1777817237930_images__1_.jpeg' },
+  { name: 'Silk', description: 'Pure silk sarees with timeless elegance', image: '/uploads/categories/1773415965570_dataset-card.jpg' },
+  { name: 'Cotton', description: 'Comfortable cotton sarees for everyday wear', image: '/uploads/categories/1777817345665_ChatGPT_Image_Feb_25__2026__09_13_58_PM.png' },
   { name: 'Festive', description: 'Celebration-ready sarees for festivals and occasions', image: '/uploads/placeholder.png' },
   { name: 'Party Wear', description: 'Stunning party wear sarees that make a statement', image: '/uploads/placeholder.png' },
   { name: 'Casual', description: 'Light and breezy sarees for casual outings', image: '/uploads/placeholder.png' },
@@ -43,20 +43,40 @@ const PRODUCT_DATA = [
 ];
 
 const PRODUCT_DESCRIPTIONS = [
-  'Handcrafted with intricate detailing, this exquisite saree is perfect for special occasions. Made with premium quality fabric and adorned with beautiful patterns.',
-  'A timeless classic that combines traditional craftsmanship with modern elegance. Features rich colors and detailed borders.',
-  'Lightweight and comfortable, this saree is ideal for all-day wear. The vibrant colors and elegant drape make it a wardrobe essential.',
-  'Beautifully woven with traditional motifs, this saree showcases the rich heritage of Indian textile artistry.',
-  'A stunning piece featuring detailed embroidery and embellishments. Perfect for making a statement at any celebration.',
+  'Handcrafted Kanjivaram silk saree with rich zari border and temple design. Perfect for weddings and special occasions. Comes with matching blouse piece.',
+  'Traditional Banarasi brocade with intricate gold zari weaving on pure silk. Features Mughal-inspired motifs and a heavy pallu. A timeless heirloom piece.',
+  'Authentic Patola silk double ikat saree with geometric patterns. Handwoven by master artisans. Vibrant colors that last generations.',
+  'Light Chanderi cotton-silk blend with delicate zari checks. Ideal for daily wear and office. Soft texture with elegant drape.',
+  'Vibrant Bandhani tie-dye georgette saree with traditional Gujarati patterns. Festive colors with mirror work border. Perfect for Navratri.',
+  'Heavy embroidered net saree with sequin and thread work. Designer piece for parties and receptions. Comes with embellished blouse.',
+  'Flowy chiffon saree with all-over digital floral print. Lightweight and easy to drape. Perfect for casual outings and summer events.',
+  'Heritage Paithani silk with peacock motif pallu and zari border. Handwoven in Maharashtra. A bridal essential with rich tradition.',
+  'Natural Tussar silk with hand-painted Madhubani art. Earthy tones with tribal motifs. Eco-friendly and unique.',
+  'Premium linen-cotton blend with hand-block printed borders. Breathable fabric for all-day comfort. Minimalist elegance.',
+  'Sheer organza with delicate floral embroidery and pearl detailing. Contemporary design for modern celebrations. Includes matching blouse.',
+  'Luxurious satin silk with contrast zari border. Smooth finish with rich sheen. Perfect for engagement and reception ceremonies.',
+  'Crepe saree with abstract digital print. Wrinkle-free and travel-friendly. Easy maintenance with stunning look.',
+  'Art silk with all-over zari jaal pattern. Budget-friendly alternative to pure silk. Great for festive occasions.',
+  'Georgette with modern digital print in contemporary colors. Lightweight party wear with elegant fall. Includes matching blouse piece.',
+  'Handloom cotton with traditional kasavu border. Kerala-inspired design with off-white base and gold zari. Comfortable for daily wear.',
+  'Classic bridal red Kanjivaram with heavy gold zari work. Traditional wedding saree with rich pallu and temple border.',
+  'Soft pastel chiffon with subtle sequin work. Perfect for engagement and mehendi ceremonies. Elegant and understated.',
+  'Traditional Gharchola silk with bandhani and zari check pattern. Authentic Gujarati bridal saree with mirror work.',
+  'Ikat cotton with geometric resist-dye patterns. Handwoven in Telangana. Bold colors with ethnic appeal.',
+  'Net saree with all-over sequin embroidery. Glamorous party wear with heavy border. Comes with designer blouse.',
+  'Cotton with traditional Ajrakh block print. Natural dyes with geometric patterns. Eco-friendly and artisan-made.',
+  'Silk with wide zari border and butta motifs. Classic festive wear with rich texture. Perfect for Diwali celebrations.',
+  'Crepe with delicate floral print and lace border. Feminine design for casual and semi-formal occasions.',
+  'Cotton with traditional temple border design. South Indian inspired with contrasting pallu. Comfortable and elegant.',
 ];
 
 const REVIEW_TEXTS = [
-  'Absolutely beautiful saree! The quality is amazing and the color is exactly as shown. Perfect for my sister\'s wedding.',
-  'Very comfortable to wear the whole day. The fabric is soft and the draping is elegant. Highly recommended!',
-  'Got so many compliments at the party. The embroidery work is stunning and the price is very reasonable.',
-  'Good quality for the price. The color is slightly different from the picture but still very pretty.',
-  'Fast delivery and excellent packaging. The saree is even better than expected. Will definitely order again!',
-  'Perfect festive wear. The zari work is beautiful and the saree feels premium. Worth every penny.',
+  'Beautiful South Indian saree! The Kanjivaram silk is absolutely stunning. The zari work is rich and the color is exactly as shown. Wore it for my sister\'s wedding and got so many compliments. The fabric detail is impeccable.',
+  'Very comfortable cotton saree for all-day wear. The Chanderi fabric is soft and breathable. The zari checks add just the right amount of elegance. Perfect for office wear.',
+  'The Banarasi brocade is a masterpiece. The gold zari weaving is intricate and the Mughal motifs are gorgeous. Worth every penny for a bridal collection.',
+  'Good quality Bandhani georgette at this price. The colors are vibrant and the mirror work on the border is a nice touch. Slightly lighter than expected but still beautiful.',
+  'Fast delivery and the saree was packaged beautifully. The embroidered net saree is even better in person. The sequin work catches light perfectly. Will definitely order again!',
+  'Perfect festive wear. The Paithani silk with peacock pallu is breathtaking. The handwoven quality is evident. A true heirloom piece that I will pass down.',
 ];
 
 async function main() {
@@ -119,6 +139,15 @@ async function main() {
   categories.forEach(c => { categoryMap[c.name] = c; });
 
   console.log('Creating products...');
+  const productImages = [
+    '/uploads/products/1777817260752_images__1_.jpeg',
+    '/uploads/products/1777817572158_images__2_.jpeg',
+    '/uploads/products/1779204363968_Claid-AI-5395ee0b25ac410591426e573df5b8c1.webp',
+    '/uploads/products/1779204394446_WhatsApp Image 2026-05-16 at 8.webp',
+    '/uploads/products/1779204720220_Claid-AI-5395ee0b25ac410591426e573df5b8c1.webp',
+    '/uploads/products/1773415746532_dataset-card.jpg',
+    '/uploads/rr12493405--_2_.jpg',
+  ];
   const products = [];
   for (let i = 0; i < PRODUCT_DATA.length; i++) {
     const item = PRODUCT_DATA[i];
@@ -127,6 +156,7 @@ async function main() {
     const price = Math.floor(Math.random() * 15000) + 1500;
     const mrp = price + Math.floor(Math.random() * 5000) + 1000;
     const stock = Math.floor(Math.random() * 20) + 3;
+    const mainImage = productImages[i % productImages.length];
 
     const product = await prisma.product.create({
       data: {
@@ -138,7 +168,7 @@ async function main() {
         price,
         mrp,
         stock,
-        images: ['/uploads/placeholder.png'],
+        images: [mainImage],
         categoryId: category.id,
         userId: existingAdmin.id,
       },
