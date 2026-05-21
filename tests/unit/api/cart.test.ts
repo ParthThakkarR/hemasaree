@@ -223,26 +223,22 @@ describe('POST /api/cart (add item)', () => {
     );
   });
 
-  it('allows adding when product has infinite stock (stock = 0 treated as Infinity)', async () => {
+  it('blocks adding when product has zero stock', async () => {
     vi.mocked(getUserFromToken).mockResolvedValue(mockUser);
     mockPrisma.product.findUnique.mockResolvedValue({ id: 'p1', stock: 0 });
     mockPrisma.cart.findFirst.mockResolvedValue({ id: 'cart1' });
     mockPrisma.cartItem.findMany.mockResolvedValue([]);
-    mockPrisma.cartItem.create.mockResolvedValue({ id: 'ci1' });
-    mockPrisma.cart.update.mockResolvedValue({ id: 'cart1', totalPrice: 100, items: [] });
     const res = await POST(makeReq({ productId: 'p1', quantity: 999, price: 100, productName: 'Test' }));
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(400);
   });
 
-  it('allows adding when product has negative stock (treated as Infinity)', async () => {
+  it('blocks adding when product has negative stock', async () => {
     vi.mocked(getUserFromToken).mockResolvedValue(mockUser);
     mockPrisma.product.findUnique.mockResolvedValue({ id: 'p1', stock: -5 });
     mockPrisma.cart.findFirst.mockResolvedValue({ id: 'cart1' });
     mockPrisma.cartItem.findMany.mockResolvedValue([]);
-    mockPrisma.cartItem.create.mockResolvedValue({ id: 'ci1' });
-    mockPrisma.cart.update.mockResolvedValue({ id: 'cart1', totalPrice: 100, items: [] });
     const res = await POST(makeReq({ productId: 'p1', quantity: 50, price: 100, productName: 'Test' }));
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(400);
   });
 
   it('recalculates cart total after adding', async () => {
@@ -466,17 +462,15 @@ describe('PUT /api/cart (update quantity)', () => {
     expect(res.status).toBe(500);
   });
 
-  it('handles infinite stock (stock = 0)', async () => {
+  it('blocks update when product has zero stock', async () => {
     vi.mocked(getUserFromToken).mockResolvedValue(mockUser);
     mockPrisma.cartItem.findFirst.mockResolvedValue({
       id: 'ci1', cartId: 'cart1', productId: 'p1', quantity: 1,
       product: { stock: 0 },
     });
     mockPrisma.cartItem.findMany.mockResolvedValue([]);
-    mockPrisma.cartItem.update.mockResolvedValue({ id: 'ci1' });
-    mockPrisma.cart.update.mockResolvedValue({ id: 'cart1', totalPrice: 99900, items: [] });
     const res = await PUT(makeReq({ cartItemId: 'ci1', quantity: 999 }));
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(400);
   });
 });
 

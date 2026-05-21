@@ -19,7 +19,7 @@ export default function Home() {
       try {
         const [newRes, trendRes, bestRes] = await Promise.all([
           fetch('/api/products?limit=4&sortPrice=newest'),
-          fetch('/api/products?limit=4&page=2'),
+          fetch('/api/products?limit=4&sortPrice=high'),
           fetch('/api/products?limit=4&sortPrice=low'),
         ]);
 

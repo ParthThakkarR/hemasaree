@@ -82,6 +82,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [user]);
 
+  const clearCart = useCallback(() => {
+    setCart(null);
+    fetchedRef.current = false;
+  }, []);
+
   /* Fetch on mount / user change */
   useEffect(() => {
     if (user && !fetchedRef.current) {
@@ -91,6 +96,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (!user) {
       fetchedRef.current = false;
       setCart(null);
+      setError(null);
     }
   }, [user, refreshCart]);
 

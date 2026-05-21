@@ -74,7 +74,12 @@ export async function POST(req: NextRequest) {
     const price = product.price;
 
     // 🧮 Compute available stock safely
-    const availableStock = typeof product.stock === "number" && product.stock > 0 ? product.stock : Infinity;
+    const availableStock = typeof product.stock === "number" && product.stock > 0 ? product.stock : 0;
+
+    // 🛑 Block if product is out of stock
+    if (availableStock === 0) {
+      return NextResponse.json({ error: "This product is currently out of stock." }, { status: 400 });
+    }
 
     // 🧺 Find or create user's cart
     let cart = await prisma.cart.findFirst({ where: { userId: user.id } });
@@ -151,7 +156,11 @@ export async function PUT(req: NextRequest) {
 
     const availableStock = typeof item.product.stock === "number" && item.product.stock > 0
       ? item.product.stock
-      : Infinity;
+      : 0;
+
+    if (availableStock === 0 && quantity > 0) {
+      return NextResponse.json({ error: "This product is currently out of stock." }, { status: 400 });
+    }
 
     // 🧮 Total quantity of this product across cart (excluding this variant)
     const siblings = await prisma.cartItem.findMany({

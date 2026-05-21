@@ -14,6 +14,7 @@ import CartItems from '@/app/components/cart/CartItems';
 import CartShipping from '@/app/components/cart/CartShipping';
 import CartPayment from '@/app/components/cart/CartPayment';
 import CartOrderSummary from '@/app/components/cart/CartOrderSummary';
+import { DELIVERY_CHARGE_CONFIG } from '@/lib/services/orderService';
 
 export default function CartPage() {
   const router = useRouter();
@@ -71,7 +72,8 @@ export default function CartPage() {
 
   const deliveryCharge = useMemo(() => {
     if (!activeState) return 0;
-    return activeState.trim().toLowerCase() === 'gujarat' ? 80 : 150;
+    const normalizedState = activeState.toLowerCase().trim();
+    return normalizedState === 'gujarat' ? DELIVERY_CHARGE_CONFIG.gujarat : DELIVERY_CHARGE_CONFIG.default;
   }, [activeState]);
 
   const total = subtotal + deliveryCharge;

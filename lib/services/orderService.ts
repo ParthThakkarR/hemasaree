@@ -109,27 +109,37 @@ export class OrderService {
       isReturnable: !(item.withPolish ?? false),
     }));
 
-    const stockUpdates = items.map(item =>
-      prisma.product.updateMany({
-        where: { id: item.productId, stock: { gte: item.quantity } },
-        data: { stock: { decrement: item.quantity } },
-      })
-    );
+    const newOrder = await prisma.$transaction(async tx => {
+      for (const item of items) {
+        const product = await tx.product.findUnique({
+          where: { id: item.productId },
+          select: { stock: true },
+        });
+        if (!product || product.stock < item.quantity) {
+          throw new ConflictError(
+            `Not enough stock for product ${item.productId}. Only ${product?.stock ?? 0} available.`
+          );
+        }
+        await tx.product.update({
+          where: { id: item.productId },
+          data: { stock: { decrement: item.quantity } },
+        });
+      }
 
-    const orderCreation = prisma.order.create({
-      data: {
-        userId,
-        totalAmount: total + deliveryCharge,
-        deliveryCharge,
-        shippingAddress: formattedAddress,
-        status: 'PENDING',
-        orderItems: { create: orderItemsCreate },
-      },
-      include: { orderItems: true },
+      const order = await tx.order.create({
+        data: {
+          userId,
+          totalAmount: total + deliveryCharge,
+          deliveryCharge,
+          shippingAddress: formattedAddress,
+          status: 'PENDING',
+          orderItems: { create: orderItemsCreate },
+        },
+        include: { orderItems: true },
+      });
+
+      return order;
     });
-
-    const results = await prisma.$transaction([...stockUpdates, orderCreation]);
-    const newOrder = results[results.length - 1] as any;
 
     // Clear cart
     await prisma.cartItem.deleteMany({ where: { cartId } });

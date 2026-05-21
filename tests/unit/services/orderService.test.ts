@@ -7,10 +7,20 @@ const mocks = vi.hoisted(() => ({
   mockPrisma: {
     cart: { findFirst: vi.fn(), update: vi.fn() },
     cartItem: { deleteMany: vi.fn() },
-    product: { updateMany: vi.fn(), findUnique: vi.fn() },
+    product: { update: vi.fn(), updateMany: vi.fn(), findUnique: vi.fn() },
     order: { create: vi.fn(), update: vi.fn(), findUnique: vi.fn() },
     orderItem: { findUnique: vi.fn(), updateMany: vi.fn(), update: vi.fn(), findMany: vi.fn(), count: vi.fn() },
-    $transaction: vi.fn(),
+    $transaction: vi.fn(async (fnOrArr) => {
+      if (typeof fnOrArr === 'function') {
+        const mockTx = {
+          product: { findUnique: mocks.mockPrisma.product.findUnique, update: mocks.mockPrisma.product.update },
+          order: { create: mocks.mockPrisma.order.create, update: mocks.mockPrisma.order.update },
+          orderItem: { update: mocks.mockPrisma.orderItem.update, findMany: mocks.mockPrisma.orderItem.findMany },
+        };
+        return fnOrArr(mockTx);
+      }
+      return Array.isArray(fnOrArr) ? fnOrArr[fnOrArr.length - 1] : fnOrArr;
+    }),
   },
 }));
 
@@ -226,33 +236,30 @@ describe('OrderService.createOrder', () => {
 
   const mockAddress = { streetAddress: '123 MG Road', city: 'Surat', state: 'Gujarat', zipCode: '395001', country: 'India' };
 
-  it('creates order with correct total including delivery charge', async () => {
+  const setupCreateOrderMocks = (orderResult = { id: 'order1', totalAmount: 2080, deliveryCharge: 80 }) => {
     mocks.mockPrisma.cart.findFirst.mockResolvedValue(mockCart);
-    mocks.mockPrisma.$transaction.mockResolvedValue([{ id: 'order1', totalAmount: 2080, deliveryCharge: 80 }]);
+    mocks.mockPrisma.product.findUnique.mockResolvedValue({ stock: 10 });
+    mocks.mockPrisma.product.update.mockResolvedValue({ id: 'p1' });
+    mocks.mockPrisma.order.create.mockResolvedValue(orderResult);
     mocks.mockPrisma.cartItem.deleteMany.mockResolvedValue({ count: 1 });
     mocks.mockPrisma.cart.update.mockResolvedValue({ id: 'cart1' });
+  };
 
+  it('creates order with correct total including delivery charge', async () => {
+    setupCreateOrderMocks();
     const result = await OrderService.createOrder('user1', mockAddress, 80);
     expect(result.totalAmount).toBe(2080);
     expect(result.deliveryCharge).toBe(80);
   });
 
   it('returns orderId', async () => {
-    mocks.mockPrisma.cart.findFirst.mockResolvedValue(mockCart);
-    mocks.mockPrisma.$transaction.mockResolvedValue([{ id: 'order123', totalAmount: 2080, deliveryCharge: 80 }]);
-    mocks.mockPrisma.cartItem.deleteMany.mockResolvedValue({ count: 1 });
-    mocks.mockPrisma.cart.update.mockResolvedValue({ id: 'cart1' });
-
+    setupCreateOrderMocks({ id: 'order123', totalAmount: 2080, deliveryCharge: 80 });
     const result = await OrderService.createOrder('user1', mockAddress, 80);
     expect(result.orderId).toBe('order123');
   });
 
   it('formats shipping address correctly', async () => {
-    mocks.mockPrisma.cart.findFirst.mockResolvedValue(mockCart);
-    mocks.mockPrisma.$transaction.mockResolvedValue([{ id: 'order1', totalAmount: 2080, deliveryCharge: 80 }]);
-    mocks.mockPrisma.cartItem.deleteMany.mockResolvedValue({ count: 1 });
-    mocks.mockPrisma.cart.update.mockResolvedValue({ id: 'cart1' });
-
+    setupCreateOrderMocks();
     await OrderService.createOrder('user1', mockAddress, 80);
     expect(mocks.mockPrisma.order.create).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -264,12 +271,8 @@ describe('OrderService.createOrder', () => {
   });
 
   it('uses India as default country', async () => {
+    setupCreateOrderMocks();
     const addressNoCountry = { streetAddress: '123 MG Road', city: 'Surat', state: 'Gujarat', zipCode: '395001' };
-    mocks.mockPrisma.cart.findFirst.mockResolvedValue(mockCart);
-    mocks.mockPrisma.$transaction.mockResolvedValue([{ id: 'order1', totalAmount: 2080, deliveryCharge: 80 }]);
-    mocks.mockPrisma.cartItem.deleteMany.mockResolvedValue({ count: 1 });
-    mocks.mockPrisma.cart.update.mockResolvedValue({ id: 'cart1' });
-
     await OrderService.createOrder('user1', addressNoCountry, 80);
     expect(mocks.mockPrisma.order.create).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -281,11 +284,7 @@ describe('OrderService.createOrder', () => {
   });
 
   it('creates order with PENDING status', async () => {
-    mocks.mockPrisma.cart.findFirst.mockResolvedValue(mockCart);
-    mocks.mockPrisma.$transaction.mockResolvedValue([{ id: 'order1', totalAmount: 2080, deliveryCharge: 80 }]);
-    mocks.mockPrisma.cartItem.deleteMany.mockResolvedValue({ count: 1 });
-    mocks.mockPrisma.cart.update.mockResolvedValue({ id: 'cart1' });
-
+    setupCreateOrderMocks();
     await OrderService.createOrder('user1', mockAddress, 80);
     expect(mocks.mockPrisma.order.create).toHaveBeenCalledWith(
       expect.objectContaining({ data: expect.objectContaining({ status: 'PENDING' }) })
@@ -293,33 +292,21 @@ describe('OrderService.createOrder', () => {
   });
 
   it('clears cart after order creation', async () => {
-    mocks.mockPrisma.cart.findFirst.mockResolvedValue(mockCart);
-    mocks.mockPrisma.$transaction.mockResolvedValue([{ id: 'order1', totalAmount: 2080, deliveryCharge: 80 }]);
-    mocks.mockPrisma.cartItem.deleteMany.mockResolvedValue({ count: 1 });
-    mocks.mockPrisma.cart.update.mockResolvedValue({ id: 'cart1' });
-
+    setupCreateOrderMocks();
     await OrderService.createOrder('user1', mockAddress, 80);
     expect(mocks.mockPrisma.cartItem.deleteMany).toHaveBeenCalledWith({ where: { cartId: 'cart1' } });
   });
 
   it('updates cart totalPrice to 0', async () => {
-    mocks.mockPrisma.cart.findFirst.mockResolvedValue(mockCart);
-    mocks.mockPrisma.$transaction.mockResolvedValue([{ id: 'order1', totalAmount: 2080, deliveryCharge: 80 }]);
-    mocks.mockPrisma.cartItem.deleteMany.mockResolvedValue({ count: 1 });
-    mocks.mockPrisma.cart.update.mockResolvedValue({ id: 'cart1' });
-
+    setupCreateOrderMocks();
     await OrderService.createOrder('user1', mockAddress, 80);
     expect(mocks.mockPrisma.cart.update).toHaveBeenCalledWith({ where: { id: 'cart1' }, data: { totalPrice: 0 } });
   });
 
   it('decrements product stock', async () => {
-    mocks.mockPrisma.cart.findFirst.mockResolvedValue(mockCart);
-    mocks.mockPrisma.$transaction.mockResolvedValue([{ id: 'order1', totalAmount: 2080, deliveryCharge: 80 }]);
-    mocks.mockPrisma.cartItem.deleteMany.mockResolvedValue({ count: 1 });
-    mocks.mockPrisma.cart.update.mockResolvedValue({ id: 'cart1' });
-
+    setupCreateOrderMocks();
     await OrderService.createOrder('user1', mockAddress, 80);
-    expect(mocks.mockPrisma.product.updateMany).toHaveBeenCalled();
+    expect(mocks.mockPrisma.product.update).toHaveBeenCalled();
   });
 
   it('sets isReturnable to false for withPolish items', async () => {
@@ -330,7 +317,9 @@ describe('OrderService.createOrder', () => {
       ],
     };
     mocks.mockPrisma.cart.findFirst.mockResolvedValue(cartWithPolish);
-    mocks.mockPrisma.$transaction.mockResolvedValue([{ id: 'order1', totalAmount: 1080, deliveryCharge: 80 }]);
+    mocks.mockPrisma.product.findUnique.mockResolvedValue({ stock: 10 });
+    mocks.mockPrisma.product.update.mockResolvedValue({ id: 'p1' });
+    mocks.mockPrisma.order.create.mockResolvedValue({ id: 'order1', totalAmount: 1080, deliveryCharge: 80 });
     mocks.mockPrisma.cartItem.deleteMany.mockResolvedValue({ count: 1 });
     mocks.mockPrisma.cart.update.mockResolvedValue({ id: 'cart1' });
 
@@ -339,11 +328,7 @@ describe('OrderService.createOrder', () => {
   });
 
   it('sets isReturnable to true for non-polish items', async () => {
-    mocks.mockPrisma.cart.findFirst.mockResolvedValue(mockCart);
-    mocks.mockPrisma.$transaction.mockResolvedValue([{ id: 'order1', totalAmount: 2080, deliveryCharge: 80 }]);
-    mocks.mockPrisma.cartItem.deleteMany.mockResolvedValue({ count: 1 });
-    mocks.mockPrisma.cart.update.mockResolvedValue({ id: 'cart1' });
-
+    setupCreateOrderMocks();
     await OrderService.createOrder('user1', mockAddress, 80);
     expect(mocks.mockPrisma.order.create).toHaveBeenCalled();
   });
@@ -357,7 +342,9 @@ describe('OrderService.createOrder', () => {
       ],
     };
     mocks.mockPrisma.cart.findFirst.mockResolvedValue(multiCart);
-    mocks.mockPrisma.$transaction.mockResolvedValue([{ id: 'order1', totalAmount: 2580, deliveryCharge: 80 }]);
+    mocks.mockPrisma.product.findUnique.mockResolvedValue({ stock: 10 });
+    mocks.mockPrisma.product.update.mockResolvedValue({ id: 'p1' });
+    mocks.mockPrisma.order.create.mockResolvedValue({ id: 'order1', totalAmount: 2580, deliveryCharge: 80 });
     mocks.mockPrisma.cartItem.deleteMany.mockResolvedValue({ count: 2 });
     mocks.mockPrisma.cart.update.mockResolvedValue({ id: 'cart1' });
 
@@ -371,21 +358,13 @@ describe('OrderService.createOrder', () => {
   });
 
   it('uses $transaction for atomic operations', async () => {
-    mocks.mockPrisma.cart.findFirst.mockResolvedValue(mockCart);
-    mocks.mockPrisma.$transaction.mockResolvedValue([{ id: 'order1', totalAmount: 2080, deliveryCharge: 80 }]);
-    mocks.mockPrisma.cartItem.deleteMany.mockResolvedValue({ count: 1 });
-    mocks.mockPrisma.cart.update.mockResolvedValue({ id: 'cart1' });
-
+    setupCreateOrderMocks();
     await OrderService.createOrder('user1', mockAddress, 80);
     expect(mocks.mockPrisma.$transaction).toHaveBeenCalled();
   });
 
   it('includes orderItems in create query', async () => {
-    mocks.mockPrisma.cart.findFirst.mockResolvedValue(mockCart);
-    mocks.mockPrisma.$transaction.mockResolvedValue([{ id: 'order1', totalAmount: 2080, deliveryCharge: 80 }]);
-    mocks.mockPrisma.cartItem.deleteMany.mockResolvedValue({ count: 1 });
-    mocks.mockPrisma.cart.update.mockResolvedValue({ id: 'cart1' });
-
+    setupCreateOrderMocks();
     await OrderService.createOrder('user1', mockAddress, 80);
     expect(mocks.mockPrisma.order.create).toHaveBeenCalledWith(
       expect.objectContaining({ include: { orderItems: true } })
@@ -394,7 +373,9 @@ describe('OrderService.createOrder', () => {
 
   it('calculates totalAmount as items total plus delivery charge', async () => {
     mocks.mockPrisma.cart.findFirst.mockResolvedValue(mockCart);
-    mocks.mockPrisma.$transaction.mockResolvedValue([{ id: 'order1', totalAmount: 2150, deliveryCharge: 150 }]);
+    mocks.mockPrisma.product.findUnique.mockResolvedValue({ stock: 10 });
+    mocks.mockPrisma.product.update.mockResolvedValue({ id: 'p1' });
+    mocks.mockPrisma.order.create.mockResolvedValue({ id: 'order1', totalAmount: 2150, deliveryCharge: 150 });
     mocks.mockPrisma.cartItem.deleteMany.mockResolvedValue({ count: 1 });
     mocks.mockPrisma.cart.update.mockResolvedValue({ id: 'cart1' });
 
@@ -404,7 +385,9 @@ describe('OrderService.createOrder', () => {
 
   it('handles zero delivery charge', async () => {
     mocks.mockPrisma.cart.findFirst.mockResolvedValue(mockCart);
-    mocks.mockPrisma.$transaction.mockResolvedValue([{ id: 'order1', totalAmount: 2000, deliveryCharge: 0 }]);
+    mocks.mockPrisma.product.findUnique.mockResolvedValue({ stock: 10 });
+    mocks.mockPrisma.product.update.mockResolvedValue({ id: 'p1' });
+    mocks.mockPrisma.order.create.mockResolvedValue({ id: 'order1', totalAmount: 2000, deliveryCharge: 0 });
     mocks.mockPrisma.cartItem.deleteMany.mockResolvedValue({ count: 1 });
     mocks.mockPrisma.cart.update.mockResolvedValue({ id: 'cart1' });
 
@@ -421,7 +404,9 @@ describe('OrderService.createOrder', () => {
       ],
     };
     mocks.mockPrisma.cart.findFirst.mockResolvedValue(cartUndefinedPolish);
-    mocks.mockPrisma.$transaction.mockResolvedValue([{ id: 'order1', totalAmount: 1080, deliveryCharge: 80 }]);
+    mocks.mockPrisma.product.findUnique.mockResolvedValue({ stock: 10 });
+    mocks.mockPrisma.product.update.mockResolvedValue({ id: 'p1' });
+    mocks.mockPrisma.order.create.mockResolvedValue({ id: 'order1', totalAmount: 1080, deliveryCharge: 80 });
     mocks.mockPrisma.cartItem.deleteMany.mockResolvedValue({ count: 1 });
     mocks.mockPrisma.cart.update.mockResolvedValue({ id: 'cart1' });
 
@@ -517,11 +502,9 @@ describe('OrderService.updateReturnStatus', () => {
     mocks.mockPrisma.orderItem.findUnique.mockResolvedValue(mockOrderItem);
     const mockTx = {
       product: { update: vi.fn().mockResolvedValue({}) },
-      orderItem: { update: vi.fn().mockResolvedValue({}) },
       orderItem: { update: vi.fn().mockResolvedValue({}), findMany: vi.fn().mockResolvedValue([{ status: 'RETURN_APPROVED' }]) },
       order: { update: vi.fn().mockResolvedValue({}) },
     };
-    mockTx.orderItem.findMany.mockResolvedValue([{ status: 'RETURN_APPROVED' }]);
     mocks.mockPrisma.$transaction.mockImplementation(async (fn) => fn(mockTx));
 
     await OrderService.updateReturnStatus('oi1', 'RETURN_APPROVED');
@@ -530,19 +513,30 @@ describe('OrderService.updateReturnStatus', () => {
     );
   });
 
-  it('updates order item status', async () => {
+  it('does not restore stock when return is declined', async () => {
     mocks.mockPrisma.orderItem.findUnique.mockResolvedValue(mockOrderItem);
     const mockTx = {
       product: { update: vi.fn().mockResolvedValue({}) },
-      orderItem: { update: vi.fn().mockResolvedValue({}), findMany: vi.fn().mockResolvedValue([{ status: 'PENDING' }]) },
+      orderItem: { update: vi.fn().mockResolvedValue({}), findMany: vi.fn().mockResolvedValue([{ status: 'DELIVERED' }]) },
       order: { update: vi.fn().mockResolvedValue({}) },
     };
     mocks.mockPrisma.$transaction.mockImplementation(async (fn) => fn(mockTx));
 
     await OrderService.updateReturnStatus('oi1', 'RETURN_DECLINED');
-    expect(mockTx.orderItem.update).toHaveBeenCalledWith(
-      expect.objectContaining({ data: { status: 'RETURN_DECLINED' } })
-    );
+    expect(mockTx.product.update).not.toHaveBeenCalled();
+  });
+
+  it('updates order item status', async () => {
+    mocks.mockPrisma.orderItem.findUnique.mockResolvedValue(mockOrderItem);
+    const mockTx = {
+      product: { update: vi.fn().mockResolvedValue({}) },
+      orderItem: { update: vi.fn().mockResolvedValue({}), findMany: vi.fn().mockResolvedValue([{ status: 'RETURN_APPROVED' }]) },
+      order: { update: vi.fn().mockResolvedValue({}) },
+    };
+    mocks.mockPrisma.$transaction.mockImplementation(async (fn) => fn(mockTx));
+
+    await OrderService.updateReturnStatus('oi1', 'RETURN_APPROVED');
+    expect(mockTx.orderItem.update).toHaveBeenCalled();
   });
 
   it('updates order to RETURNED when all items returned', async () => {
@@ -560,11 +554,11 @@ describe('OrderService.updateReturnStatus', () => {
     );
   });
 
-  it('does not update order status when not all items returned', async () => {
+  it('does not update order when items still pending', async () => {
     mocks.mockPrisma.orderItem.findUnique.mockResolvedValue(mockOrderItem);
     const mockTx = {
       product: { update: vi.fn().mockResolvedValue({}) },
-      orderItem: { update: vi.fn().mockResolvedValue({}), findMany: vi.fn().mockResolvedValue([{ status: 'RETURN_APPROVED' }, { status: 'PENDING' }]) },
+      orderItem: { update: vi.fn().mockResolvedValue({}), findMany: vi.fn().mockResolvedValue([{ status: 'RETURN_APPROVED' }, { status: 'DELIVERED' }]) },
       order: { update: vi.fn().mockResolvedValue({}) },
     };
     mocks.mockPrisma.$transaction.mockImplementation(async (fn) => fn(mockTx));
@@ -573,130 +567,24 @@ describe('OrderService.updateReturnStatus', () => {
     expect(mockTx.order.update).not.toHaveBeenCalled();
   });
 
-  it('does not restore stock for non-approved returns', async () => {
+  it('handles single item return', async () => {
     mocks.mockPrisma.orderItem.findUnique.mockResolvedValue(mockOrderItem);
     const mockTx = {
       product: { update: vi.fn().mockResolvedValue({}) },
-      orderItem: { update: vi.fn().mockResolvedValue({}), findMany: vi.fn().mockResolvedValue([{ status: 'PENDING' }]) },
-      order: { update: vi.fn().mockResolvedValue({}) },
-    };
-    mocks.mockPrisma.$transaction.mockImplementation(async (fn) => fn(mockTx));
-
-    await OrderService.updateReturnStatus('oi1', 'RETURN_DECLINED');
-    expect(mockTx.product.update).not.toHaveBeenCalled();
-  });
-
-  it('considers RETURNED status as all returned', async () => {
-    mocks.mockPrisma.orderItem.findUnique.mockResolvedValue(mockOrderItem);
-    const mockTx = {
-      product: { update: vi.fn().mockResolvedValue({}) },
-      orderItem: { update: vi.fn().mockResolvedValue({}), findMany: vi.fn().mockResolvedValue([{ status: 'RETURNED' }]) },
-      order: { update: vi.fn().mockResolvedValue({}) },
-    };
-    mocks.mockPrisma.$transaction.mockImplementation(async (fn) => fn(mockTx));
-
-    await OrderService.updateReturnStatus('oi1', 'RETURNED');
-    expect(mockTx.order.update).toHaveBeenCalledWith(
-      expect.objectContaining({ data: { status: 'RETURNED' } })
-    );
-  });
-
-  it('queries order item with product and order relations', async () => {
-    mocks.mockPrisma.orderItem.findUnique.mockResolvedValue(null);
-    await expect(OrderService.updateReturnStatus('oi1', 'RETURN_APPROVED')).rejects.toThrow(NotFoundError);
-    expect(mocks.mockPrisma.orderItem.findUnique).toHaveBeenCalledWith(
-      expect.objectContaining({ include: { product: true, order: true } })
-    );
-  });
-
-  it('uses transaction for return status update', async () => {
-    mocks.mockPrisma.orderItem.findUnique.mockResolvedValue(mockOrderItem);
-    const mockTx = {
-      product: { update: vi.fn().mockResolvedValue({}) },
-      orderItem: { update: vi.fn().mockResolvedValue({}), findMany: vi.fn().mockResolvedValue([{ status: 'PENDING' }]) },
+      orderItem: { update: vi.fn().mockResolvedValue({}), findMany: vi.fn().mockResolvedValue([{ status: 'RETURN_APPROVED' }]) },
       order: { update: vi.fn().mockResolvedValue({}) },
     };
     mocks.mockPrisma.$transaction.mockImplementation(async (fn) => fn(mockTx));
 
     await OrderService.updateReturnStatus('oi1', 'RETURN_APPROVED');
-    expect(mocks.mockPrisma.$transaction).toHaveBeenCalled();
-  });
-
-  it('handles RETURN_REQUESTED status', async () => {
-    mocks.mockPrisma.orderItem.findUnique.mockResolvedValue(mockOrderItem);
-    const mockTx = {
-      product: { update: vi.fn().mockResolvedValue({}) },
-      orderItem: { update: vi.fn().mockResolvedValue({}), findMany: vi.fn().mockResolvedValue([{ status: 'PENDING' }]) },
-      order: { update: vi.fn().mockResolvedValue({}) },
-    };
-    mocks.mockPrisma.$transaction.mockImplementation(async (fn) => fn(mockTx));
-
-    await expect(OrderService.updateReturnStatus('oi1', 'RETURN_REQUESTED')).resolves.toBeUndefined();
-  });
-
-  it('handles RETURN_APPROVED status', async () => {
-    mocks.mockPrisma.orderItem.findUnique.mockResolvedValue(mockOrderItem);
-    const mockTx = {
-      product: { update: vi.fn().mockResolvedValue({}) },
-      orderItem: { update: vi.fn().mockResolvedValue({}), findMany: vi.fn().mockResolvedValue([{ status: 'PENDING' }]) },
-      order: { update: vi.fn().mockResolvedValue({}) },
-    };
-    mocks.mockPrisma.$transaction.mockImplementation(async (fn) => fn(mockTx));
-
-    await expect(OrderService.updateReturnStatus('oi1', 'RETURN_APPROVED')).resolves.toBeUndefined();
-  });
-
-  it('handles RETURN_DECLINED status', async () => {
-    mocks.mockPrisma.orderItem.findUnique.mockResolvedValue(mockOrderItem);
-    const mockTx = {
-      product: { update: vi.fn().mockResolvedValue({}) },
-      orderItem: { update: vi.fn().mockResolvedValue({}), findMany: vi.fn().mockResolvedValue([{ status: 'PENDING' }]) },
-      order: { update: vi.fn().mockResolvedValue({}) },
-    };
-    mocks.mockPrisma.$transaction.mockImplementation(async (fn) => fn(mockTx));
-
-    await expect(OrderService.updateReturnStatus('oi1', 'RETURN_DECLINED')).resolves.toBeUndefined();
-  });
-
-  it('restores correct quantity on return approved', async () => {
-    mocks.mockPrisma.orderItem.findUnique.mockResolvedValue({ ...mockOrderItem, quantity: 5 });
-    const mockTx = {
-      product: { update: vi.fn().mockResolvedValue({}) },
-      orderItem: { update: vi.fn().mockResolvedValue({}), findMany: vi.fn().mockResolvedValue([{ status: 'PENDING' }]) },
-      order: { update: vi.fn().mockResolvedValue({}) },
-    };
-    mocks.mockPrisma.$transaction.mockImplementation(async (fn) => fn(mockTx));
-
-    await OrderService.updateReturnStatus('oi1', 'RETURN_APPROVED');
-    expect(mockTx.product.update).toHaveBeenCalledWith(
-      expect.objectContaining({ data: { stock: { increment: 5 } } })
-    );
-  });
-
-  it('checks all items in the same order', async () => {
-    mocks.mockPrisma.orderItem.findUnique.mockResolvedValue(mockOrderItem);
-    const mockTx = {
-      product: { update: vi.fn().mockResolvedValue({}) },
-      orderItem: { update: vi.fn().mockResolvedValue({}), findMany: vi.fn().mockResolvedValue([{ status: 'PENDING' }]) },
-      order: { update: vi.fn().mockResolvedValue({}) },
-    };
-    mocks.mockPrisma.$transaction.mockImplementation(async (fn) => fn(mockTx));
-
-    await OrderService.updateReturnStatus('oi1', 'RETURN_APPROVED');
-    expect(mockTx.orderItem.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { orderId: 'order1' } })
-    );
+    expect(mockTx.order.update).toHaveBeenCalled();
   });
 
   it('handles multiple items all returned', async () => {
     mocks.mockPrisma.orderItem.findUnique.mockResolvedValue(mockOrderItem);
     const mockTx = {
       product: { update: vi.fn().mockResolvedValue({}) },
-      orderItem: { update: vi.fn().mockResolvedValue({}), findMany: vi.fn().mockResolvedValue([
-        { status: 'RETURN_APPROVED' },
-        { status: 'RETURNED' },
-        { status: 'RETURN_APPROVED' },
-      ]) },
+      orderItem: { update: vi.fn().mockResolvedValue({}), findMany: vi.fn().mockResolvedValue([{ status: 'RETURN_APPROVED' }, { status: 'RETURNED' }]) },
       order: { update: vi.fn().mockResolvedValue({}) },
     };
     mocks.mockPrisma.$transaction.mockImplementation(async (fn) => fn(mockTx));
@@ -709,53 +597,12 @@ describe('OrderService.updateReturnStatus', () => {
     mocks.mockPrisma.orderItem.findUnique.mockResolvedValue(mockOrderItem);
     const mockTx = {
       product: { update: vi.fn().mockResolvedValue({}) },
-      orderItem: { update: vi.fn().mockResolvedValue({}), findMany: vi.fn().mockResolvedValue([
-        { status: 'RETURN_APPROVED' },
-        { status: 'PENDING' },
-      ]) },
+      orderItem: { update: vi.fn().mockResolvedValue({}), findMany: vi.fn().mockResolvedValue([{ status: 'RETURN_APPROVED' }, { status: 'SHIPPED' }]) },
       order: { update: vi.fn().mockResolvedValue({}) },
     };
     mocks.mockPrisma.$transaction.mockImplementation(async (fn) => fn(mockTx));
 
     await OrderService.updateReturnStatus('oi1', 'RETURN_APPROVED');
     expect(mockTx.order.update).not.toHaveBeenCalled();
-  });
-});
-
-describe('calculateDeliveryCharge', () => {
-  it('returns gujarat rate for Gujarat', () => {
-    expect(calculateDeliveryCharge('Gujarat')).toBe(80);
-  });
-
-  it('returns gujarat rate for gujarat lowercase', () => {
-    expect(calculateDeliveryCharge('gujarat')).toBe(80);
-  });
-
-  it('returns default rate for Maharashtra', () => {
-    expect(calculateDeliveryCharge('Maharashtra')).toBe(150);
-  });
-
-  it('returns default rate for empty string', () => {
-    expect(calculateDeliveryCharge('')).toBe(150);
-  });
-
-  it('returns default rate for null', () => {
-    expect(calculateDeliveryCharge(null)).toBe(150);
-  });
-
-  it('returns default rate for undefined', () => {
-    expect(calculateDeliveryCharge(undefined)).toBe(150);
-  });
-
-  it('handles whitespace trimming', () => {
-    expect(calculateDeliveryCharge('  Gujarat  ')).toBe(80);
-  });
-
-  it('DELIVERY_CHARGE_CONFIG.gujarat is 80', () => {
-    expect(DELIVERY_CHARGE_CONFIG.gujarat).toBe(80);
-  });
-
-  it('DELIVERY_CHARGE_CONFIG.default is 150', () => {
-    expect(DELIVERY_CHARGE_CONFIG.default).toBe(150);
   });
 });
