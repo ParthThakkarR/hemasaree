@@ -38,8 +38,6 @@ export const viewport: Viewport = {
 
 import GlobalErrorBoundary from '@components/global-error-boundary';
 
-export const dynamic = "force-dynamic";
-
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions);
   const settings = await getSiteSettings();

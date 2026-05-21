@@ -5,15 +5,13 @@ import { NextResponse } from 'next/server';
 
 // ─── env stubs ───────────────────────────────────────────
 vi.stubEnv('NODE_ENV', 'test');
-vi.stubEnv('EMAIL_HOST', 'smtp.test.com');
-vi.stubEnv('EMAIL_PORT', '465');
-vi.stubEnv('EMAIL_SECURE', 'true');
-vi.stubEnv('EMAIL_USER', 'test@example.com');
-vi.stubEnv('EMAIL_PASS', 'password');
-vi.stubEnv('EMAIL_DOMAIN', 'hemasarees.com');
+vi.stubEnv('EMAIL_SERVER_HOST', 'smtp.test.com');
+vi.stubEnv('EMAIL_SERVER_PORT', '465');
+vi.stubEnv('EMAIL_SERVER_USER', 'test@example.com');
+vi.stubEnv('EMAIL_SERVER_PASSWORD', 'password');
 
 // ─── hoisted mocks ───────────────────────────────────────
-const { mockPrisma, mockSendMail, mockCreateHash } = vi.hoisted(() => ({
+const { mockPrisma, mockSendEmail, mockCreateHash } = vi.hoisted(() => ({
   mockPrisma: {
     verificationToken: {
       findFirst: vi.fn(),
@@ -21,20 +19,16 @@ const { mockPrisma, mockSendMail, mockCreateHash } = vi.hoisted(() => ({
       create: vi.fn(),
     },
   },
-  mockSendMail: vi.fn().mockResolvedValue({ messageId: 'otp-msg-1' }),
+  mockSendEmail: vi.fn().mockResolvedValue({ messageId: 'otp-msg-1' }),
   mockCreateHash: vi.fn(() => ({
     update: vi.fn().mockReturnThis(),
     digest: vi.fn().mockReturnValue('hashed_otp_hex_for_send_otp'),
   })),
 }));
 
-// ─── nodemailer mock (default import) ────────────────────
-vi.mock('nodemailer', () => ({
-  default: {
-    createTransport: vi.fn(() => ({
-      sendMail: mockSendMail,
-    })),
-  },
+// ─── email service mock ──────────────────────────────────
+vi.mock('@/lib/email/emailService', () => ({
+  sendEmail: mockSendEmail,
 }));
 
 // ─── crypto mock (default import) ────────────────────────
@@ -70,7 +64,7 @@ describe('POST /api/auth/send-otp', () => {
     mockPrisma.verificationToken.findFirst.mockReset();
     mockPrisma.verificationToken.deleteMany.mockReset();
     mockPrisma.verificationToken.create.mockReset();
-    mockSendMail.mockReset();
+    mockSendEmail.mockReset();
     mockCreateHash.mockReset();
   });
 
@@ -83,7 +77,7 @@ describe('POST /api/auth/send-otp', () => {
       mockPrisma.verificationToken.findFirst.mockResolvedValue(null);
       mockPrisma.verificationToken.deleteMany.mockResolvedValue(undefined);
       mockPrisma.verificationToken.create.mockResolvedValue(undefined);
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
 
       const res = await callRoute({ email: 'test@example.com' });
       expect(res.status).toBe(200);
@@ -94,7 +88,7 @@ describe('POST /api/auth/send-otp', () => {
       mockPrisma.verificationToken.findFirst.mockResolvedValue(null);
       mockPrisma.verificationToken.deleteMany.mockResolvedValue(undefined);
       mockPrisma.verificationToken.create.mockResolvedValue(undefined);
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
 
       const res = await callRoute({ email: 'alice@example.com' });
       expect(res.status).toBe(200);
@@ -105,7 +99,7 @@ describe('POST /api/auth/send-otp', () => {
       mockPrisma.verificationToken.findFirst.mockResolvedValue(null);
       mockPrisma.verificationToken.deleteMany.mockResolvedValue(undefined);
       mockPrisma.verificationToken.create.mockResolvedValue(undefined);
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
 
       const res = await callRoute({ email: 'test+tag@example.com' });
       expect(res.status).toBe(200);
@@ -116,7 +110,7 @@ describe('POST /api/auth/send-otp', () => {
       mockPrisma.verificationToken.findFirst.mockResolvedValue(null);
       mockPrisma.verificationToken.deleteMany.mockResolvedValue(undefined);
       mockPrisma.verificationToken.create.mockResolvedValue(undefined);
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
 
       const res = await callRoute({ email: 'unlisted@example.com' });
       expect(res.status).toBe(200);
@@ -130,7 +124,7 @@ describe('POST /api/auth/send-otp', () => {
       });
       mockPrisma.verificationToken.deleteMany.mockResolvedValue(undefined);
       mockPrisma.verificationToken.create.mockResolvedValue(undefined);
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
 
       const res = await callRoute({ email: 'test@example.com' });
       expect(res.status).toBe(200);
@@ -141,7 +135,7 @@ describe('POST /api/auth/send-otp', () => {
       mockPrisma.verificationToken.findFirst.mockResolvedValue(null);
       mockPrisma.verificationToken.deleteMany.mockResolvedValue(undefined);
       mockPrisma.verificationToken.create.mockResolvedValue(undefined);
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
 
       await callRoute({ email: 'test@example.com' });
       await callRoute({ email: 'test@example.com' });
@@ -172,7 +166,7 @@ describe('POST /api/auth/send-otp', () => {
       await callRoute({ email: 'test@example.com' });
       expect(mockPrisma.verificationToken.deleteMany).not.toHaveBeenCalled();
       expect(mockPrisma.verificationToken.create).not.toHaveBeenCalled();
-      expect(mockSendMail).not.toHaveBeenCalled();
+      expect(mockSendEmail).not.toHaveBeenCalled();
     });
   });
 
@@ -215,7 +209,7 @@ describe('POST /api/auth/send-otp', () => {
       mockPrisma.verificationToken.findFirst.mockResolvedValue(null);
       mockPrisma.verificationToken.deleteMany.mockResolvedValue(undefined);
       mockPrisma.verificationToken.create.mockResolvedValue(undefined);
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
       const res = await callRoute({ email: longEmail });
       expect(res.status).toBe(200);
     });
@@ -277,7 +271,7 @@ describe('POST /api/auth/send-otp', () => {
       mockPrisma.verificationToken.findFirst.mockResolvedValue(null);
       mockPrisma.verificationToken.deleteMany.mockResolvedValue(undefined);
       mockPrisma.verificationToken.create.mockResolvedValue(undefined);
-      mockSendMail.mockRejectedValue(new Error('SMTP connection refused'));
+      mockSendEmail.mockRejectedValue(new Error('SMTP connection refused'));
       const res = await callRoute({ email: 'test@example.com' });
       expect(res.status).toBe(500);
     });
@@ -298,7 +292,7 @@ describe('POST /api/auth/send-otp', () => {
       mockPrisma.verificationToken.findFirst.mockResolvedValue(null);
       mockPrisma.verificationToken.deleteMany.mockResolvedValue(undefined);
       mockPrisma.verificationToken.create.mockResolvedValue(undefined);
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
 
       await callRoute({ email: 'test@example.com' });
       expect(mockPrisma.verificationToken.findFirst).toHaveBeenCalledWith({
@@ -312,7 +306,7 @@ describe('POST /api/auth/send-otp', () => {
       mockPrisma.verificationToken.findFirst.mockResolvedValue(null);
       mockPrisma.verificationToken.deleteMany.mockResolvedValue(undefined);
       mockPrisma.verificationToken.create.mockResolvedValue(undefined);
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
 
       await callRoute({ email: 'test@example.com' });
       expect(mockPrisma.verificationToken.deleteMany).toHaveBeenCalledBefore(mockPrisma.verificationToken.create);
@@ -323,7 +317,7 @@ describe('POST /api/auth/send-otp', () => {
       mockPrisma.verificationToken.findFirst.mockResolvedValue(null);
       mockPrisma.verificationToken.deleteMany.mockResolvedValue(undefined);
       mockPrisma.verificationToken.create.mockResolvedValue(undefined);
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
 
       await callRoute({ email: 'test@example.com' });
 
@@ -343,7 +337,7 @@ describe('POST /api/auth/send-otp', () => {
       mockPrisma.verificationToken.findFirst.mockResolvedValue(null);
       mockPrisma.verificationToken.deleteMany.mockResolvedValue(undefined);
       mockPrisma.verificationToken.create.mockResolvedValue(undefined);
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
 
       await callRoute({ email: 'unique@example.com' });
       expect(mockPrisma.verificationToken.deleteMany).toHaveBeenCalledWith({
@@ -359,7 +353,7 @@ describe('POST /api/auth/send-otp', () => {
       mockPrisma.verificationToken.findFirst.mockResolvedValue(null);
       mockPrisma.verificationToken.deleteMany.mockResolvedValue(undefined);
       mockPrisma.verificationToken.create.mockResolvedValue(undefined);
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
 
       await callRoute({ email: 'test@example.com' });
       expect(mockCreateHash).toHaveBeenCalledWith('sha256');
@@ -370,7 +364,7 @@ describe('POST /api/auth/send-otp', () => {
       mockPrisma.verificationToken.findFirst.mockResolvedValue(null);
       mockPrisma.verificationToken.deleteMany.mockResolvedValue(undefined);
       mockPrisma.verificationToken.create.mockResolvedValue(undefined);
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
 
       await callRoute({ email: 'hashcheck@test.com' });
 
@@ -387,10 +381,10 @@ describe('POST /api/auth/send-otp', () => {
       mockPrisma.verificationToken.findFirst.mockResolvedValue(null);
       mockPrisma.verificationToken.deleteMany.mockResolvedValue(undefined);
       mockPrisma.verificationToken.create.mockResolvedValue(undefined);
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
 
       await callRoute({ email: 'mailto@test.com' });
-      expect(mockSendMail).toHaveBeenCalledWith(
+      expect(mockSendEmail).toHaveBeenCalledWith(
         expect.objectContaining({ to: 'mailto@test.com' }),
       );
     });
@@ -400,10 +394,10 @@ describe('POST /api/auth/send-otp', () => {
       mockPrisma.verificationToken.findFirst.mockResolvedValue(null);
       mockPrisma.verificationToken.deleteMany.mockResolvedValue(undefined);
       mockPrisma.verificationToken.create.mockResolvedValue(undefined);
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
 
       await callRoute({ email: 'cnt@test.com' });
-      expect(mockSendMail).toHaveBeenCalledWith(
+      expect(mockSendEmail).toHaveBeenCalledWith(
         expect.objectContaining({ subject: 'Your Verification Code' }),
       );
     });
@@ -413,10 +407,10 @@ describe('POST /api/auth/send-otp', () => {
       mockPrisma.verificationToken.findFirst.mockResolvedValue(null);
       mockPrisma.verificationToken.deleteMany.mockResolvedValue(undefined);
       mockPrisma.verificationToken.create.mockResolvedValue(undefined);
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
 
       await callRoute({ email: 'svp@test.com' });
-      const args = mockSendMail.mock.calls[0][0];
+      const args = mockSendEmail.mock.calls[0][0];
       expect(args.text).toMatch(/Your OTP is \d{6}/);
     });
 
@@ -425,10 +419,10 @@ describe('POST /api/auth/send-otp', () => {
       mockPrisma.verificationToken.findFirst.mockResolvedValue(null);
       mockPrisma.verificationToken.deleteMany.mockResolvedValue(undefined);
       mockPrisma.verificationToken.create.mockResolvedValue(undefined);
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
 
       await callRoute({ email: 'svp@test.com' });
-      const args = mockSendMail.mock.calls[0][0];
+      const args = mockSendEmail.mock.calls[0][0];
       expect(args.html).toMatch(/\d{6}/);
     });
 
@@ -437,12 +431,13 @@ describe('POST /api/auth/send-otp', () => {
       mockPrisma.verificationToken.findFirst.mockResolvedValue(null);
       mockPrisma.verificationToken.deleteMany.mockResolvedValue(undefined);
       mockPrisma.verificationToken.create.mockResolvedValue(undefined);
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
 
       await callRoute({ email: 'domain@test.com' });
-      expect(mockSendMail).toHaveBeenCalledWith(
+      expect(mockSendEmail).toHaveBeenCalledWith(
         expect.objectContaining({
-          from: expect.stringContaining('hemasarees.com'),
+          to: 'domain@test.com',
+          type: 'otp_verification',
         }),
       );
     });
@@ -455,7 +450,7 @@ describe('POST /api/auth/send-otp', () => {
       mockPrisma.verificationToken.findFirst.mockResolvedValue(null);
       mockPrisma.verificationToken.deleteMany.mockResolvedValue(undefined);
       mockPrisma.verificationToken.create.mockResolvedValue(undefined);
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
 
       const res = await callRoute({ email: 'spy@evil.com' });
       expect(res.status).toBe(200);
@@ -468,14 +463,14 @@ describe('POST /api/auth/send-otp', () => {
       mockPrisma.verificationToken.findFirst.mockResolvedValue(null);
       mockPrisma.verificationToken.deleteMany.mockResolvedValue(undefined);
       mockPrisma.verificationToken.create.mockResolvedValue(undefined);
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
       const res1 = await callRoute({ email: 'diff@test.com' });
 
       // Second call — email does NOT exist in db
       mockPrisma.verificationToken.findFirst.mockResolvedValue(null);
       mockPrisma.verificationToken.deleteMany.mockResolvedValue(undefined);
       mockPrisma.verificationToken.create.mockResolvedValue(undefined);
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
       const res2 = await callRoute({ email: 'diff@test.com' });
 
       expect(res1.status).toBe(res2.status);
@@ -492,7 +487,7 @@ describe('POST /api/auth/send-otp', () => {
       });
       mockPrisma.verificationToken.deleteMany.mockResolvedValue(undefined);
       mockPrisma.verificationToken.create.mockResolvedValue(undefined);
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
 
       const res = await callRoute({ email: 'test@example.com' });
       expect(res.status).toBe(200);

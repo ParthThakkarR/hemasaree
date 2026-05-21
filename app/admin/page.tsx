@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@contexts/auth-context';
 import { Bar, Doughnut, Line } from 'react-chartjs-2';
 import Link from 'next/link';
@@ -76,13 +75,6 @@ export default function AdminDashboard() {
   const [error, setError] = useState<string | null>(null);
 
   const { user, isLoading: authLoading } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!authLoading && (!user || !user.isAdmin)) {
-      router.push('/login');
-    }
-  }, [user, authLoading, router]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);

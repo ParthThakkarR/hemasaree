@@ -1,37 +1,17 @@
 // app/api/forgot-password/route.ts
 import { NextResponse } from 'next/server';
-import { prisma } from '@lib/prisma'; // 1. Import the singleton
+import { prisma } from '@lib/prisma';
 
 export const dynamic = "force-dynamic";
 
-import { ForgotPasswordSchema } from '@lib/validators'; // 2. Import the schema
+import { ForgotPasswordSchema } from '@lib/validators';
 import crypto from 'crypto';
-import nodemailer from 'nodemailer'; // (Or better: import { Resend } from 'resend';)
-
-// 3. (RECOMMENDED) Use a transactional email service
-// const resend = new Resend(process.env.RESEND_API_KEY);
-
-const smtpPort = parseInt(process.env.EMAIL_PORT || '465', 10);
-const smtpSecure = process.env.EMAIL_SECURE ? process.env.EMAIL_SECURE === 'true' : smtpPort === 465;
-const emailDomain = process.env.EMAIL_DOMAIN || 'hemasarees.com';
-
-// (Using nodemailer for this example as you had it)
-const transporter = nodemailer.createTransport({
-  // 4. CRITICAL: Replace 'gmail' with a real service
-  host: process.env.EMAIL_HOST, // e.g., 'smtp.resend.com' or 'smtp.sendgrid.net'
-  port: smtpPort, // or 587
-  secure: smtpSecure, // true for 465, false for 587
-  auth: {
-    user: process.env.EMAIL_USER, // e.g., 'apikey'
-    pass: process.env.EMAIL_PASS, // Your API key
-  },
-});
+import { sendEmail } from '@/lib/email/emailService';
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    // 5. Validate input with Zod
     const validation = ForgotPasswordSchema.safeParse(body);
     if (!validation.success) {
       return NextResponse.json(
@@ -44,14 +24,13 @@ export async function POST(req: Request) {
 
     const user = await prisma.user.findUnique({ where: { email } });
 
-    // We send a success message either way to prevent email enumeration
     if (user) {
       const resetToken = crypto.randomBytes(32).toString('hex');
       const hashedToken = crypto
         .createHash('sha256')
         .update(resetToken)
         .digest('hex');
-      const tokenExpiry = new Date(Date.now() + 3600000); // 1 hour
+      const tokenExpiry = new Date(Date.now() + 3600000);
 
       await prisma.user.update({
         where: { email },
@@ -67,15 +46,14 @@ export async function POST(req: Request) {
         (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
       const resetUrl = `${appUrl}/reset-password?token=${resetToken}`;
 
-      // 6. Send email with the new service
-      await transporter.sendMail({
+      await sendEmail({
         to: email,
-        from: `"Hema Sarees" <onboarding@${emailDomain}>`, // e.g., onboarding@resend.dev
         subject: 'Password Reset Request',
         html: `<p>You are receiving this because you (or someone else) have requested the reset of the password for your account.</p>
                <p>Please click on the following link, or paste this into your browser to complete the process:</p>
                <p><a href="${resetUrl}">${resetUrl}</a></p>
                <p>If you did not request this, please ignore this email and your password will remain unchanged.</p>`,
+        type: 'password_reset',
       });
     }
 
@@ -83,7 +61,6 @@ export async function POST(req: Request) {
       message: 'If an account with that email exists, a password reset link has been sent.',
     });
   } catch (err) {
-    // 7. Log the error for debugging
     console.error('[FORGOT_PASSWORD_ERROR]', err);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }

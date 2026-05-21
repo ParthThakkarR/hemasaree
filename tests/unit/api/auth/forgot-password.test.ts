@@ -5,24 +5,22 @@ import { NextResponse } from 'next/server';
 
 // ─── env stubs ───────────────────────────────────────────
 vi.stubEnv('NODE_ENV', 'test');
-vi.stubEnv('EMAIL_HOST', 'smtp.test.com');
-vi.stubEnv('EMAIL_PORT', '465');
-vi.stubEnv('EMAIL_SECURE', 'true');
-vi.stubEnv('EMAIL_USER', 'test@example.com');
-vi.stubEnv('EMAIL_PASS', 'password');
-vi.stubEnv('EMAIL_DOMAIN', 'hemasarees.com');
+vi.stubEnv('EMAIL_SERVER_HOST', 'smtp.test.com');
+vi.stubEnv('EMAIL_SERVER_PORT', '465');
+vi.stubEnv('EMAIL_SERVER_USER', 'test@example.com');
+vi.stubEnv('EMAIL_SERVER_PASSWORD', 'password');
 vi.stubEnv('NEXT_PUBLIC_APP_URL', 'http://localhost:3000');
 vi.stubEnv('NEXTAUTH_URL', 'http://localhost:3000');
 
 // ─── hoisted mocks ───────────────────────────────────────
-const { mockPrisma, mockSendMail, mockRandomBytes, mockCreateHash } = vi.hoisted(() => ({
+const { mockPrisma, mockSendEmail, mockRandomBytes, mockCreateHash } = vi.hoisted(() => ({
   mockPrisma: {
     user: {
       findUnique: vi.fn(),
       update: vi.fn(),
     },
   },
-  mockSendMail: vi.fn().mockResolvedValue({ messageId: 'sm-1' }),
+  mockSendEmail: vi.fn().mockResolvedValue({ messageId: 'sm-1' }),
   mockRandomBytes: vi.fn(() => ({
     toString: vi.fn((encoding = 'hex') => `mock_reset_token_${encoding}`),
   })),
@@ -32,13 +30,9 @@ const { mockPrisma, mockSendMail, mockRandomBytes, mockCreateHash } = vi.hoisted
   })),
 }));
 
-// ─── nodemailer mock (default import) ────────────────────
-vi.mock('nodemailer', () => ({
-  default: {
-    createTransport: vi.fn(() => ({
-      sendMail: mockSendMail,
-    })),
-  },
+// ─── email service mock ──────────────────────────────────
+vi.mock('@/lib/email/emailService', () => ({
+  sendEmail: mockSendEmail,
 }));
 
 // ─── crypto mock (default import) ────────────────────────
@@ -93,7 +87,7 @@ describe('POST /api/auth/forgot-password', () => {
       mockForgotPwSchema.safeParse.mockReturnValue({ success: true, data: { email: 'test@example.com' } });
       mockPrisma.user.findUnique.mockResolvedValue({ id: 1, email: 'test@example.com' });
       mockPrisma.user.update.mockResolvedValue({ id: 1 });
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
 
       const res = await callRoute({ email: 'test@example.com' });
       expect(res.status).toBe(200);
@@ -103,7 +97,7 @@ it('handles email with Unicode characters', async () => {
       mockForgotPwSchema.safeParse.mockReturnValue({ success: true, data: { email: 'alice@example.com' } });
       mockPrisma.user.findUnique.mockResolvedValue({ id: 1, email: 'alice@example.com' });
       mockPrisma.user.update.mockResolvedValue({});
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
 
       const res = await callRoute({ email: 'alice@example.com' });
       expect(res.status).toBe(200);
@@ -113,7 +107,7 @@ it('handles email with Unicode characters', async () => {
       mockForgotPwSchema.safeParse.mockReturnValue({ success: true, data: { email: 'test+tag@sub.example.com' } });
       mockPrisma.user.findUnique.mockResolvedValue({ id: 1, email: 'test+tag@sub.example.com' });
       mockPrisma.user.update.mockResolvedValue({ id: 1 });
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
 
       const res = await callRoute({ email: 'test+tag@sub.example.com' });
       expect(res.status).toBe(200);
@@ -126,13 +120,13 @@ it('handles email with Unicode characters', async () => {
       const res = await callRoute({ email: 'ghost@example.com' });
       expect(res.status).toBe(200);
       expect(mockPrisma.user.update).not.toHaveBeenCalled();
-      expect(mockSendMail).not.toHaveBeenCalled();
+      expect(mockSendEmail).not.toHaveBeenCalled();
     });
 
     it('200 when email not found same message as found user — no leakage', async () => {
       mockForgotPwSchema.safeParse.mockReturnValue({ success: true, data: { email: 'mutantnancy@example.com' } });
       mockPrisma.user.findUnique.mockResolvedValue(null);
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
       // sendMail should NOT be called
       const res = await callRoute({ email: 'mutantnancy@example.com' });
       expect(res.status).toBe(200);
@@ -144,7 +138,7 @@ it('handles email with Unicode characters', async () => {
       mockForgotPwSchema.safeParse.mockReturnValue({ success: true, data: { email: 'test@example.com' } });
       mockPrisma.user.findUnique.mockResolvedValue({ id: 1, email: 'test@example.com' });
       mockPrisma.user.update.mockResolvedValue({});
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
 
       await callRoute({ email: 'test@example.com' });
       expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({ where: { email: 'test@example.com' } });
@@ -154,10 +148,10 @@ it('handles email with Unicode characters', async () => {
       mockForgotPwSchema.safeParse.mockReturnValue({ success: true, data: { email: 'test@example.com' } });
       mockPrisma.user.findUnique.mockResolvedValue({ id: 1, email: 'test@example.com' });
       mockPrisma.user.update.mockResolvedValue({});
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
 
       await callRoute({ email: 'test@example.com' });
-      expect(mockSendMail).toHaveBeenCalled();
+      expect(mockSendEmail).toHaveBeenCalled();
     });
 
     it('does NOT call sendMail when user is not found', async () => {
@@ -165,17 +159,17 @@ it('handles email with Unicode characters', async () => {
       mockPrisma.user.findUnique.mockResolvedValue(null);
 
       await callRoute({ email: 'missing@example.com' });
-      expect(mockSendMail).not.toHaveBeenCalled();
+      expect(mockSendEmail).not.toHaveBeenCalled();
     });
 
     it('generates correct reset URL', async () => {
       mockForgotPwSchema.safeParse.mockReturnValue({ success: true, data: { email: 'test@example.com' } });
       mockPrisma.user.findUnique.mockResolvedValue({ id: 1, email: 'test@example.com' });
       mockPrisma.user.update.mockResolvedValue({});
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
 
       await callRoute({ email: 'test@example.com' });
-      const mailArgs = mockSendMail.mock.calls[0][0];
+      const mailArgs = mockSendEmail.mock.calls[0][0];
       expect(mailArgs.html).toContain('http://localhost:3000/reset-password?token=mock_reset_token_32_hex');
     });
 
@@ -183,7 +177,7 @@ it('handles email with Unicode characters', async () => {
       mockForgotPwSchema.safeParse.mockReturnValue({ success: true, data: { email: 'test@example.com' } });
       mockPrisma.user.findUnique.mockResolvedValue({ id: 1, email: 'test@example.com' });
       mockPrisma.user.update.mockResolvedValue({});
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
 
       await callRoute({ email: 'test@example.com' });
       expect(mockPrisma.user.update).toHaveBeenCalledWith(
@@ -199,7 +193,7 @@ it('handles email with Unicode characters', async () => {
       mockForgotPwSchema.safeParse.mockReturnValue({ success: true, data: { email: 'test@example.com' } });
       mockPrisma.user.findUnique.mockResolvedValue({ id: 1, email: 'test@example.com' });
       mockPrisma.user.update.mockResolvedValue({});
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
 
       await callRoute({ email: 'test@example.com' });
       expect(mockRandomBytes).toHaveBeenCalledWith(32);
@@ -209,7 +203,7 @@ it('handles email with Unicode characters', async () => {
       mockForgotPwSchema.safeParse.mockReturnValue({ success: true, data: { email: 'test@example.com' } });
       mockPrisma.user.findUnique.mockResolvedValue({ id: 1, email: 'test@example.com' });
       mockPrisma.user.update.mockResolvedValue({});
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
 
       await callRoute({ email: 'test@example.com' });
       expect(mockCreateHash).toHaveBeenCalledWith('sha256');
@@ -222,7 +216,7 @@ it('handles email with Unicode characters', async () => {
       mockForgotPwSchema.safeParse.mockReturnValue({ success: true, data: { email: 'test@example.com' } });
       mockPrisma.user.findUnique.mockResolvedValue({ id: 1, email: 'test@example.com' });
       mockPrisma.user.update.mockResolvedValue({});
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
 
       const now = Date.now();
       await callRoute({ email: 'test@example.com' });
@@ -240,10 +234,10 @@ it('handles email with Unicode characters', async () => {
       mockForgotPwSchema.safeParse.mockReturnValue({ success: true, data: { email: 'test@example.com' } });
       mockPrisma.user.findUnique.mockResolvedValue({ id: 1, email: 'test@example.com' });
       mockPrisma.user.update.mockResolvedValue({});
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
 
       await callRoute({ email: 'test@example.com' });
-      expect(mockSendMail).toHaveBeenCalledWith(
+      expect(mockSendEmail).toHaveBeenCalledWith(
         expect.objectContaining({ subject: 'Password Reset Request' }),
       );
     });
@@ -252,10 +246,10 @@ it('handles email with Unicode characters', async () => {
       mockForgotPwSchema.safeParse.mockReturnValue({ success: true, data: { email: 'test@example.com' } });
       mockPrisma.user.findUnique.mockResolvedValue({ id: 1, email: 'test@example.com' });
       mockPrisma.user.update.mockResolvedValue({});
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
 
       await callRoute({ email: 'test@example.com' });
-      const mailArgs = mockSendMail.mock.calls[0][0];
+      const mailArgs = mockSendEmail.mock.calls[0][0];
       expect(mailArgs.html).toContain('reset-password');
     });
   });
@@ -298,11 +292,11 @@ it('handles email with Unicode characters', async () => {
       const longEmail = 'a'.repeat(10000) + '@example.com';
       mockForgotPwSchema.safeParse.mockReturnValue({ success: true, data: { email: longEmail } });
       mockPrisma.user.findUnique.mockResolvedValue(null);
-      mockSendMail.mockResolvedValue(undefined);
+      mockSendEmail.mockResolvedValue(undefined);
 
       const res = await callRoute({ email: longEmail });
       expect(res.status).toBe(200);
-      expect(mockSendMail).not.toHaveBeenCalled();
+      expect(mockSendEmail).not.toHaveBeenCalled();
     });
 
     it('400 for SQL injection in email', async () => {
@@ -337,7 +331,7 @@ it('handles email with Unicode characters', async () => {
       mockForgotPwSchema.safeParse.mockReturnValue({ success: true, data: { email: 'test@example.com' } });
       mockPrisma.user.findUnique.mockResolvedValue({ id: 1, email: 'test@example.com' });
       mockPrisma.user.update.mockRejectedValue(new Error('DB write fail'));
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
       const res = await callRoute({ email: 'test@example.com' });
       expect(res.status).toBe(500);
     });
@@ -346,7 +340,7 @@ it('handles email with Unicode characters', async () => {
       mockForgotPwSchema.safeParse.mockReturnValue({ success: true, data: { email: 'test@example.com' } });
       mockPrisma.user.findUnique.mockResolvedValue({ id: 1, email: 'test@example.com' });
       mockPrisma.user.update.mockResolvedValue({});
-      mockSendMail.mockRejectedValue(new Error('SMTP down'));
+      mockSendEmail.mockRejectedValue(new Error('SMTP down'));
       const res = await callRoute({ email: 'test@example.com' });
       expect(res.status).toBe(500);
     });
@@ -366,7 +360,7 @@ it('handles email with Unicode characters', async () => {
       mockForgotPwSchema.safeParse.mockReturnValue({ success: true, data: { email: 'test@example.com' } });
       mockPrisma.user.findUnique.mockResolvedValue({ id: 1, email: 'test@example.com' });
       mockPrisma.user.update.mockResolvedValue({});
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
 
       await callRoute({ email: 'test@example.com' });
       expect(mockRandomBytes).toHaveBeenCalledWith(32);
@@ -376,7 +370,7 @@ it('handles email with Unicode characters', async () => {
       mockForgotPwSchema.safeParse.mockReturnValue({ success: true, data: { email: 'test@example.com' } });
       mockPrisma.user.findUnique.mockResolvedValue({ id: 1, email: 'test@example.com' });
       mockPrisma.user.update.mockResolvedValue({});
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
 
       await callRoute({ email: 'test@example.com' });
       expect(mockCreateHash).toHaveBeenCalled();
@@ -389,10 +383,10 @@ it('handles email with Unicode characters', async () => {
       mockForgotPwSchema.safeParse.mockReturnValue({ success: true, data: { email: 'reset@test.com' } });
       mockPrisma.user.findUnique.mockResolvedValue({ id: 1, email: 'reset@test.com' });
       mockPrisma.user.update.mockResolvedValue({});
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
 
       await callRoute({ email: 'reset@test.com' });
-      const args = mockSendMail.mock.calls[0][0];
+      const args = mockSendEmail.mock.calls[0][0];
       expect(args.html).toContain('reset-password');
       expect(args.html).toContain('token=');
     });
@@ -401,10 +395,10 @@ it('handles email with Unicode characters', async () => {
       mockForgotPwSchema.safeParse.mockReturnValue({ success: true, data: { email: 'tofield@test.com' } });
       mockPrisma.user.findUnique.mockResolvedValue({ id: 1, email: 'tofield@test.com' });
       mockPrisma.user.update.mockResolvedValue({});
-      mockSendMail.mockResolvedValue({});
+      mockSendEmail.mockResolvedValue({});
 
       await callRoute({ email: 'tofield@test.com' });
-      expect(mockSendMail).toHaveBeenCalledWith(
+      expect(mockSendEmail).toHaveBeenCalledWith(
         expect.objectContaining({ to: 'tofield@test.com' }),
       );
     });
