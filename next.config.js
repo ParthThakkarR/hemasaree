@@ -7,7 +7,9 @@ const nextConfig = {
   output: process.env.NEXT_OUTPUT_STANDALONE === '1' ? 'standalone' : undefined,
 
   // Sharp is a native C++ addon — exclude it from webpack bundling
-  serverExternalPackages: ['sharp'],
+  experimental: {
+    serverComponentsExternalPackages: ['sharp'],
+  },
 
 
   images: {

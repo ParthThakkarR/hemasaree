@@ -48,7 +48,7 @@ export default function CartOrderSummary({
       {remainingForFreeShipping === 0 && step === 1 && (
         <div className="mb-6 p-3 bg-green-50 border border-green-200 rounded-xl flex items-center gap-2 text-green-700 text-sm font-medium">
           <Truck size={16} />
-          <span>You've unlocked FREE delivery!</span>
+          <span>You&apos;ve unlocked FREE delivery!</span>
         </div>
       )}
       
