@@ -45,3 +45,7 @@
 
 # Prisma generated client
 /app/generated/prisma/
+
+# Opencode configuration
+.opencode/
+.opencode
