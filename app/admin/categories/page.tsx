@@ -62,7 +62,10 @@ export default function ManageCategoriesPage() {
         formData.append('folder', 'categories');
 
         const res = await fetch('/api/admin/upload', { method: 'POST', body: formData });
-        if (!res.ok) throw new Error('Image upload failed');
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({ error: 'Image upload failed' }));
+          throw new Error(errData.error || 'Image upload failed');
+        }
 
         const data = await res.json();
         if (!data.urls || !Array.isArray(data.urls) || data.urls.length === 0) {

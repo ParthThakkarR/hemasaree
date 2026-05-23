@@ -1,19 +1,16 @@
-// /app/api/admin/upload/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 import { verifyAdminToken } from '@utils/auth';
-
 import { optimizeImage } from '@/lib/imageService';
+import { storeImage } from '@/lib/imageStorage';
 
 export const dynamic = "force-dynamic";
-
-// Allow up to 10MB uploads (default is 1MB which breaks image uploads)
-export const maxDuration = 30; // seconds — give sharp time to process
+export const maxDuration = 30;
 export const fetchCache = 'force-no-store';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB per file
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
 export async function POST(req: NextRequest) {
   const adminId = await verifyAdminToken(req);
@@ -28,7 +25,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No files provided.' }, { status: 400 });
     }
 
-    // Validate files before processing
     for (const file of files) {
       if (!ALLOWED_TYPES.includes(file.type)) {
         return NextResponse.json(
@@ -50,18 +46,21 @@ export async function POST(req: NextRequest) {
       const buffer = Buffer.from(await file.arrayBuffer());
 
       try {
-        // Try optimized upload via sharp
         const optimizedUrl = await optimizeImage(buffer, file.name);
         urls.push(optimizedUrl);
       } catch (optimizeErr) {
-        // Fallback: save the original file without sharp optimization
-        console.warn(`[UPLOAD] Sharp optimization failed for "${file.name}", saving original:`, optimizeErr);
-        const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-        const finalName = `${Date.now()}_${sanitizedName}`;
-        const uploadDir = path.join(process.cwd(), 'public/uploads/products');
-        await mkdir(uploadDir, { recursive: true });
-        await writeFile(path.join(uploadDir, finalName), buffer);
-        urls.push(`/uploads/products/${finalName}`);
+        try {
+          const mongoUrl = await storeImage(buffer, file.name);
+          urls.push(mongoUrl);
+        } catch (storeErr) {
+          console.error(`[UPLOAD] All storage methods failed for "${file.name}":`, storeErr);
+          const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+          const finalName = `${Date.now()}_${sanitizedName}`;
+          const uploadDir = path.join(process.cwd(), 'public/uploads/products');
+          await mkdir(uploadDir, { recursive: true });
+          await writeFile(path.join(uploadDir, finalName), buffer);
+          urls.push(`/uploads/products/${finalName}`);
+        }
       }
     }
 

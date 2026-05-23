@@ -82,7 +82,10 @@ export default function ManageProductsPage() {
     }
     formData.append('folder', 'products');
     const res = await fetch('/api/admin/upload', { method: 'POST', body: formData });
-    if (!res.ok) throw new Error('Upload failed');
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({ error: 'Upload failed' }));
+      throw new Error(errData.error || 'Upload failed');
+    }
     const data = await res.json();
     return data.urls;
   };
