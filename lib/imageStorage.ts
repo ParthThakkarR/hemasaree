@@ -1,5 +1,4 @@
-import { MongoClient } from 'mongodb';
-import { ObjectId } from 'bson';
+import { MongoClient, ObjectId } from 'mongodb';
 
 let client: MongoClient | null = null;
 let dbPromise: Promise<any> | null = null;
