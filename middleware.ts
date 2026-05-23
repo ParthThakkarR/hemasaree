@@ -17,6 +17,7 @@ const publicPaths = [
   "/api/test",
   "/api/health",
   "/api/search",
+  "/api/uploads",
 ];
 
 export async function middleware(req: NextRequest) {

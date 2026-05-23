@@ -1,4 +1,5 @@
 import { MongoClient } from 'mongodb';
+import { ObjectId } from 'bson';
 import sharp from 'sharp';
 
 let client: MongoClient | null = null;
@@ -8,7 +9,10 @@ async function getDb() {
   if (!dbPromise) {
     dbPromise = (async () => {
       const uri = process.env.DATABASE_URL || '';
-      client = new MongoClient(uri);
+      client = new MongoClient(uri, {
+        serverSelectionTimeoutMS: 5000,
+        connectTimeoutMS: 5000,
+      });
       await client.connect();
       return client.db();
     })();
@@ -36,7 +40,7 @@ export async function storeImage(
     });
     return `/api/uploads/${result.insertedId.toString()}`;
   } catch (error) {
-    console.warn('[IMG_STORAGE] MongoDB storage failed, using data URL fallback:', error);
+    console.warn('[IMG_STORAGE] MongoDB upload failed, data URL fallback:', error);
     return `data:image/webp;base64,${webpBuffer.toString('base64')}`;
   }
 }
@@ -46,14 +50,18 @@ export async function getImage(
 ): Promise<{ data: string; mimeType: string } | null> {
   try {
     const database = await getDb();
-    const { ObjectId } = await import('bson');
+
     let filter: any;
     try {
       filter = { _id: new ObjectId(id) };
     } catch {
       filter = { _id: id };
     }
-    const doc = await database.collection('images').findOne(filter);
+
+    const doc = await database.collection('images').findOne(filter, {
+      maxTimeMS: 5000,
+    });
+
     if (!doc) return null;
     return { data: doc.data, mimeType: doc.mimeType || 'image/webp' };
   } catch (error) {
