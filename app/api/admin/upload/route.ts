@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
+import sharp from 'sharp';
 import { verifyAdminToken } from '@utils/auth';
-import { optimizeImage } from '@/lib/imageService';
 import { storeImage } from '@/lib/imageStorage';
 
 export const dynamic = "force-dynamic";
@@ -11,6 +11,16 @@ export const fetchCache = 'force-no-store';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
+
+async function processAndStore(buffer: Buffer, fileName: string): Promise<string> {
+  const webpBuffer = await sharp(buffer)
+    .resize(1200, 1200, { fit: 'inside', withoutEnlargement: true })
+    .webp({ quality: 80 })
+    .toBuffer();
+
+  const base64 = webpBuffer.toString('base64');
+  return await storeImage(base64, 'image/webp', fileName);
+}
 
 export async function POST(req: NextRequest) {
   const adminId = await verifyAdminToken(req);
@@ -46,21 +56,16 @@ export async function POST(req: NextRequest) {
       const buffer = Buffer.from(await file.arrayBuffer());
 
       try {
-        const optimizedUrl = await optimizeImage(buffer, file.name);
-        urls.push(optimizedUrl);
-      } catch (optimizeErr) {
-        try {
-          const mongoUrl = await storeImage(buffer, file.name);
-          urls.push(mongoUrl);
-        } catch (storeErr) {
-          console.error(`[UPLOAD] All storage methods failed for "${file.name}":`, storeErr);
-          const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-          const finalName = `${Date.now()}_${sanitizedName}`;
-          const uploadDir = path.join(process.cwd(), 'public/uploads/products');
-          await mkdir(uploadDir, { recursive: true });
-          await writeFile(path.join(uploadDir, finalName), buffer);
-          urls.push(`/uploads/products/${finalName}`);
-        }
+        const url = await processAndStore(buffer, file.name);
+        urls.push(url);
+      } catch (storeErr) {
+        console.error(`[UPLOAD] All storage methods failed for "${file.name}":`, storeErr);
+        const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+        const finalName = `${Date.now()}_${sanitizedName}`;
+        const uploadDir = path.join(process.cwd(), 'public/uploads/products');
+        await mkdir(uploadDir, { recursive: true });
+        await writeFile(path.join(uploadDir, finalName), buffer);
+        urls.push(`/uploads/products/${finalName}`);
       }
     }
 

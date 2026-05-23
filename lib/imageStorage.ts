@@ -1,6 +1,5 @@
 import { MongoClient } from 'mongodb';
 import { ObjectId } from 'bson';
-import sharp from 'sharp';
 
 let client: MongoClient | null = null;
 let dbPromise: Promise<any> | null = null;
@@ -21,27 +20,23 @@ async function getDb() {
 }
 
 export async function storeImage(
-  buffer: Buffer,
+  data: string,
+  mimeType: string,
   originalName: string
 ): Promise<string> {
-  const webpBuffer = await sharp(buffer)
-    .resize(1200, 1200, { fit: 'inside', withoutEnlargement: true })
-    .webp({ quality: 80 })
-    .toBuffer();
-
   try {
     const database = await getDb();
     const result = await database.collection('images').insertOne({
-      data: webpBuffer.toString('base64'),
-      mimeType: 'image/webp',
+      data,
+      mimeType,
       originalName,
       createdAt: new Date(),
-      size: webpBuffer.length,
+      size: Buffer.byteLength(data, 'base64'),
     });
-    return `/api/uploads/${result.insertedId.toString()}`;
+    return `/img/${result.insertedId.toString()}`;
   } catch (error) {
     console.warn('[IMG_STORAGE] MongoDB upload failed, data URL fallback:', error);
-    return `data:image/webp;base64,${webpBuffer.toString('base64')}`;
+    return `data:${mimeType};base64,${data}`;
   }
 }
 
