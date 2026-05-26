@@ -137,68 +137,7 @@ export const orderDeliveredTemplate = (order: any) => `
         <div class="content">
             <p>Hi ${order.user.name || order.user.firstName},</p>
             <p>Your order <strong>${order.id}</strong> has been delivered successfully.</p>
-            <p>We hope you love your purchase! If you have any issues, you can request a return within 7 days.</p>
-        </div>
-        <div class="footer">
-            <p>&copy; ${new Date().getFullYear()} Hemasaree. All rights reserved.</p>
-        </div>
-    </div>
-</body>
-</html>
-`;
-
-export const returnRequestedTemplate = (adminName: string, orderId: string, reason: string) => `
-<!DOCTYPE html>
-<html>
-<head>
-    <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { width: 80%; margin: 20px auto; padding: 20px; border: 1px solid #eee; border-radius: 5px; }
-        .header { background: #f8f8f8; padding: 10px; text-align: center; }
-        .content { padding: 20px; }
-        .footer { font-size: 12px; color: #777; text-align: center; margin-top: 20px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>New Return Request</h1>
-        </div>
-        <div class="content">
-            <p>Hi ${adminName},</p>
-            <p>A new return request has been submitted for order <strong>${orderId}</strong>.</p>
-            <p><strong>Reason:</strong> ${reason}</p>
-            <p>Please review the request in the admin panel.</p>
-        </div>
-        <div class="footer">
-            <p>&copy; ${new Date().getFullYear()} Hemasaree. All rights reserved.</p>
-        </div>
-    </div>
-</body>
-</html>
-`;
-
-export const returnStatusTemplate = (name: string, orderId: string, status: 'APPROVED' | 'REJECTED') => `
-<!DOCTYPE html>
-<html>
-<head>
-    <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { width: 80%; margin: 20px auto; padding: 20px; border: 1px solid #eee; border-radius: 5px; }
-        .header { background: #f8f8f8; padding: 10px; text-align: center; }
-        .content { padding: 20px; }
-        .footer { font-size: 12px; color: #777; text-align: center; margin-top: 20px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>Return Request ${status}</h1>
-        </div>
-        <div class="content">
-            <p>Hi ${name},</p>
-            <p>Your return request for order <strong>${orderId}</strong> has been <strong>${status}</strong>.</p>
-            ${status === 'APPROVED' ? '<p>Our team will contact you soon for the next steps.</p>' : '<p>If you have any questions, please contact our support.</p>'}
+            <p>We hope you love your purchase! If you have any issues, please contact our support.</p>
         </div>
         <div class="footer">
             <p>&copy; ${new Date().getFullYear()} Hemasaree. All rights reserved.</p>

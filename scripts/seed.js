@@ -190,17 +190,16 @@ async function main() {
     const orderItemsData = selectedProducts.map(p => {
       const qty = Math.floor(Math.random() * 2) + 1;
       totalAmount += p.price * qty;
-      const itemStatus = status === 'DELIVERED' ? 'DELIVERED' : status === 'SHIPPED' ? 'SHIPPED' : 'PENDING';
-      return {
-        productId: p.id,
-        productName: p.name,
-        productImage: p.images[0],
-        price: p.price,
-        quantity: qty,
-        withPolish: false,
-        isReturnable: status === 'DELIVERED',
-        status: itemStatus,
-      };
+       const itemStatus = status === 'DELIVERED' ? 'DELIVERED' : status === 'SHIPPED' ? 'SHIPPED' : 'PENDING';
+       return {
+         productId: p.id,
+         productName: p.name,
+         productImage: p.images[0],
+         price: p.price,
+         quantity: qty,
+         withPolish: false,
+         status: itemStatus,
+       };
     });
 
     const userAddresses = await prisma.address.findMany({ where: { userId: user.id } });

@@ -126,17 +126,16 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Col 3: Help & Info */}
-          <div>
-            <h4 className="font-semibold text-brand-50 uppercase tracking-wider mb-5 text-xs">Help & Info</h4>
-            <ul className="space-y-3">
-              <li><Link href="/orders" className="text-sm hover:text-accent transition-colors">Track Order</Link></li>
-              <li><Link href="/terms" className="text-sm hover:text-accent transition-colors">Shipping & Delivery</Link></li>
-              <li><Link href="/terms" className="text-sm hover:text-accent transition-colors">Returns & Exchanges</Link></li>
-              <li><Link href="/about" className="text-sm hover:text-accent transition-colors">About Us</Link></li>
-              <li><a href="mailto:hello@hemasarees.com" className="text-sm hover:text-accent transition-colors">Contact Us</a></li>
-            </ul>
-          </div>
+           {/* Col 3: Help & Info */}
+           <div>
+             <h4 className="font-semibold text-brand-50 uppercase tracking-wider mb-5 text-xs">Help & Info</h4>
+             <ul className="space-y-3">
+               <li><Link href="/orders" className="text-sm hover:text-accent transition-colors">Track Order</Link></li>
+               <li><Link href="/terms" className="text-sm hover:text-accent transition-colors">Shipping & Delivery</Link></li>
+               <li><Link href="/about" className="text-sm hover:text-accent transition-colors">About Us</Link></li>
+               <li><a href="mailto:hello@hemasarees.com" className="text-sm hover:text-accent transition-colors">Contact Us</a></li>
+             </ul>
+           </div>
 
           {/* Col 4: Contact & Social */}
           <div>

@@ -99,15 +99,14 @@ export class OrderService {
 
     const formattedAddress = `${address.streetAddress}, ${address.city}, ${address.state} - ${address.zipCode}, ${address.country || 'India'}`;
 
-    const orderItemsCreate = items.map(item => ({
-      productId: item.productId,
-      productName: item.productName,
-      productImage: item.productImage,
-      price: item.price,
-      quantity: item.quantity,
-      withPolish: item.withPolish ?? false,
-      isReturnable: !(item.withPolish ?? false),
-    }));
+     const orderItemsCreate = items.map(item => ({
+       productId: item.productId,
+       productName: item.productName,
+       productImage: item.productImage,
+       price: item.price,
+       quantity: item.quantity,
+       withPolish: item.withPolish ?? false,
+     }));
 
     const newOrder = await prisma.$transaction(async tx => {
       for (const item of items) {
@@ -152,79 +151,21 @@ export class OrderService {
     };
   }
 
-  /**
-   * Update order status (admin)
-   */
-  static async updateOrderStatus(orderId: string, status: OrderStatus): Promise<void> {
-    await prisma.$transaction([
-      prisma.order.update({
-        where: { id: orderId },
-        data: { status },
-      }),
-      prisma.orderItem.updateMany({
-        where: {
-          orderId,
-          status: {
-            notIn: [
-              OrderItemStatus.RETURN_REQUESTED,
-              OrderItemStatus.RETURN_APPROVED,
-              OrderItemStatus.RETURNED,
-              OrderItemStatus.RETURN_DECLINED,
-            ],
-          },
-        },
-        data: { status: status as OrderItemStatus },
-      }),
-    ]);
-  }
-
-  /**
-   * Update order item return status
-   */
-  static async updateReturnStatus(
-    orderItemId: string,
-    newStatus: OrderItemStatus
-  ): Promise<void> {
-    const orderItem = await prisma.orderItem.findUnique({
-      where: { id: orderItemId },
-      include: { product: true, order: true },
-    });
-
-    if (!orderItem) {
-      throw new NotFoundError('Order item not found');
-    }
-
-    await prisma.$transaction(async tx => {
-      // Restore stock if return is approved
-      if (newStatus === OrderItemStatus.RETURN_APPROVED) {
-        await tx.product.update({
-          where: { id: orderItem.productId },
-          data: { stock: { increment: orderItem.quantity } },
-        });
-      }
-
-      await tx.orderItem.update({
-        where: { id: orderItemId },
-        data: { status: newStatus },
-      });
-
-      // Check if all items are returned
-      const allItems = await tx.orderItem.findMany({
-        where: { orderId: orderItem.orderId },
-      });
-
-      const allReturned = allItems.every(
-        item =>
-          item.status === OrderItemStatus.RETURN_APPROVED ||
-          item.status === OrderItemStatus.RETURNED
-      );
-
-      if (allReturned) {
-        await tx.order.update({
-          where: { id: orderItem.orderId },
-          data: { status: OrderStatus.RETURNED },
-        });
-      }
-    });
-  }
+/**
+    * Update order status (admin)
+    */
+   static async updateOrderStatus(orderId: string, status: OrderStatus): Promise<void> {
+     await prisma.$transaction([
+       prisma.order.update({
+         where: { id: orderId },
+         data: { status },
+       }),
+       prisma.orderItem.updateMany({
+         where: {
+           orderId,
+         },
+         data: { status: status as OrderItemStatus },
+       }),
+     ]);
+   }
 }

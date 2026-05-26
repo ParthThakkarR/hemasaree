@@ -20,10 +20,10 @@ export default function TermsAndConditions() {
             All products and services are subject to availability. We reserve the right to discontinue any product at any time. Prices for our products are subject to change without notice.
           </p>
 
-          <h2 className="font-serif text-2xl font-bold mt-8 mb-4 text-ink">3. Returns and Refunds</h2>
-          <p className="mb-6 leading-relaxed">
-            Our return policy allows for returns within 7 days of delivery, subject to conditions outlined in our detailed Return Policy. Items must be unused and in their original packaging.
-          </p>
+           <h2 className="font-serif text-2xl font-bold mt-8 mb-4 text-ink">3. Purchase Policy</h2>
+           <p className="mb-6 leading-relaxed">
+             All purchases are final. We do not accept returns, exchanges, or refunds once an order has been placed and confirmed.
+           </p>
 
           <h2 className="font-serif text-2xl font-bold mt-8 mb-4 text-ink">4. User Accounts</h2>
           <p className="mb-6 leading-relaxed">

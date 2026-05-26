@@ -117,23 +117,19 @@ export default function ProductAccordion({ product, reviews, reviewStats, onRevi
         </div>
       </AccordionItem>
 
-      {/* Delivery & Returns */}
-      <AccordionItem id="delivery" title="Delivery & Returns">
-        <div className="space-y-4 text-sm text-ink-muted">
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-full bg-surface-muted flex items-center justify-center flex-shrink-0 mt-0.5"><span className="text-xs">📦</span></div>
-            <div><p className="font-medium text-ink">Dispatch Time</p><p className="text-xs">Ships within 24-48 hours of order confirmation</p></div>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-full bg-surface-muted flex items-center justify-center flex-shrink-0 mt-0.5"><span className="text-xs">🚚</span></div>
-            <div><p className="font-medium text-ink">Delivery</p><p className="text-xs">3-7 business days within India. Free on orders above ₹999.</p></div>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-full bg-surface-muted flex items-center justify-center flex-shrink-0 mt-0.5"><span className="text-xs">↩️</span></div>
-            <div><p className="font-medium text-ink">Returns</p><p className="text-xs">7-day easy return policy. Item must be unworn, unwashed, and in original packaging.</p></div>
-          </div>
-        </div>
-      </AccordionItem>
+       {/* Delivery */}
+       <AccordionItem id="delivery" title="Delivery & Shipping">
+         <div className="space-y-4 text-sm text-ink-muted">
+           <div className="flex items-start gap-3">
+             <div className="w-8 h-8 rounded-full bg-surface-muted flex items-center justify-center flex-shrink-0 mt-0.5"><span className="text-xs">📦</span></div>
+             <div><p className="font-medium text-ink">Dispatch Time</p><p className="text-xs">Ships within 24-48 hours of order confirmation</p></div>
+           </div>
+           <div className="flex items-start gap-3">
+             <div className="w-8 h-8 rounded-full bg-surface-muted flex items-center justify-center flex-shrink-0 mt-0.5"><span className="text-xs">🚚</span></div>
+             <div><p className="font-medium text-ink">Delivery</p><p className="text-xs">3-7 business days within India. Free on orders above ₹999.</p></div>
+           </div>
+         </div>
+       </AccordionItem>
 
       {/* Customer Reviews — FULLY DYNAMIC */}
       <AccordionItem id="reviews" title="Customer Reviews" badge={reviewStats.totalReviews > 0 ? `(${reviewStats.totalReviews})` : undefined}>

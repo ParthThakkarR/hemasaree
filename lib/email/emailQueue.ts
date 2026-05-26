@@ -59,38 +59,30 @@ async function initializeQueue(): Promise<Queue.Queue | null> {
       let html = '';
       let subject = '';
 
-      switch (type) {
-        case 'welcome':
-          subject = 'Welcome to Hemasaree!';
-          html = templates.welcomeTemplate(data.name);
-          break;
-        case 'order_confirmation':
-          subject = `Order Confirmation - ${data.order.id}`;
-          html = templates.orderConfirmationTemplate(data.order);
-          break;
-        case 'order_shipped':
-          subject = `Your Order ${data.order.id} has Shipped!`;
-          html = templates.orderShippedTemplate(data.order, data.trackingInfo);
-          break;
-        case 'order_delivered':
-          subject = `Your Order ${data.order.id} has been Delivered!`;
-          html = templates.orderDeliveredTemplate(data.order);
-          break;
-        case 'return_requested':
-          subject = `New Return Request - ${data.orderId}`;
-          html = templates.returnRequestedTemplate(data.adminName, data.orderId, data.reason);
-          break;
-        case 'return_status':
-          subject = `Return Request ${data.status} - ${data.orderId}`;
-          html = templates.returnStatusTemplate(data.name, data.orderId, data.status);
-          break;
-        case 'newsletter':
-          subject = data.subject || 'Hemasaree Newsletter';
-          html = templates.newsletterTemplate(data.content);
-          break;
-        default:
-          throw new Error(`Unknown email type: ${type}`);
-      }
+       switch (type) {
+         case 'welcome':
+           subject = 'Welcome to Hemasaree!';
+           html = templates.welcomeTemplate(data.name);
+           break;
+         case 'order_confirmation':
+           subject = `Order Confirmation - ${data.order.id}`;
+           html = templates.orderConfirmationTemplate(data.order);
+           break;
+         case 'order_shipped':
+           subject = `Your Order ${data.order.id} has Shipped!`;
+           html = templates.orderShippedTemplate(data.order, data.trackingInfo);
+           break;
+         case 'order_delivered':
+           subject = `Your Order ${data.order.id} has been Delivered!`;
+           html = templates.orderDeliveredTemplate(data.order);
+           break;
+         case 'newsletter':
+           subject = data.subject || 'Hemasaree Newsletter';
+           html = templates.newsletterTemplate(data.content);
+           break;
+         default:
+           throw new Error(`Unknown email type: ${type}`);
+       }
 
       await sendEmail({ to: data.to, subject, html, type });
     });

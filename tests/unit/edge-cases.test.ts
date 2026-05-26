@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import {
-  ReturnRequestSchema,
   CartAddSchema,
   CartUpdateSchema,
   CheckoutSchema,
@@ -256,45 +255,5 @@ describe('Security & Edge Case Validators', () => {
     });
   });
 
-  describe('ReturnRequestSchema', () => {
-    it('should validate correct return request', () => {
-      const result = ReturnRequestSchema.safeParse({
-        orderItemId: 'item123',
-        reason: 'Defective product',
-      });
-      expect(result.success).toBe(true);
-    });
-
-    it('should accept optional notes', () => {
-      const result = ReturnRequestSchema.safeParse({
-        orderItemId: 'item123',
-        reason: 'Wrong size',
-        notes: 'Please process quickly',
-      });
-      expect(result.success).toBe(true);
-    });
-
-    it('should reject empty reason', () => {
-      const result = ReturnRequestSchema.safeParse({
-        orderItemId: 'item123',
-        reason: '',
-      });
-      expect(result.success).toBe(false);
-    });
-
-    it('should reject missing orderItemId', () => {
-      const result = ReturnRequestSchema.safeParse({
-        reason: 'Defective',
-      });
-      expect(result.success).toBe(false);
-    });
-
-    it('should reject empty orderItemId', () => {
-      const result = ReturnRequestSchema.safeParse({
-        orderItemId: '',
-        reason: 'Defective',
-      });
-      expect(result.success).toBe(false);
-    });
-  });
+  
 });

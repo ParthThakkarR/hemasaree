@@ -161,7 +161,7 @@ export const CheckoutSchema = z.object({
   address: AddressSchema,
 });
 
-// --- Order & Return Schemas ---
+// --- Order Schemas ---
 
 const UpdateOrderStatusSchema = z.object({
   action: z.literal('UPDATE_ORDER_STATUS'),
@@ -169,31 +169,9 @@ const UpdateOrderStatusSchema = z.object({
   status: z.nativeEnum(OrderStatus),
 });
 
-const UpdateReturnStatusSchema = z.object({
-  action: z.literal('UPDATE_RETURN_STATUS'),
-  orderItemId: z.string().min(1, { message: 'Order Item ID is required' }),
-  newStatus: z.nativeEnum(OrderItemStatus),
-});
-
 export const AdminOrderUpdateSchema = z.discriminatedUnion('action', [
   UpdateOrderStatusSchema,
-  UpdateReturnStatusSchema,
 ]);
-
-export const ReturnRequestSchema = z.object({
-  orderItemId: z.string().min(1, { message: 'Order Item ID is required' }),
-  reason: z.string().min(1, { message: 'A reason for return is required' }),
-  notes: z.string().optional(),
-  image: z
-    .instanceof(File)
-    .refine((file) => file.size <= MAX_FILE_SIZE, {
-      message: 'File too large. Maximum size is 5MB.',
-    })
-    .refine((file) => ALLOWED_IMAGE_TYPES.includes(file.type), {
-      message: 'Invalid file type. Only JPEG, PNG, and WebP are allowed.',
-    })
-    .optional(),
-});
 
 // --- Generic Schemas ---
 

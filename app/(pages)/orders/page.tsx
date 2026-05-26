@@ -18,10 +18,6 @@ enum OrderItemStatus {
   PENDING = 'PENDING',
   SHIPPED = 'SHIPPED',
   DELIVERED = 'DELIVERED',
-  RETURN_REQUESTED = 'RETURN_REQUESTED',
-  RETURN_APPROVED = 'RETURN_APPROVED',
-  RETURN_DECLINED = 'RETURN_DECLINED',
-  RETURNED = 'RETURNED',
   CANCELLED = 'CANCELLED',
 }
 
@@ -32,7 +28,6 @@ interface OrderItem {
   productImage?: string;
   price: number;
   quantity: number;
-  isReturnable: boolean;
   status: OrderItemStatus;
 }
 
@@ -199,27 +194,16 @@ const OrderCard = ({ order, onCancelOrder }: { order: Order, onCancelOrder: (id:
               alt={item.productName}
               className="w-20 h-20 rounded-lg object-cover shadow-sm flex-shrink-0"
             />
-            <div className="flex-grow">
-              <h4 className="font-semibold text-ink text-base mb-1">{item.productName}</h4>
-              <p className="text-sm text-ink-muted mb-1">Qty: {item.quantity} &nbsp;&bull;&nbsp; ₹{item.price.toFixed(2)} each</p>
-              <Link href={`/product/${item.productId}`} className="text-sm text-brand-600 hover:text-brand-700 font-medium inline-flex items-center gap-1">
-                View Product 
-              </Link>
-            </div>
-            <div className="sm:text-right w-full sm:w-auto flex flex-row sm:flex-col justify-between sm:justify-start items-center sm:items-end">
-              <p className="font-bold text-ink text-lg mb-2">₹{(item.price * item.quantity).toFixed(2)}</p>
-
-              {order.status === 'DELIVERED' && item.isReturnable && item.status === 'DELIVERED' && (
-                <Link href={`/orders/${order.id}/return/${item.id}`} className="outline-btn py-1.5 px-3 text-xs flex items-center gap-1 rounded-md">
-                  <Undo2 className="w-3 h-3" /> Return Item
-                </Link>
-              )}
-
-              {item.status === 'RETURN_REQUESTED' && <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Return Requested</span>}
-              {item.status === 'RETURN_APPROVED' && <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Return Approved</span>}
-              {item.status === 'RETURN_DECLINED' && <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Return Declined</span>}
-              {item.status === 'RETURNED' && <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Returned</span>}
-            </div>
+           <div className="flex-grow">
+               <h4 className="font-semibold text-ink text-base mb-1">{item.productName}</h4>
+               <p className="text-sm text-ink-muted mb-1">Qty: {item.quantity} &nbsp;&bull;&nbsp; ₹{item.price.toFixed(2)} each</p>
+               <Link href={`/product/${item.productId}`} className="text-sm text-brand-600 hover:text-brand-700 font-medium inline-flex items-center gap-1">
+                 View Product 
+               </Link>
+             </div>
+             <div className="sm:text-right w-full sm:w-auto flex flex-row sm:flex-col justify-between sm:justify-start items-center sm:items-end">
+               <p className="font-bold text-ink text-lg mb-2">₹{(item.price * item.quantity).toFixed(2)}</p>
+             </div>
           </div>
         ))}
       </div>

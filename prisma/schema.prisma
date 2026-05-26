@@ -13,11 +13,7 @@ enum OrderItemStatus {
   PENDING
   SHIPPED
   DELIVERED
-  RETURN_REQUESTED
-  RETURN_APPROVED
-  RETURNED
   CANCELLED
-  RETURN_DECLINED
 }
 
 enum OrderStatus {
@@ -25,7 +21,6 @@ enum OrderStatus {
   SHIPPED
   DELIVERED
   CANCELLED
-  RETURNED
 }
 
 model User {
@@ -217,15 +212,11 @@ model OrderItem {
   productId      String          @db.ObjectId
   product        Product         @relation(fields: [productId], references: [id])
   withPolish     Boolean         @default(false)
-  isReturnable   Boolean         @default(false)
   status         OrderItemStatus @default(PENDING)
   productName    String
   productImage   String?
   quantity       Int
   price          Float
-  returnReason   String?
-  returnNotes    String?
-  returnImage    String?
 
   @@index([orderId])
   @@index([productId])

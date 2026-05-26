@@ -302,134 +302,41 @@ describe('emailTemplates', () => {
     });
   });
 
-  describe('orderDeliveredTemplate', () => {
-    const mockOrder = { id: 'ORD-789', user: { name: 'Bob', firstName: 'Bob' } };
+   describe('orderDeliveredTemplate', () => {
+     const mockOrder = { id: 'ORD-789', user: { name: 'Bob', firstName: 'Bob' } };
 
-    it('includes order ID', async () => {
-      const { orderDeliveredTemplate } = await import('@/lib/email/templates');
-      const html = orderDeliveredTemplate(mockOrder);
-      expect(html).toContain('ORD-789');
-    });
+     it('includes order ID', async () => {
+       const { orderDeliveredTemplate } = await import('@/lib/email/templates');
+       const html = orderDeliveredTemplate(mockOrder);
+       expect(html).toContain('ORD-789');
+     });
 
-    it('includes delivered header', async () => {
-      const { orderDeliveredTemplate } = await import('@/lib/email/templates');
-      const html = orderDeliveredTemplate(mockOrder);
-      expect(html).toContain('Your Order has been Delivered!');
-    });
+     it('includes delivered header', async () => {
+       const { orderDeliveredTemplate } = await import('@/lib/email/templates');
+       const html = orderDeliveredTemplate(mockOrder);
+       expect(html).toContain('Your Order has been Delivered!');
+     });
 
-    it('includes hope you love message', async () => {
-      const { orderDeliveredTemplate } = await import('@/lib/email/templates');
-      const html = orderDeliveredTemplate(mockOrder);
-      expect(html).toContain('hope you love');
-    });
+     it('includes hope you love message', async () => {
+       const { orderDeliveredTemplate } = await import('@/lib/email/templates');
+       const html = orderDeliveredTemplate(mockOrder);
+       expect(html).toContain('hope you love');
+     });
 
-    it('includes return within 7 days message', async () => {
-      const { orderDeliveredTemplate } = await import('@/lib/email/templates');
-      const html = orderDeliveredTemplate(mockOrder);
-      expect(html).toContain('7 days');
-    });
+     it('uses user name', async () => {
+       const { orderDeliveredTemplate } = await import('@/lib/email/templates');
+       const html = orderDeliveredTemplate(mockOrder);
+       expect(html).toContain('Hi Bob');
+     });
 
-    it('uses user name', async () => {
-      const { orderDeliveredTemplate } = await import('@/lib/email/templates');
-      const html = orderDeliveredTemplate(mockOrder);
-      expect(html).toContain('Hi Bob');
-    });
+     it('includes delivered successfully message', async () => {
+       const { orderDeliveredTemplate } = await import('@/lib/email/templates');
+       const html = orderDeliveredTemplate(mockOrder);
+       expect(html).toContain('delivered successfully');
+     });
+   });
 
-    it('includes delivered successfully message', async () => {
-      const { orderDeliveredTemplate } = await import('@/lib/email/templates');
-      const html = orderDeliveredTemplate(mockOrder);
-      expect(html).toContain('delivered successfully');
-    });
-  });
 
-  describe('returnRequestedTemplate', () => {
-    it('includes admin name', async () => {
-      const { returnRequestedTemplate } = await import('@/lib/email/templates');
-      const html = returnRequestedTemplate('Admin', 'ORD-100', 'Defective');
-      expect(html).toContain('Hi Admin');
-    });
-
-    it('includes order ID', async () => {
-      const { returnRequestedTemplate } = await import('@/lib/email/templates');
-      const html = returnRequestedTemplate('Admin', 'ORD-100', 'Defective');
-      expect(html).toContain('ORD-100');
-    });
-
-    it('includes reason', async () => {
-      const { returnRequestedTemplate } = await import('@/lib/email/templates');
-      const html = returnRequestedTemplate('Admin', 'ORD-100', 'Wrong size');
-      expect(html).toContain('Wrong size');
-    });
-
-    it('includes return request header', async () => {
-      const { returnRequestedTemplate } = await import('@/lib/email/templates');
-      const html = returnRequestedTemplate('Admin', 'ORD-100', 'Defective');
-      expect(html).toContain('New Return Request');
-    });
-
-    it('includes review in admin panel message', async () => {
-      const { returnRequestedTemplate } = await import('@/lib/email/templates');
-      const html = returnRequestedTemplate('Admin', 'ORD-100', 'Defective');
-      expect(html).toContain('admin panel');
-    });
-
-    it('handles empty reason', async () => {
-      const { returnRequestedTemplate } = await import('@/lib/email/templates');
-      const html = returnRequestedTemplate('Admin', 'ORD-100', '');
-      expect(html).toContain('ORD-100');
-    });
-
-    it('handles long reason', async () => {
-      const { returnRequestedTemplate } = await import('@/lib/email/templates');
-      const longReason = 'A'.repeat(500);
-      const html = returnRequestedTemplate('Admin', 'ORD-100', longReason);
-      expect(html).toContain(longReason);
-    });
-  });
-
-  describe('returnStatusTemplate', () => {
-    it('includes user name for APPROVED', async () => {
-      const { returnStatusTemplate } = await import('@/lib/email/templates');
-      const html = returnStatusTemplate('User', 'ORD-200', 'APPROVED');
-      expect(html).toContain('Hi User');
-    });
-
-    it('includes order ID', async () => {
-      const { returnStatusTemplate } = await import('@/lib/email/templates');
-      const html = returnStatusTemplate('User', 'ORD-200', 'APPROVED');
-      expect(html).toContain('ORD-200');
-    });
-
-    it('includes APPROVED status', async () => {
-      const { returnStatusTemplate } = await import('@/lib/email/templates');
-      const html = returnStatusTemplate('User', 'ORD-200', 'APPROVED');
-      expect(html).toContain('APPROVED');
-    });
-
-    it('includes REJECTED status', async () => {
-      const { returnStatusTemplate } = await import('@/lib/email/templates');
-      const html = returnStatusTemplate('User', 'ORD-200', 'REJECTED');
-      expect(html).toContain('REJECTED');
-    });
-
-    it('includes team will contact message for APPROVED', async () => {
-      const { returnStatusTemplate } = await import('@/lib/email/templates');
-      const html = returnStatusTemplate('User', 'ORD-200', 'APPROVED');
-      expect(html).toContain('contact you soon');
-    });
-
-    it('includes contact support message for REJECTED', async () => {
-      const { returnStatusTemplate } = await import('@/lib/email/templates');
-      const html = returnStatusTemplate('User', 'ORD-200', 'REJECTED');
-      expect(html).toContain('contact our support');
-    });
-
-    it('handles empty name', async () => {
-      const { returnStatusTemplate } = await import('@/lib/email/templates');
-      const html = returnStatusTemplate('', 'ORD-200', 'APPROVED');
-      expect(html).toContain('Hi ');
-    });
-  });
 
   describe('newsletterTemplate', () => {
     it('includes content', async () => {

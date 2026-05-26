@@ -10,10 +10,6 @@ enum OrderItemStatus {
     PENDING = 'PENDING',
     SHIPPED = 'SHIPPED',
     DELIVERED = 'DELIVERED', 
-    RETURN_REQUESTED = 'RETURN_REQUESTED', 
-    RETURN_APPROVED = 'RETURN_APPROVED',
-    RETURN_DECLINED = 'RETURN_DECLINED',
-    RETURNED = 'RETURNED', 
     CANCELLED = 'CANCELLED' 
 }
 
@@ -24,9 +20,6 @@ interface OrderItem {
   price: number;
   productImage?: string | null;
   status: OrderItemStatus;
-  returnReason?: string | null;
-  returnNotes?: string | null;
-  returnImage?: string | null;
 }
 
 interface Order {
@@ -103,42 +96,16 @@ export default function ManageOrdersPage() {
         }
     };
 
-    const handleReturnStatusChange = async (itemId: string, newStatus: OrderItemStatus) => {
-        const originalOrders = JSON.parse(JSON.stringify(orders));
-        setOrders(prevOrders =>
-            prevOrders.map(order => ({
-                ...order,
-                orderItems: order.orderItems.map(item =>
-                    item.id === itemId ? { ...item, status: newStatus } : item
-                )
-            }))
-        );
 
-        try {
-            const res = await fetch('/api/admin/order', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'UPDATE_RETURN_STATUS', orderItemId: itemId, newStatus })
-            });
-            if (!res.ok) throw new Error("Server rejected the update.");
-            await fetchOrders();
-        } catch (err) {
-            console.error(err);
-            setError("Update failed. Reverting changes.");
-            setOrders(originalOrders);
-        }
-    };
 
-    const hasPendingReturn = (order: Order) => order.orderItems.some(item => item.status === 'RETURN_REQUESTED');
-
-    const getDisabledOptions = (currentStatus: OrderStatus): OrderStatus[] => {
-        switch (currentStatus) {
-            case OrderStatus.SHIPPED: return [OrderStatus.PENDING];
-            case OrderStatus.DELIVERED: return [OrderStatus.PENDING, OrderStatus.SHIPPED, OrderStatus.CANCELLED];
-            case OrderStatus.CANCELLED: return [OrderStatus.PENDING, OrderStatus.SHIPPED, OrderStatus.DELIVERED];
-            default: return [];
-        }
-    };
+     const getDisabledOptions = (currentStatus: OrderStatus): OrderStatus[] => {
+         switch (currentStatus) {
+             case OrderStatus.SHIPPED: return [OrderStatus.PENDING];
+             case OrderStatus.DELIVERED: return [OrderStatus.PENDING, OrderStatus.SHIPPED, OrderStatus.CANCELLED];
+             case OrderStatus.CANCELLED: return [OrderStatus.PENDING, OrderStatus.SHIPPED, OrderStatus.DELIVERED];
+             default: return [];
+         }
+     };
 
     const getStatusBadgeColors = (status: OrderStatus) => {
         switch (status) {
@@ -150,14 +117,9 @@ export default function ManageOrdersPage() {
         }
     };
 
-    const getOrderItemBadgeColors = (status: OrderItemStatus) => {
-        switch (status) {
-            case OrderItemStatus.RETURN_REQUESTED: return 'bg-amber-100 text-amber-800';
-            case OrderItemStatus.RETURN_APPROVED: return 'bg-green-100 text-green-800';
-            case OrderItemStatus.RETURN_DECLINED: return 'bg-red-100 text-red-800';
-            default: return 'bg-blue-100 text-blue-800';
-        }
-    };
+     const getOrderItemBadgeColors = (status: OrderItemStatus) => {
+         return 'bg-blue-100 text-blue-800';
+     };
 
     return (
         <div className="max-w-7xl mx-auto py-8">
@@ -175,12 +137,11 @@ export default function ManageOrdersPage() {
                         <thead>
                             <tr className="bg-[#1A0A12] text-white">
                                 <th className="p-4 w-12"></th>
-                                <th className="p-4 font-semibold">Status</th>
-                                <th className="p-4 font-semibold">Order ID</th>
-                                <th className="p-4 font-semibold">Customer</th>
-                                <th className="p-4 font-semibold">Date</th>
-                                <th className="p-4 font-semibold">Amount</th>
-                                <th className="p-4 font-semibold text-center">Returns</th>
+                                 <th className="p-4 font-semibold">Status</th>
+                                 <th className="p-4 font-semibold">Order ID</th>
+                                 <th className="p-4 font-semibold">Customer</th>
+                                 <th className="p-4 font-semibold">Date</th>
+                                 <th className="p-4 font-semibold">Amount</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -193,12 +154,11 @@ export default function ManageOrdersPage() {
                                     <td colSpan={7} className="p-8 text-center text-gray-500">No orders found.</td>
                                 </tr>
                             ) : (
-                                orders.map(order => {
-                                    const disabledOptions = getDisabledOptions(order.status);
-                                    const isPendingReturn = hasPendingReturn(order);
-                                    return (
-                                        <Fragment key={order.id}>
-                                            <tr className={`transition-colors ${isPendingReturn ? 'bg-amber-50' : 'hover:bg-[#FBF5EC]'}`}>
+                                 orders.map(order => {
+                                     const disabledOptions = getDisabledOptions(order.status);
+                                     return (
+                                         <Fragment key={order.id}>
+                                             <tr className={`transition-colors {''} `}>
                                                 <td className="p-4 text-center">
                                                     <button 
                                                         className="text-gray-500 hover:text-[#6B0F1A] transition-colors p-1 rounded-md hover:bg-white" 
@@ -225,13 +185,9 @@ export default function ManageOrdersPage() {
                                                 <td className="p-4 font-medium text-[#1A0A12]">{order.user.firstName || order.user.email}</td>
                                                 <td className="p-4 text-gray-600">{new Date(order.createdAt).toLocaleDateString()}</td>
                                                 <td className="p-4 font-semibold text-[#6B0F1A]">₹{order.totalAmount.toFixed(2)}</td>
-                                                <td className="p-4 text-center">
-                                                    {isPendingReturn ? (
-                                                        <span className="bg-amber-100 text-amber-800 px-2 py-1 rounded-full text-xs font-bold">Pending</span>
-                                                    ) : (
-                                                        <span className="text-gray-400">—</span>
-                                                    )}
-                                                </td>
+                                                 <td className="p-4 text-center">
+                                                     <span className="text-gray-400">—</span>
+                                                 </td>
                                             </tr>
                                             {expandedOrderId === order.id && (
                                                 <tr className="bg-gray-50">
@@ -255,24 +211,7 @@ export default function ManageOrdersPage() {
                                                                             </span>
                                                                         </div>
                                                                         
-                                                                        {item.status === 'RETURN_REQUESTED' && (
-                                                                            <div className="w-full md:w-auto md:ml-auto mt-4 md:mt-0 p-4 bg-amber-50 rounded-xl border border-amber-100">
-                                                                                <h6 className="text-xs font-bold text-amber-800 uppercase tracking-wider mb-3">Return Request</h6>
-                                                                                <div className="text-sm text-amber-900 space-y-1 mb-4">
-                                                                                    <p className="flex items-start gap-2"><ListTodo size={16} className="mt-0.5 opacity-70"/> <span className="font-semibold">Reason:</span> {item.returnReason}</p>
-                                                                                    {item.returnNotes && <p className="flex items-start gap-2"><MessageSquare size={16} className="mt-0.5 opacity-70"/> <span className="font-semibold">Notes:</span> {item.returnNotes}</p>}
-                                                                                    {item.returnImage && <p className="flex items-start gap-2"><ImageIcon size={16} className="mt-0.5 opacity-70"/> <span className="font-semibold">Image:</span> <a href={item.returnImage} target="_blank" rel="noopener noreferrer" className="underline hover:text-amber-700">View Evidence</a></p>}
-                                                                                </div>
-                                                                                <div className="flex gap-2">
-                                                                                    <button className="flex-1 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-1" onClick={() => handleReturnStatusChange(item.id, OrderItemStatus.RETURN_APPROVED)}>
-                                                                                        <Check size={16}/> Approve
-                                                                                    </button>
-                                                                                    <button className="flex-1 bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-1" onClick={() => handleReturnStatusChange(item.id, OrderItemStatus.RETURN_DECLINED)}>
-                                                                                        <X size={16}/> Decline
-                                                                                    </button>
-                                                                                </div>
-                                                                            </div>
-                                                                        )}
+
                                                                     </div>
                                                                 ))}
                                                             </div>

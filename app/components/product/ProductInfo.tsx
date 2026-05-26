@@ -134,19 +134,18 @@ export default function ProductInfo({
         </div>
       </div>
 
-      {/* Trust Badges */}
-      <div className="grid grid-cols-3 gap-3">
-        {[
-          { icon: ShieldCheck, label: 'Genuine Product' },
-          { icon: Truck, label: 'Free Shipping' },
-          { icon: RefreshCw, label: '7-Day Returns' },
-        ].map(badge => (
-          <div key={badge.label} className="flex flex-col items-center text-center gap-1.5 py-3 bg-surface-muted rounded-xl">
-            <badge.icon size={18} className="text-accent" />
-            <span className="text-[10px] font-medium text-ink-muted leading-tight">{badge.label}</span>
-          </div>
-        ))}
-      </div>
+       {/* Trust Badges */}
+       <div className="grid grid-cols-2 gap-3">
+         {[
+           { icon: ShieldCheck, label: 'Genuine Product' },
+           { icon: Truck, label: 'Free Shipping' },
+         ].map(badge => (
+           <div key={badge.label} className="flex flex-col items-center text-center gap-1.5 py-3 bg-surface-muted rounded-xl">
+             <badge.icon size={18} className="text-accent" />
+             <span className="text-[10px] font-medium text-ink-muted leading-tight">{badge.label}</span>
+           </div>
+         ))}
+       </div>
     </motion.div>
   );
 }
