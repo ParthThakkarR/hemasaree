@@ -14,7 +14,7 @@ import CartItems from '@/app/components/cart/CartItems';
 import CartShipping from '@/app/components/cart/CartShipping';
 import CartPayment from '@/app/components/cart/CartPayment';
 import CartOrderSummary from '@/app/components/cart/CartOrderSummary';
-import { DELIVERY_CHARGE_CONFIG } from '@/lib/services/orderService';
+
 
 function CartPageContent() {
   const router = useRouter();
@@ -23,6 +23,13 @@ function CartPageContent() {
   
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const [settings, setSettings] = useState({ deliveryChargeGujarat: 80, deliveryChargeDefault: 150 });
+
+  useEffect(() => {
+    fetch('/api/settings').then(r => r.json()).then(data => {
+      if(data && !data.error) setSettings(data);
+    }).catch(console.error);
+  }, []);
   
   const searchParams = useSearchParams();
   const buyNowProductId = searchParams.get('buyNow');
@@ -124,8 +131,8 @@ function CartPageContent() {
   const deliveryCharge = useMemo(() => {
     if (!activeState) return 0;
     const normalizedState = activeState.toLowerCase().trim();
-    return normalizedState === 'gujarat' ? DELIVERY_CHARGE_CONFIG.gujarat : DELIVERY_CHARGE_CONFIG.default;
-  }, [activeState]);
+    return normalizedState === 'gujarat' ? settings.deliveryChargeGujarat : settings.deliveryChargeDefault;
+  }, [activeState, settings]);
 
   const total = subtotal + deliveryCharge;
 

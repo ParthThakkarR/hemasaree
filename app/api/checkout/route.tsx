@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@lib/prisma';
 import { getUserFromToken } from '@lib/getUserFromToken';
 import { CheckoutSchema } from '@lib/validators';
-import { OrderService, calculateDeliveryCharge } from '@/lib/services/orderService';
+import { OrderService, calculateDeliveryCharge, CheckoutAddress } from '@/lib/services/orderService';
 import { handleApiError } from '@/lib/errors';
 
 export const dynamic = "force-dynamic";
@@ -25,11 +25,20 @@ export async function POST(req: NextRequest) {
     }
 
     const { address, buyNowItem } = validation.data;
-    const deliveryCharge = calculateDeliveryCharge(address.state);
+    const deliveryCharge = await calculateDeliveryCharge(address.state);
+
+    const checkoutAddress: CheckoutAddress = {
+      houseNumber: 'N/A', // Frontend form doesn't support this yet
+      buildingName: null,
+      area: address.streetAddress,
+      city: address.city,
+      state: address.state,
+      pincode: address.zipCode,
+    };
 
     const result = await OrderService.createOrder(
       decodedUser.id,
-      address,
+      checkoutAddress,
       deliveryCharge,
       buyNowItem
     );

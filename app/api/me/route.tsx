@@ -94,11 +94,14 @@ export async function POST(req: Request) {
 
     const newAddress = await prisma.address.create({
       data: {
-        streetAddress,
+        fullName: user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user.email?.split('@')[0] || 'Unknown',
+        mobileNumber: user.phone || '0000000000',
+        houseNumber: 'N/A',
+        area: streetAddress,
         city,
         state,
-        zipCode,
-        label: label || 'Home',
+        pincode: zipCode,
+        addressType: label || 'Home',
         isDefault: isDefault ?? false,
         userId: user.id,
       },

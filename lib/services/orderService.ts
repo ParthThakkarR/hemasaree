@@ -23,7 +23,6 @@ export interface OrderItemResult {
   deliveryCharge: number;
 }
 
-/**
 import { SettingsService } from './settingsService';
 
 export async function calculateDeliveryCharge(state: string): Promise<number> {

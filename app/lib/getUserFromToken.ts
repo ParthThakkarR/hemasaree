@@ -16,6 +16,8 @@ export interface User {
   id: string;
   email: string;
   firstName: string;
+  lastName?: string | null;
+  phone?: string | null;
   isAdmin: boolean;
   addresses: Address[];
 }
@@ -49,11 +51,11 @@ export async function getUserFromToken(
         addresses: {
           select: {
             id: true,
-            streetAddress: true,
+            area: true,
             city: true,
             state: true,
-            zipCode: true,
-            label: true,
+            pincode: true,
+            addressType: true,
             isDefault: true,
           },
         },
@@ -63,12 +65,23 @@ export async function getUserFromToken(
     if (!userRecord) return null;
 
     // ✅ Force cast to expected structure (TypeScript-safe)
-    const addresses = (userRecord as any).addresses ?? [];
+    const rawAddresses = (userRecord as any).addresses ?? [];
+    const addresses = rawAddresses.map((a: any) => ({
+      id: a.id,
+      streetAddress: a.area,
+      city: a.city,
+      state: a.state,
+      zipCode: a.pincode,
+      label: a.addressType,
+      isDefault: a.isDefault,
+    }));
 
     const user: User = {
       id: userRecord.id,
       email: userRecord.email,
       firstName: userRecord.firstName || userRecord.name?.split(' ')[0] || 'User',
+      lastName: userRecord.lastName,
+      phone: userRecord.phone,
       isAdmin: userRecord.isAdmin,
       addresses: addresses,
     };

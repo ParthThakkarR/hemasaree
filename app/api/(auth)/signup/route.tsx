@@ -46,11 +46,14 @@ async function signupHandler(req: NextRequest) {
         addresses: address
           ? {
               create: {
-                streetAddress: address.streetAddress || '',
+                fullName: firstName ? `${firstName} ${lastName || ''}`.trim() : email.split('@')[0],
+                mobileNumber: phone || '0000000000',
+                houseNumber: 'N/A',
+                area: address.streetAddress || '',
                 city: address.city || '',
                 state: address.state || '',
-                zipCode: address.zipCode || '',
-                label: address.label || 'Home',
+                pincode: address.zipCode || '',
+                addressType: address.label || 'Home',
                 isDefault: true,
               },
             }
@@ -78,7 +81,7 @@ async function signupHandler(req: NextRequest) {
           email: user.email,
           firstName: user.firstName,
           isAdmin: !!user.isAdmin,
-          addresses: user.addresses ?? [],
+          addresses: (user as any).addresses ?? [],
         },
       },
       { status: 201 }

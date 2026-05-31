@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SettingsService } from '@/lib/services/settingsService';
-import { getUserFromToken } from '@/app/lib/auth';
+import { getUserFromToken } from '@/app/lib/getUserFromToken';
 
 export async function GET(req: NextRequest) {
   try {
