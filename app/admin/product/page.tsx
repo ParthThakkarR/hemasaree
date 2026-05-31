@@ -63,12 +63,12 @@ export default function ManageProductsPage() {
   const fetchData = async () => {
     try {
       const [pRes, cRes] = await Promise.all([
-        fetch('/api/products?limit=1000'),
+        fetch('/api/admin/products'),
         fetch('/api/admin/categories')
       ]);
       const pData = await pRes.json();
       const cData = await cRes.json();
-      setProducts(pData.products || []);
+      setProducts(Array.isArray(pData) ? pData : []);
       setCategories(cData || []);
     } catch (err) { console.error(err); }
   };
