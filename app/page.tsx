@@ -1,49 +1,41 @@
-'use client';
-
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import HeroSection from '@components/home/hero-section';
 import CategoryScroll from '@components/home/category-scroll';
 import ProductSection from '@components/home/product-section';
 import OffersSection from '@components/home/offers-section';
 import ReviewsSection from '@components/home/reviews-section';
 import TrustStrip from '@components/home/trust-strip';
+import { ProductService } from "@/lib/services/productService";
 
-export default function Home() {
-  const [newArrivals, setNewArrivals] = useState<any[]>([]);
-  const [trending, setTrending] = useState<any[]>([]);
-  const [bestSellers, setBestSellers] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+export default async function Home() {
+  const sections = [
+    { key: 'newArrivals', limit: 4, sortPrice: 'newest' },
+    { key: 'trending', limit: 4, sortPrice: 'high' },
+    { key: 'bestSellers', limit: 4, sortPrice: 'low' },
+  ];
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const res = await fetch('/api/products', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            sections: [
-              { key: 'newArrivals', limit: 4, sortPrice: 'newest' },
-              { key: 'trending', limit: 4, sortPrice: 'high' },
-              { key: 'bestSellers', limit: 4, sortPrice: 'low' },
-            ],
-          }),
-        });
+  const results: Record<string, any> = {};
 
-        if (!res.ok) throw new Error('Failed to fetch products');
+  await Promise.all(
+    sections.map(async (section) => {
+      const filters = { maxPrice: 10000 };
+      const sortOrder = section.sortPrice === 'low' || section.sortPrice === 'asc' ? 'asc' : 'desc';
+      
+      const result = await ProductService.getProducts(filters, {
+        page: 1,
+        limit: section.limit,
+        sortBy: 'price',
+        sortOrder,
+      });
 
-        const data = await res.json();
-        setNewArrivals(data.sections.newArrivals || []);
-        setTrending(data.sections.trending || []);
-        setBestSellers(data.sections.bestSellers || []);
-      } catch (err) {
-        console.error('Failed to fetch products', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+      results[section.key] = result.products;
+    })
+  );
 
-    fetchProducts();
-  }, []);
+  const newArrivals = results['newArrivals'] || [];
+  const trending = results['trending'] || [];
+  const bestSellers = results['bestSellers'] || [];
+  const isLoading = false;
 
   return (
     <div className="min-h-screen bg-surface">

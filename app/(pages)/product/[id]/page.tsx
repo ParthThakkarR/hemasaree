@@ -23,6 +23,9 @@ export async function generateMetadata(
   const previousImages = (await parent).openGraph?.images || [];
 
   return {
+    alternates: {
+      canonical: `/product/${product.id}`,
+    },
     title: product.name,
     description: `Buy ${product.name} in ${product.color} color for ${product.occasion}. Price: ₹${product.price}. High-quality Indian saree.`,
     openGraph: {
@@ -56,22 +59,71 @@ export default async function Page({ params }: Props) {
     take: 4,
   });
 
+  // Fetch reviews for AggregateRating
+  const approvedReviews = await prisma.review.findMany({
+    where: { productId: product.id, isApproved: true },
+  });
+
+  const ratingCount = approvedReviews.length;
+  const ratingValue = ratingCount > 0 
+    ? (approvedReviews.reduce((sum, r) => sum + r.rating, 0) / ratingCount).toFixed(1) 
+    : undefined;
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.name,
     image: product.images,
+    description: product.description || `Buy ${product.name} in ${product.color} color for ${product.occasion}.`,
+    sku: product.id,
     brand: {
       '@type': 'Brand',
       name: 'Hemasaree',
     },
     offers: {
       '@type': 'Offer',
-      url: `${process.env.NEXTAUTH_URL}/product/${product.id}`,
+      url: `${process.env.NEXTAUTH_URL || 'https://hemasaree.vercel.app'}/product/${product.id}`,
       priceCurrency: 'INR',
       price: product.price,
       availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
     },
+    ...(ratingCount > 0 && {
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: ratingValue,
+        reviewCount: ratingCount,
+      },
+    }),
+  };
+
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: 'https://hemasaree.vercel.app',
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Products',
+        item: 'https://hemasaree.vercel.app/products',
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: product.category.name,
+        item: `https://hemasaree.vercel.app/products?category=${product.categoryId}`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 4,
+        name: product.name,
+      },
+    ],
   };
 
   return (
@@ -79,6 +131,10 @@ export default async function Page({ params }: Props) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 lg:pt-36 pb-4">
         <nav className="flex items-center gap-1 text-sm text-ink-muted" aria-label="Breadcrumb">

@@ -11,8 +11,8 @@ import { urlFor } from '@/sanity/lib/image';
 // Fallback defaults (used when Sanity siteSettings is empty)
 const DEFAULTS = {
   badge: 'Handpicked Collection 2026',
-  heading: 'Elegance Woven in',
-  headingHighlight: 'Every Thread',
+  heading: 'Premium Silk, Bridal &',
+  headingHighlight: 'Designer Sarees Online',
   subtitle: 'Discover exquisite sarees crafted by master artisans. From pure Kanchipuram silk to contemporary handlooms — find the perfect drape for every occasion.',
   heroImage1: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35',
   heroImage2: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&q=80&w=800',

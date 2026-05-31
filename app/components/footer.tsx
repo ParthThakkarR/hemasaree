@@ -141,17 +141,7 @@ export default function Footer() {
           <div>
             <h4 className="font-semibold text-brand-50 uppercase tracking-wider mb-5 text-xs">Get in Touch</h4>
             <ul className="space-y-4">
-              <li className="flex items-start gap-3">
-                <MapPin size={16} className="text-accent shrink-0 mt-0.5" />
-                <span className="text-sm text-brand-100/60">123 Heritage Lane, Silk District<br/>Surat, Gujarat 395002, India</span>
-              </li>
               <li className="flex gap-2.5 pt-2">
-                 <a href="#" className="w-9 h-9 rounded-full bg-brand-900/50 border border-brand-800/30 flex items-center justify-center text-brand-100/60 hover:bg-accent hover:text-brand-950 hover:border-accent transition-all">
-                   <Instagram size={16} />
-                 </a>
-                 <a href="#" className="w-9 h-9 rounded-full bg-brand-900/50 border border-brand-800/30 flex items-center justify-center text-brand-100/60 hover:bg-accent hover:text-brand-950 hover:border-accent transition-all">
-                   <MessageCircle size={16} />
-                 </a>
                  <a href="mailto:hello@hemasarees.com" className="w-9 h-9 rounded-full bg-brand-900/50 border border-brand-800/30 flex items-center justify-center text-brand-100/60 hover:bg-accent hover:text-brand-950 hover:border-accent transition-all">
                    <Mail size={16} />
                  </a>

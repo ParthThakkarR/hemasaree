@@ -1,5 +1,10 @@
 import type { Metadata, Viewport } from 'next';
+import { Inter, Playfair_Display, Cormorant_Garamond } from 'next/font/google';
 import '@/app/globals.css';
+
+const inter = Inter({ subsets: ['latin'], display: 'swap', variable: '--font-inter' });
+const playfair = Playfair_Display({ subsets: ['latin'], display: 'swap', variable: '--font-playfair' });
+const cormorant = Cormorant_Garamond({ subsets: ['latin'], display: 'swap', weight: ['400', '500', '600', '700'], style: ['normal', 'italic'], variable: '--font-cormorant' });
 import { AuthProvider } from '@contexts/auth-context';
 import { CartProvider } from '@contexts/cart-context';
 import { WishlistProvider } from '@contexts/wishlist-context';
@@ -20,6 +25,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const siteDescription = settings?.description || 'Discover handpicked collections of exquisite sarees, woven with love and tradition. Free delivery on orders above ₹999.';
 
   return {
+    metadataBase: new URL('https://hemasaree.vercel.app/'),
     title: { default: siteTitle, template: '%s | ' + (settings?.title || 'Hema Sarees') },
     description: siteDescription,
     keywords: ['sarees', 'indian fashion', 'ethnic wear', 'silk sarees', 'designer sarees'],
@@ -44,7 +50,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const settings = await getSiteSettings();
   return (
     <html lang="en">
-      <body className="bg-white text-ink antialiased">
+      <body className={`bg-white text-ink antialiased ${inter.variable} ${playfair.variable} ${cormorant.variable}`}>
         <NextTopLoader color="#D4AF37" showSpinner={false} height={3} />
         <GlobalErrorBoundary>
           <SiteSettingsProvider settings={settings}>
@@ -77,6 +83,39 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </AuthProvider>
           </SiteSettingsProvider>
         </GlobalErrorBoundary>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@graph': [
+                {
+                  '@type': 'Organization',
+                  '@id': 'https://hemasaree.vercel.app/#organization',
+                  name: 'Hema Sarees',
+                  url: 'https://hemasaree.vercel.app/',
+                  logo: {
+                    '@type': 'ImageObject',
+                    url: 'https://hemasaree.vercel.app/logo.png',
+                  },
+                  sameAs: [
+                    'https://instagram.com/hemasarees',
+                    'https://facebook.com/hemasarees',
+                  ],
+                },
+                {
+                  '@type': 'WebSite',
+                  '@id': 'https://hemasaree.vercel.app/#website',
+                  url: 'https://hemasaree.vercel.app/',
+                  name: 'Hema Sarees',
+                  publisher: {
+                    '@id': 'https://hemasaree.vercel.app/#organization',
+                  },
+                },
+              ],
+            }),
+          }}
+        />
       </body>
     </html>
   );
