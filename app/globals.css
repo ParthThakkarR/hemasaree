@@ -287,3 +287,32 @@ input[type="range"]::-moz-range-thumb {
   border: 3px solid white;
   box-shadow: 0 1px 4px rgba(0,0,0,0.15);
 }
+
+input[type="range"]::-ms-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-brand-800);
+  cursor: pointer;
+  border: 3px solid white;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+}
+
+/* Dual Range Slider Overrides */
+input[type="range"].dual-range-input {
+  height: 18px !important;
+  background: transparent !important;
+}
+
+input[type="range"].dual-range-input::-webkit-slider-thumb {
+  pointer-events: auto;
+  margin-top: 0;
+}
+
+input[type="range"].dual-range-input::-moz-range-thumb {
+  pointer-events: auto;
+}
+
+input[type="range"].dual-range-input::-ms-thumb {
+  pointer-events: auto;
+}

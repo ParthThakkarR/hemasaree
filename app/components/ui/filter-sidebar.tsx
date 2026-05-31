@@ -56,14 +56,14 @@ export default function FilterSidebar({ categories, isMobileOpen, onMobileClose 
   const [selectedFabric, setSelectedFabric] = useState(searchParams.get('fabric') || '');
   const [sortBy, setSortBy] = useState(searchParams.get('sortPrice') || '');
 
-  // Accordion states
+  // Accordion states: Collapsed by default, expanded if active filter exists
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    category: true,
-    price: true,
-    fabric: false,
-    color: false,
-    occasion: false,
-    sort: false,
+    category: !!searchParams.get('category'),
+    price: !!searchParams.get('minPrice') || !!searchParams.get('maxPrice'),
+    fabric: !!searchParams.get('fabric'),
+    color: !!searchParams.get('color'),
+    occasion: !!searchParams.get('occasion'),
+    sort: !!searchParams.get('sortPrice'),
   });
 
   // Lock body scroll when mobile sidebar is open
@@ -155,9 +155,9 @@ export default function FilterSidebar({ categories, isMobileOpen, onMobileClose 
   );
 
   const SidebarContent = (
-    <div className="flex flex-col gap-6 h-full">
+    <div className="flex flex-col h-full">
       {/* Header (Mobile Only) */}
-      <div className="flex items-center justify-between lg:hidden">
+      <div className="flex items-center justify-between lg:hidden py-4 border-b border-surface-subtle">
         <h2 className="text-lg font-serif font-bold text-ink flex items-center gap-2">
           <SlidersHorizontal size={18} /> Filters
         </h2>
@@ -167,7 +167,7 @@ export default function FilterSidebar({ categories, isMobileOpen, onMobileClose 
       </div>
 
       {/* Search */}
-      <div>
+      <div className="py-4 border-b border-surface-subtle">
         <input
           type="text"
           value={searchQuery}
@@ -177,10 +177,8 @@ export default function FilterSidebar({ categories, isMobileOpen, onMobileClose 
         />
       </div>
 
-      <div className="h-px bg-surface-subtle" />
-
       {/* Sort */}
-      <div>
+      <div className="py-4 border-b border-surface-subtle">
         <AccordionHeader label="Sort By" sectionKey="sort" />
         {openSections.sort && (
           <div className="flex flex-col gap-0.5 mt-1 animate-fade-in">
@@ -196,13 +194,11 @@ export default function FilterSidebar({ categories, isMobileOpen, onMobileClose 
         )}
       </div>
 
-      <div className="h-px bg-surface-subtle" />
-
       {/* Category */}
-      <div>
+      <div className="py-4 border-b border-surface-subtle">
         <AccordionHeader label="Category" sectionKey="category" />
         {openSections.category && (
-          <div className="flex flex-col gap-0.5 mt-1 max-h-44 overflow-y-auto pr-1 animate-fade-in">
+          <div className="flex flex-col gap-0.5 mt-1 animate-fade-in">
             <CheckOption label="All Categories" isSelected={selectedCategory === ''} onChange={() => updateFilters('category', null)} />
             {categories.map((cat) => (
               <CheckOption key={cat.id} label={cat.name} isSelected={selectedCategory === cat.name} onChange={() => updateFilters('category', selectedCategory === cat.name ? null : cat.name)} />
@@ -211,13 +207,11 @@ export default function FilterSidebar({ categories, isMobileOpen, onMobileClose 
         )}
       </div>
 
-      <div className="h-px bg-surface-subtle" />
-
       {/* Price Range */}
-      <div>
+      <div className="py-4 border-b border-surface-subtle">
         <AccordionHeader label="Price Range" sectionKey="price" />
         {openSections.price && (
-          <div className="mt-2 space-y-4 animate-fade-in">
+          <div className="mt-1 space-y-2 animate-fade-in">
             {/* Quick Presets */}
             <div className="flex flex-wrap gap-1.5">
               {PRICE_PRESETS.map(preset => (
@@ -247,7 +241,7 @@ export default function FilterSidebar({ categories, isMobileOpen, onMobileClose 
 
             {/* Slider */}
             <div>
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-2">
                 <span className="text-xs text-ink-faint">₹0</span>
                 <span className="text-sm font-semibold text-brand-800">
                   ₹{minPrice.toLocaleString('en-IN')} - ₹{maxPrice === 10000 ? '10,000+' : maxPrice.toLocaleString('en-IN')}
@@ -261,8 +255,8 @@ export default function FilterSidebar({ categories, isMobileOpen, onMobileClose 
                 <div 
                   className="absolute h-1 bg-brand-800 rounded-full z-10" 
                   style={{ 
-                    left: `${(minPrice / 10000) * 100}%`, 
-                    width: `${((maxPrice - minPrice) / 10000) * 100}%` 
+                     left: `${(minPrice / 10000) * 100}%`, 
+                     width: `${((maxPrice - minPrice) / 10000) * 100}%` 
                   }} 
                 />
                 
@@ -279,7 +273,7 @@ export default function FilterSidebar({ categories, isMobileOpen, onMobileClose 
                   }}
                   onMouseUp={() => updateFilters('minPrice', minPrice > 0 ? minPrice.toString() : null)}
                   onTouchEnd={() => updateFilters('minPrice', minPrice > 0 ? minPrice.toString() : null)}
-                  className="absolute w-full h-1 appearance-none bg-transparent pointer-events-none z-20 [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-brand-800 [&::-webkit-slider-thumb]:rounded-full [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-brand-800 [&::-moz-range-thumb]:rounded-full"
+                  className="absolute w-full top-1/2 -translate-y-1/2 appearance-none pointer-events-none z-20 dual-range-input"
                 />
                 
                 {/* Max Input */}
@@ -295,7 +289,7 @@ export default function FilterSidebar({ categories, isMobileOpen, onMobileClose 
                   }}
                   onMouseUp={() => updateFilters('maxPrice', maxPrice < 10000 ? maxPrice.toString() : null)}
                   onTouchEnd={() => updateFilters('maxPrice', maxPrice < 10000 ? maxPrice.toString() : null)}
-                  className="absolute w-full h-1 appearance-none bg-transparent pointer-events-none z-20 [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-brand-800 [&::-webkit-slider-thumb]:rounded-full [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-brand-800 [&::-moz-range-thumb]:rounded-full"
+                  className="absolute w-full top-1/2 -translate-y-1/2 appearance-none pointer-events-none z-20 dual-range-input"
                 />
               </div>
             </div>
@@ -303,80 +297,74 @@ export default function FilterSidebar({ categories, isMobileOpen, onMobileClose 
         )}
       </div>
 
-      <div className="h-px bg-surface-subtle" />
-
       {/* Fabric */}
-      <div>
+      <div className="py-4 border-b border-surface-subtle">
         <AccordionHeader label="Fabric" sectionKey="fabric" />
         {openSections.fabric && (
           <div className="flex flex-wrap gap-1.5 mt-2 animate-fade-in">
             {FABRIC_OPTIONS.map(fabric => (
-              <button
-                key={fabric}
-                onClick={() => updateFilters('fabric', selectedFabric === fabric ? null : fabric)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
-                  selectedFabric === fabric
-                    ? 'bg-brand-800 text-white border-brand-800'
-                    : 'bg-white text-ink-muted border-surface-subtle hover:border-brand-200 hover:text-ink'
-                }`}
-              >
-                {fabric}
-              </button>
+               <button
+                 key={fabric}
+                 onClick={() => updateFilters('fabric', selectedFabric === fabric ? null : fabric)}
+                 className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                   selectedFabric === fabric
+                     ? 'bg-brand-800 text-white border-brand-800'
+                     : 'bg-white text-ink-muted border-surface-subtle hover:border-brand-200 hover:text-ink'
+                 }`}
+               >
+                 {fabric}
+               </button>
             ))}
           </div>
         )}
       </div>
 
-      <div className="h-px bg-surface-subtle" />
-
       {/* Color */}
-      <div>
+      <div className="py-4 border-b border-surface-subtle">
         <AccordionHeader label="Color" sectionKey="color" />
         {openSections.color && (
           <div className="flex flex-wrap gap-2 mt-2 animate-fade-in">
             {COLOR_OPTIONS.map(color => (
-              <button
-                key={color.name}
-                onClick={() => updateFilters('color', selectedColor === color.name ? null : color.name)}
-                title={color.name}
-                className={`w-8 h-8 rounded-full border-2 transition-all hover:scale-110 ${
-                  selectedColor === color.name
-                    ? 'border-brand-800 ring-2 ring-brand-800/30 scale-110'
-                    : 'border-surface-subtle hover:border-brand-200'
-                }`}
-                style={{ backgroundColor: color.hex }}
-              />
+               <button
+                 key={color.name}
+                 onClick={() => updateFilters('color', selectedColor === color.name ? null : color.name)}
+                 title={color.name}
+                 className={`w-8 h-8 rounded-full border-2 transition-all hover:scale-110 ${
+                   selectedColor === color.name
+                     ? 'border-brand-800 ring-2 ring-brand-800/30 scale-110'
+                     : 'border-surface-subtle hover:border-brand-200'
+                 }`}
+                 style={{ backgroundColor: color.hex }}
+               />
             ))}
           </div>
         )}
       </div>
 
-      <div className="h-px bg-surface-subtle" />
-
       {/* Occasion */}
-      <div>
+      <div className="py-4">
         <AccordionHeader label="Occasion" sectionKey="occasion" />
         {openSections.occasion && (
           <div className="flex flex-wrap gap-1.5 mt-2 animate-fade-in">
             {OCCASION_OPTIONS.map(occ => (
-              <button
-                key={occ}
-                onClick={() => updateFilters('occasion', selectedOccasion === occ ? null : occ)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
-                  selectedOccasion === occ
-                    ? 'bg-brand-800 text-white border-brand-800'
-                    : 'bg-white text-ink-muted border-surface-subtle hover:border-brand-200 hover:text-ink'
-                }`}
-              >
-                {occ}
-              </button>
+               <button
+                 key={occ}
+                 onClick={() => updateFilters('occasion', selectedOccasion === occ ? null : occ)}
+                 className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                   selectedOccasion === occ
+                     ? 'bg-brand-800 text-white border-brand-800'
+                     : 'bg-white text-ink-muted border-surface-subtle hover:border-brand-200 hover:text-ink'
+                 }`}
+               >
+                 {occ}
+               </button>
             ))}
           </div>
         )}
       </div>
 
       {/* Actions */}
-      <div className="mt-auto pt-4">
+      <div className="pt-4">
         {hasActiveFilters && (
           <button
             onClick={clearFilters}

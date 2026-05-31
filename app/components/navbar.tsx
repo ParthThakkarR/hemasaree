@@ -19,6 +19,7 @@ export default function Navbar() {
   const [isSearchSubmitting, setIsSearchSubmitting] = useState(false);
   const dropdownTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const profileDropdownTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const pathname = usePathname();
   const router = useRouter();
@@ -198,8 +199,13 @@ export default function Navbar() {
               ) : user ? (
                 <div
                   className="relative"
-                  onMouseEnter={() => setIsProfileDropdownOpen(true)}
-                  onMouseLeave={() => setIsProfileDropdownOpen(false)}
+                  onMouseEnter={() => {
+                    if (profileDropdownTimeoutRef.current) clearTimeout(profileDropdownTimeoutRef.current);
+                    setIsProfileDropdownOpen(true);
+                  }}
+                  onMouseLeave={() => {
+                    profileDropdownTimeoutRef.current = setTimeout(() => setIsProfileDropdownOpen(false), 150);
+                  }}
                 >
                   <button className="flex items-center gap-2 p-1.5 rounded-full hover:bg-surface-muted text-ink transition-colors">
                     <div className="w-9 h-9 rounded-full bg-brand-800 text-accent flex items-center justify-center font-bold text-sm uppercase">
@@ -209,29 +215,31 @@ export default function Navbar() {
 
                   {/* Dropdown */}
                   {isProfileDropdownOpen && (
-                    <div className="absolute right-0 mt-1 w-52 bg-white rounded-xl shadow-luxury border border-surface-subtle overflow-hidden animate-fade-in-scale origin-top-right">
-                      <div className="px-4 py-3 border-b border-surface-muted">
-                        <p className="text-sm font-semibold text-ink truncate">{user.firstName || 'User'}</p>
-                        <p className="text-xs text-ink-muted truncate">{user.email}</p>
-                      </div>
-                      {user.isAdmin && (
-                        <Link href="/admin" className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-ink hover:bg-surface-muted hover:text-brand-800 font-medium transition-colors">
-                          <User size={16} /> Admin Dashboard
+                    <div className="absolute right-0 top-full pt-1.5 z-50">
+                      <div className="w-52 bg-white rounded-xl shadow-luxury border border-surface-subtle overflow-hidden animate-fade-in-scale origin-top-right">
+                        <div className="px-4 py-3 border-b border-surface-muted">
+                          <p className="text-sm font-semibold text-ink truncate">{user.firstName || 'User'}</p>
+                          <p className="text-xs text-ink-muted truncate">{user.email}</p>
+                        </div>
+                        {user.isAdmin && (
+                          <Link href="/admin" className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-ink hover:bg-surface-muted hover:text-brand-800 font-medium transition-colors">
+                            <User size={16} /> Admin Dashboard
+                          </Link>
+                        )}
+                        <Link href="/profile" className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-ink hover:bg-surface-muted hover:text-brand-800 font-medium transition-colors">
+                          <User size={16} /> My Profile
                         </Link>
-                      )}
-                      <Link href="/profile" className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-ink hover:bg-surface-muted hover:text-brand-800 font-medium transition-colors">
-                        <User size={16} /> My Profile
-                      </Link>
-                      <Link href="/orders" className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-ink hover:bg-surface-muted hover:text-brand-800 font-medium transition-colors">
-                        <Package size={16} /> My Orders
-                      </Link>
-                      <div className="border-t border-surface-muted">
-                        <button
-                          onClick={logout}
-                          className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-error hover:bg-red-50 text-left font-medium transition-colors"
-                        >
-                          <LogOut size={16} /> Sign Out
-                        </button>
+                        <Link href="/orders" className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-ink hover:bg-surface-muted hover:text-brand-800 font-medium transition-colors">
+                          <Package size={16} /> My Orders
+                        </Link>
+                        <div className="border-t border-surface-muted">
+                          <button
+                            onClick={logout}
+                            className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-error hover:bg-red-50 text-left font-medium transition-colors"
+                          >
+                            <LogOut size={16} /> Sign Out
+                          </button>
+                        </div>
                       </div>
                     </div>
                   )}
