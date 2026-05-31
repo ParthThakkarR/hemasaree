@@ -9,8 +9,8 @@ const offers = [
   {
     icon: Sparkles,
     tag: 'Wedding Season',
-    title: 'Free Blouse Stitching',
-    desc: 'On all bridal sarees above ₹5,000',
+    title: 'Premium Craftsmanship',
+    desc: 'Every saree is woven with traditional techniques and utmost care.',
     cta: 'Shop Bridal',
     href: '/products?category=Bridal',
     gradient: 'from-brand-800 to-brand-900',

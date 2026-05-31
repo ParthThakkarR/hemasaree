@@ -15,7 +15,7 @@ import ProductInfo from '@/app/components/product/ProductInfo';
 import ProductAccordion from '@/app/components/product/ProductAccordion';
 import ProductRelated from '@/app/components/product/ProductRelated';
 
-const POLISH_PRICE = 450;
+
 
 // Recently viewed localStorage helpers
 function getRecentlyViewed(): any[] {
@@ -40,7 +40,7 @@ function addToRecentlyViewed(product: any) {
   } catch { /* ignore */ }
 }
 
-export default function ProductDetailClient({ initialProduct, initialRelated }: any) {
+export default function ProductDetailClient({ initialProduct, initialRelated, polishPrice = 450, isPolishEnabled = true }: any) {
   const [product] = useState(initialProduct);
   const [related] = useState(initialRelated);
   const [polish, setPolish] = useState(true);
@@ -78,8 +78,8 @@ export default function ProductDetailClient({ initialProduct, initialRelated }: 
         quantity: qty,
         productName: product.name,
         productImage: product.images?.[0] || '',
-        price: product.price,
-        withPolish: polish
+        price: product.price + (polish && isPolishEnabled ? polishPrice : 0),
+        withPolish: polish && isPolishEnabled
       });
     } catch (err: any) {
       console.error(err);
@@ -112,7 +112,7 @@ export default function ProductDetailClient({ initialProduct, initialRelated }: 
     setShowShareMenu(false);
   };
 
-  const displayPrice = product.price + (polish ? POLISH_PRICE : 0);
+  const displayPrice = product.price + (polish && isPolishEnabled ? polishPrice : 0);
 
   return (
     <div className="bg-surface min-h-screen pt-6 lg:pt-10 pb-24">
@@ -161,9 +161,10 @@ export default function ProductDetailClient({ initialProduct, initialRelated }: 
               displayPrice={displayPrice}
               isInWishlist={isInWishlist}
               handleWishlist={handleWishlist}
-              polish={polish}
+              polish={polish && isPolishEnabled}
               setPolish={setPolish}
-              POLISH_PRICE={POLISH_PRICE}
+              POLISH_PRICE={polishPrice}
+              isPolishEnabled={isPolishEnabled}
               addToCart={addToCart}
               isAddingToCart={isAddingToCart}
               router={router}

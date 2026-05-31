@@ -40,7 +40,7 @@ export default function CartOrderSummary({
           <div className="flex justify-between text-ink-muted">
             <span className="font-medium">Delivery Charge</span>
             <span className="font-bold text-ink">
-              {deliveryCharge === 0 ? <span className="text-green-600 bg-green-50 px-2 py-1 rounded">Free</span> : `₹${deliveryCharge.toLocaleString('en-IN')}`}
+              ₹{deliveryCharge.toLocaleString('en-IN')}
             </span>
           </div>
         ) : (

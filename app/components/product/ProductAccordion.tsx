@@ -126,7 +126,7 @@ export default function ProductAccordion({ product, reviews, reviewStats, onRevi
            </div>
            <div className="flex items-start gap-3">
              <div className="w-8 h-8 rounded-full bg-surface-muted flex items-center justify-center flex-shrink-0 mt-0.5"><span className="text-xs">🚚</span></div>
-             <div><p className="font-medium text-ink">Delivery</p><p className="text-xs">3-7 business days within India. Free on orders above ₹999.</p></div>
+             <div><p className="font-medium text-ink">Delivery</p><p className="text-xs">3-7 business days within India. Standard delivery charges apply.</p></div>
            </div>
          </div>
        </AccordionItem>

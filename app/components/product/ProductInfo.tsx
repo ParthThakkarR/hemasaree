@@ -12,15 +12,16 @@ interface ProductInfoProps {
   polish: boolean;
   setPolish: (val: boolean) => void;
   POLISH_PRICE: number;
+  isPolishEnabled?: boolean;
   addToCart: (qty: number) => Promise<void>;
   isAddingToCart: boolean;
   router: any;
-  reviewStats?: { avgRating: number; totalReviews: number };
+  reviewStats?: { avgRating: number; totalReviews: number; distribution: number[] };
 }
 
 export default function ProductInfo({ 
   product, displayPrice, isInWishlist, handleWishlist, 
-  polish, setPolish, POLISH_PRICE, addToCart, isAddingToCart, router,
+  polish, setPolish, POLISH_PRICE, isPolishEnabled = true, addToCart, isAddingToCart, router,
   reviewStats
 }: ProductInfoProps) {
   // Use real MRP if available, otherwise calculate simulated
@@ -98,19 +99,21 @@ export default function ProductInfo({
       )}
 
       {/* Polish Options */}
-      <div className="space-y-2.5">
-        <p className="text-sm font-semibold text-ink">Polish Option</p>
-        <div className="grid grid-cols-1 gap-2">
-          <button onClick={() => setPolish(true)} className={`p-3.5 rounded-xl border flex justify-between items-center transition-all ${polish ? 'border-brand-800 bg-brand-50 shadow-sm' : 'border-surface-subtle bg-white hover:border-brand-200'}`}>
-            <div><p className="font-semibold text-sm text-left">With Polish</p><p className="text-xs text-ink-faint text-left">+₹{POLISH_PRICE}</p></div>
-            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${polish ? 'bg-brand-800 border-brand-800' : 'border-surface-subtle'}`}>{polish && <Check size={11} className="text-white" />}</div>
-          </button>
-          <button onClick={() => setPolish(false)} className={`p-3.5 rounded-xl border flex justify-between items-center transition-all ${!polish ? 'border-brand-800 bg-brand-50 shadow-sm' : 'border-surface-subtle bg-white hover:border-brand-200'}`}>
-            <p className="font-semibold text-sm">Without Polish</p>
-            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${!polish ? 'bg-brand-800 border-brand-800' : 'border-surface-subtle'}`}>{!polish && <Check size={11} className="text-white" />}</div>
-          </button>
+      {isPolishEnabled !== false && (
+        <div className="space-y-2.5">
+          <p className="text-sm font-semibold text-ink">Polish Option</p>
+          <div className="grid grid-cols-1 gap-2">
+            <button onClick={() => setPolish(true)} className={`p-3.5 rounded-xl border flex justify-between items-center transition-all ${polish ? 'border-brand-800 bg-brand-50 shadow-sm' : 'border-surface-subtle bg-white hover:border-brand-200'}`}>
+              <div><p className="font-semibold text-sm text-left">With Polish</p><p className="text-xs text-ink-faint text-left">+₹{POLISH_PRICE}</p></div>
+              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${polish ? 'bg-brand-800 border-brand-800' : 'border-surface-subtle'}`}>{polish && <Check size={11} className="text-white" />}</div>
+            </button>
+            <button onClick={() => setPolish(false)} className={`p-3.5 rounded-xl border flex justify-between items-center transition-all ${!polish ? 'border-brand-800 bg-brand-50 shadow-sm' : 'border-surface-subtle bg-white hover:border-brand-200'}`}>
+              <p className="font-semibold text-sm">Without Polish</p>
+              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${!polish ? 'bg-brand-800 border-brand-800' : 'border-surface-subtle'}`}>{!polish && <Check size={11} className="text-white" />}</div>
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row gap-3">

@@ -144,6 +144,11 @@ export default async function Page({ params }: Props) {
     take: 4,
   });
 
+  const SettingsService = require('@/lib/services/settingsService').SettingsService;
+  const settings = await SettingsService.getSettings();
+  const polishPrice = settings.isPolishEnabled ? settings.polishPrice : 450;
+  const isPolishEnabled = settings.isPolishEnabled;
+
   // Fetch reviews for AggregateRating (cached — shared with metadata if needed)
   const approvedReviews = await getApprovedReviews(product.id);
 
@@ -266,7 +271,7 @@ export default async function Page({ params }: Props) {
           <span className="text-ink font-medium truncate max-w-[200px]">{product.name}</span>
         </nav>
       </div>
-      <ProductDetailClient initialProduct={product} initialRelated={related} />
+      <ProductDetailClient initialProduct={product} initialRelated={related} polishPrice={polishPrice} isPolishEnabled={isPolishEnabled} />
     </>
   );
 }

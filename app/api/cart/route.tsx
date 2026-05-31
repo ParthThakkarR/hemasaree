@@ -71,7 +71,9 @@ export async function POST(req: NextRequest) {
     if (!product || product.isDeleted) return NextResponse.json({ error: "Product not found" }, { status: 404 });
 
     // 🔒 Always use server-side price, never trust client-supplied price
-    const price = product.price;
+    const settings = await require('@/lib/services/settingsService').SettingsService.getSettings();
+    const polishPrice = settings.isPolishEnabled ? settings.polishPrice : 450;
+    const price = product.price + (withPolish ? polishPrice : 0);
 
     // 🧮 Compute available stock safely
     const availableStock = typeof product.stock === "number" && product.stock > 0 ? product.stock : 0;

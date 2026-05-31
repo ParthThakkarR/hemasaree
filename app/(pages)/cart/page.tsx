@@ -65,11 +65,11 @@ function CartPageContent() {
           product: buyNowProduct,
           productName: buyNowProduct.name,
           productImage: buyNowProduct.images?.[0] || '',
-          price: buyNowProduct.price,
+          price: buyNowProduct.price + (buyNowPolish ? 450 : 0),
           quantity: 1,
           withPolish: buyNowPolish
         }],
-        totalPrice: buyNowProduct.price
+        totalPrice: buyNowProduct.price + (buyNowPolish ? 450 : 0)
       };
     }
     return cart;

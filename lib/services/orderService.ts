@@ -3,11 +3,12 @@ import { OrderStatus, OrderItemStatus } from '@prisma/client';
 import { NotFoundError, ConflictError, ValidationError } from '../errors';
 
 export interface CheckoutAddress {
-  streetAddress: string;
+  houseNumber: string;
+  buildingName?: string | null;
+  area: string;
   city: string;
   state: string;
-  zipCode: string;
-  country?: string;
+  pincode: string;
 }
 
 export interface CheckoutItem {
@@ -23,17 +24,12 @@ export interface OrderItemResult {
 }
 
 /**
- * Delivery charge configuration
- * In production, this should come from database or config service
- */
-export const DELIVERY_CHARGE_CONFIG = {
-  gujarat: 80,
-  default: 150,
-} as const;
+import { SettingsService } from './settingsService';
 
-export function calculateDeliveryCharge(state: string): number {
+export async function calculateDeliveryCharge(state: string): Promise<number> {
   const normalizedState = (state ?? '').toLowerCase().trim();
-  return normalizedState === 'gujarat' ? DELIVERY_CHARGE_CONFIG.gujarat : DELIVERY_CHARGE_CONFIG.default;
+  const settings = await SettingsService.getSettings();
+  return normalizedState === 'gujarat' ? settings.deliveryChargeGujarat : settings.deliveryChargeDefault;
 }
 
 /**
@@ -109,16 +105,20 @@ export class OrderService {
       );
     }
 
+    const settings = await SettingsService.getSettings();
+    const polishPrice = settings.isPolishEnabled ? settings.polishPrice : 450;
+    const finalPrice = product.price + (withPolish ? polishPrice : 0);
+
     return {
       items: [{
         productId,
         quantity,
-        price: product.price,
+        price: finalPrice,
         withPolish,
         productName: product.name,
         productImage: product.images?.[0] || '',
       }],
-      total: product.price * quantity,
+      total: finalPrice * quantity,
       cartId: null,
     };
   }
@@ -136,7 +136,7 @@ export class OrderService {
       ? await OrderService.validateBuyNowItem(buyNowItem.productId, buyNowItem.quantity, buyNowItem.withPolish)
       : await OrderService.validateCartItems(userId);
 
-    const formattedAddress = `${address.streetAddress}, ${address.city}, ${address.state} - ${address.zipCode}, ${address.country || 'India'}`;
+    const formattedAddress = `${address.houseNumber} ${address.buildingName ? address.buildingName + ', ' : ''}${address.area}, ${address.city}, ${address.state} - ${address.pincode}`;
 
      const orderItemsCreate = items.map(item => ({
        productId: item.productId,
