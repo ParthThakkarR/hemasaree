@@ -88,14 +88,53 @@ export class OrderService {
   }
 
   /**
+   * Validate a single item for immediate checkout
+   */
+  static async validateBuyNowItem(productId: string, quantity: number, withPolish: boolean = false): Promise<{
+    items: Array<{ productId: string; quantity: number; price: number; withPolish: boolean; productName: string; productImage: string }>;
+    total: number;
+    cartId: string | null;
+  }> {
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+    });
+
+    if (!product || product.isDeleted) {
+      throw new ValidationError('Product not found');
+    }
+
+    if (quantity > product.stock) {
+      throw new ConflictError(
+        `Not enough stock for ${product.name}. Only ${product.stock} available.`
+      );
+    }
+
+    return {
+      items: [{
+        productId,
+        quantity,
+        price: product.price,
+        withPolish,
+        productName: product.name,
+        productImage: product.images?.[0] || '',
+      }],
+      total: product.price * quantity,
+      cartId: null,
+    };
+  }
+
+  /**
    * Create order with transaction
    */
   static async createOrder(
     userId: string,
     address: CheckoutAddress,
-    deliveryCharge: number
+    deliveryCharge: number,
+    buyNowItem?: { productId: string; quantity: number; withPolish?: boolean }
   ): Promise<OrderItemResult> {
-    const { items, total, cartId } = await OrderService.validateCartItems(userId);
+    const { items, total, cartId } = buyNowItem
+      ? await OrderService.validateBuyNowItem(buyNowItem.productId, buyNowItem.quantity, buyNowItem.withPolish)
+      : await OrderService.validateCartItems(userId);
 
     const formattedAddress = `${address.streetAddress}, ${address.city}, ${address.state} - ${address.zipCode}, ${address.country || 'India'}`;
 
@@ -140,9 +179,11 @@ export class OrderService {
       return order;
     });
 
-    // Clear cart
-    await prisma.cartItem.deleteMany({ where: { cartId } });
-    await prisma.cart.update({ where: { id: cartId }, data: { totalPrice: 0 } });
+    // Clear cart only if we checked out a cart
+    if (cartId) {
+      await prisma.cartItem.deleteMany({ where: { cartId } });
+      await prisma.cart.update({ where: { id: cartId }, data: { totalPrice: 0 } });
+    }
 
     return {
       orderId: newOrder.id,

@@ -49,10 +49,12 @@ export async function POST(
     const updatedOrder = await prisma.$transaction(async (tx) => {
       // Restore stock for each product in this order
       for (const item of order.orderItems) {
-        await tx.product.update({
-          where: { id: item.productId },
-          data: { stock: { increment: item.quantity } },
-        });
+        if (item.productId) {
+          await tx.product.update({
+            where: { id: item.productId },
+            data: { stock: { increment: item.quantity } },
+          });
+        }
       }
 
       // Update order status

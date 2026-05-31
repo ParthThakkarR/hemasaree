@@ -90,6 +90,7 @@ export default function Footer() {
                    <input 
                      type="email" 
                      placeholder="Your email address" 
+                     aria-label="Email address for newsletter"
                      value={email}
                      onChange={(e) => setEmail(e.target.value)}
                      required
@@ -133,7 +134,7 @@ export default function Footer() {
                <li><Link href="/orders" className="text-sm hover:text-accent transition-colors">Track Order</Link></li>
                <li><Link href="/terms" className="text-sm hover:text-accent transition-colors">Shipping & Delivery</Link></li>
                <li><Link href="/about" className="text-sm hover:text-accent transition-colors">About Us</Link></li>
-               <li><a href="mailto:hello@hemasarees.com" className="text-sm hover:text-accent transition-colors">Contact Us</a></li>
+               <li><Link href="/contact" className="text-sm hover:text-accent transition-colors">Contact Us</Link></li>
              </ul>
            </div>
 
@@ -142,9 +143,9 @@ export default function Footer() {
             <h4 className="font-semibold text-brand-50 uppercase tracking-wider mb-5 text-xs">Get in Touch</h4>
             <ul className="space-y-4">
               <li className="flex gap-2.5 pt-2">
-                 <a href="mailto:hello@hemasarees.com" className="w-9 h-9 rounded-full bg-brand-900/50 border border-brand-800/30 flex items-center justify-center text-brand-100/60 hover:bg-accent hover:text-brand-950 hover:border-accent transition-all">
+                 <Link href="/contact" aria-label="Contact Us" className="w-9 h-9 rounded-full bg-brand-900/50 border border-brand-800/30 flex items-center justify-center text-brand-100/60 hover:bg-accent hover:text-brand-950 hover:border-accent transition-all">
                    <Mail size={16} />
-                 </a>
+                 </Link>
               </li>
             </ul>
           </div>

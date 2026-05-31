@@ -14,7 +14,7 @@ export const searchProducts = async ({
   const skip = (page - 1) * limit;
 
   const where: any = {
-    AND: [],
+    AND: [{ isDeleted: false }],
   };
 
   if (query) {

@@ -57,7 +57,7 @@ export async function middleware(req: NextRequest) {
 }
 
 function setSecurityHeaders(response: NextResponse) {
-  response.headers.set('X-DNS-Prefetch-Control', 'off');
+  response.headers.set('X-DNS-Prefetch-Control', 'on');
   response.headers.set('X-Frame-Options', 'DENY');
   response.headers.set('Strict-Transport-Security', 'max-age=15552000; includeSubDomains; preload');
   response.headers.set('X-Download-Options', 'noopen');

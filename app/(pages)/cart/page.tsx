@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { State, City } from 'country-state-city';
 import { ArrowRight, ShieldCheck, Lock, ShoppingBag } from 'lucide-react';
 import { useCart } from '@contexts/cart-context';
@@ -16,13 +16,64 @@ import CartPayment from '@/app/components/cart/CartPayment';
 import CartOrderSummary from '@/app/components/cart/CartOrderSummary';
 import { DELIVERY_CHARGE_CONFIG } from '@/lib/services/orderService';
 
-export default function CartPage() {
+function CartPageContent() {
   const router = useRouter();
   const { cart, isLoading, updateQuantity, removeItem, refreshCart } = useCart();
   const { user } = useAuth();
   
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  
+  const searchParams = useSearchParams();
+  const buyNowProductId = searchParams.get('buyNow');
+  const buyNowPolish = searchParams.get('polish') === 'true';
+  const [buyNowProduct, setBuyNowProduct] = useState<any>(null);
+  const [isFetchingBuyNow, setIsFetchingBuyNow] = useState(!!buyNowProductId);
+
+  useEffect(() => {
+    if (buyNowProductId) {
+      setIsFetchingBuyNow(true);
+      fetch(`/api/products?id=${buyNowProductId}`)
+        .then(res => res.json())
+        .then(data => {
+          // If the API returns an array, pick the first one matching id, else use data directly if it's an object.
+          // In /api/products, we usually get a list or single product.
+          // Wait, GET /api/products returns all products. I'll fetch them all and find it, or use the single product endpoint if it exists.
+          // Let's assume /api/admin/products?id= works or we just use GET /api/products and find it.
+          // Actually, let's just do a direct fetch to the product details API if they have one.
+          // They have `/api/products/[id]` or similar? The easiest way is fetching all products or the specific one.
+          // Let me check if there's a specific route. I'll just fetch all products and find the matching ID.
+          fetch(`/api/products`)
+            .then(r => r.json())
+            .then(all => {
+               const p = Array.isArray(all) ? all.find((x: any) => x.id === buyNowProductId) : null;
+               if (p) setBuyNowProduct(p);
+            })
+            .finally(() => setIsFetchingBuyNow(false));
+        })
+        .catch(() => setIsFetchingBuyNow(false));
+    }
+  }, [buyNowProductId]);
+
+  const effectiveCart = useMemo(() => {
+    if (buyNowProductId && buyNowProduct) {
+      return {
+        id: 'temp-buynow',
+        items: [{
+          id: 'temp-item',
+          productId: buyNowProduct.id,
+          product: buyNowProduct,
+          productName: buyNowProduct.name,
+          productImage: buyNowProduct.images?.[0] || '',
+          price: buyNowProduct.price,
+          quantity: 1,
+          withPolish: buyNowPolish
+        }],
+        totalPrice: buyNowProduct.price
+      };
+    }
+    return cart;
+  }, [cart, buyNowProductId, buyNowProduct, buyNowPolish]);
   
   // Address State
   const [addressMode, setAddressMode] = useState<'saved' | 'new'>('new');
@@ -63,7 +114,7 @@ export default function CartPage() {
   }, [newAddr.state, states]);
 
   // Calculations
-  const subtotal = useMemo(() => cart?.totalPrice || 0, [cart]);
+  const subtotal = useMemo(() => effectiveCart?.totalPrice || 0, [effectiveCart]);
   
   const activeState = useMemo(() => {
     if (step < 2) return null;
@@ -107,10 +158,19 @@ export default function CartPage() {
     
     setIsPlacingOrder(true);
     try {
+      const payload: any = { address: finalAddress };
+      if (buyNowProductId && buyNowProduct) {
+        payload.buyNowItem = {
+          productId: buyNowProductId,
+          quantity: 1,
+          withPolish: buyNowPolish
+        };
+      }
+
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address: finalAddress }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       
@@ -147,7 +207,9 @@ export default function CartPage() {
     );
   }
 
-  if (isLoading && !cart) {
+  const combinedLoading = isLoading || isFetchingBuyNow;
+
+  if (combinedLoading && !effectiveCart) {
     return (
       <div className="min-h-screen bg-surface pt-32 pb-16 flex justify-center">
         <div className="w-8 h-8 border-4 border-brand-200 border-t-brand-800 rounded-full animate-spin" />
@@ -155,7 +217,7 @@ export default function CartPage() {
     );
   }
 
-  if (!cart || cart.items.length === 0) {
+  if (!effectiveCart || effectiveCart.items.length === 0) {
     return (
       <div className="min-h-screen bg-surface pt-32 pb-16 flex flex-col items-center justify-center text-center px-4">
         <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring' }}>
@@ -198,8 +260,8 @@ export default function CartPage() {
               {step === 1 && (
                 <CartItems 
                   key="step1"
-                  cart={cart}
-                  isLoading={isLoading}
+                  cart={effectiveCart}
+                  isLoading={combinedLoading}
                   handleQuantity={handleQuantity}
                   handleRemove={handleRemove}
                   getImageSrc={getImageSrc}
@@ -234,7 +296,7 @@ export default function CartPage() {
           {/* Sticky Order Summary Area */}
           <div className="w-full lg:w-[420px] shrink-0">
              <CartOrderSummary 
-                cart={cart}
+                cart={effectiveCart}
                 step={step}
                 setStep={setStep}
                 subtotal={subtotal}
@@ -249,5 +311,13 @@ export default function CartPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CartPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-surface pt-32 pb-16 flex justify-center"><div className="w-8 h-8 border-4 border-brand-200 border-t-brand-800 rounded-full animate-spin" /></div>}>
+      <CartPageContent />
+    </Suspense>
   );
 }

@@ -24,13 +24,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { address } = validation.data;
+    const { address, buyNowItem } = validation.data;
     const deliveryCharge = calculateDeliveryCharge(address.state);
 
     const result = await OrderService.createOrder(
       decodedUser.id,
       address,
-      deliveryCharge
+      deliveryCharge,
+      buyNowItem
     );
 
     // Queue order confirmation email

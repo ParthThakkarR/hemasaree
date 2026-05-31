@@ -128,16 +128,36 @@ export default function Navbar() {
               onMouseLeave={() => {
                 dropdownTimeoutRef.current = setTimeout(() => setIsCollectionsOpen(false), 150);
               }}
+              onFocus={() => {
+                if (dropdownTimeoutRef.current) clearTimeout(dropdownTimeoutRef.current);
+                setIsCollectionsOpen(true);
+              }}
+              onBlur={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                  dropdownTimeoutRef.current = setTimeout(() => setIsCollectionsOpen(false), 150);
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') setIsCollectionsOpen(false);
+              }}
             >
-              <button className={`flex items-center gap-1 text-[13px] font-semibold uppercase tracking-wider transition-colors hover:text-brand-800 ${pathname.includes('category') ? 'text-brand-800' : 'text-ink/60'}`}>
-                Collections <ChevronDown size={14} className={`transition-transform duration-200 ${isCollectionsOpen ? 'rotate-180' : ''}`} />
+              <button
+                aria-expanded={isCollectionsOpen}
+                aria-haspopup="true"
+                className={`flex items-center gap-1 text-[13px] font-semibold uppercase tracking-wider transition-colors hover:text-brand-800 ${pathname.includes('category') ? 'text-brand-800' : 'text-ink/60'}`}
+              >
+                Collections <ChevronDown size={14} aria-hidden="true" className={`transition-transform duration-200 ${isCollectionsOpen ? 'rotate-180' : ''}`} />
               </button>
-              <div className={`absolute top-full left-1/2 -translate-x-1/2 mt-3 w-52 bg-white border border-surface-subtle rounded-xl shadow-luxury overflow-hidden transition-all duration-200 ${isCollectionsOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible translate-y-2'}`}>
+              <div
+                role="menu"
+                className={`absolute top-full left-1/2 -translate-x-1/2 mt-3 w-52 bg-white border border-surface-subtle rounded-xl shadow-luxury overflow-hidden transition-all duration-200 ${isCollectionsOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible translate-y-2'}`}
+              >
                 <div className="py-2">
                   {collections.map(col => (
                     <Link
                       key={col.name}
                       href={col.href}
+                      role="menuitem"
                       className="block px-5 py-2.5 text-sm text-ink hover:bg-surface-muted hover:text-brand-800 transition-colors font-medium"
                     >
                       {col.name}
@@ -161,8 +181,9 @@ export default function Navbar() {
             <form onSubmit={handleSearch} className="relative">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-faint" size={17} />
               <input
-                type="text"
+                type="search"
                 placeholder="Search sarees..."
+                aria-label="Search sarees"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2.5 bg-surface-muted border border-surface-subtle rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent/50 transition-all placeholder:text-ink-faint text-ink"
@@ -182,10 +203,10 @@ export default function Navbar() {
                 )}
               </Link>
 
-              <Link href="/cart" className="relative p-2.5 text-ink hover:text-brand-800 transition-colors rounded-full hover:bg-surface-muted">
+              <Link href="/cart" aria-label={`Shopping cart${cartCount > 0 ? `, ${cartCount} items` : ''}`} className="relative p-2.5 text-ink hover:text-brand-800 transition-colors rounded-full hover:bg-surface-muted">
                 <ShoppingBag size={21} />
                 {cartCount > 0 && (
-                  <span className="absolute top-1 right-1 min-w-[18px] h-[18px] bg-brand-800 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-surface px-0.5">
+                  <span className="absolute top-1 right-1 min-w-[18px] h-[18px] bg-brand-800 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-surface px-0.5" aria-hidden="true">
                     {cartCount > 99 ? '99+' : cartCount}
                   </span>
                 )}
@@ -263,8 +284,9 @@ export default function Navbar() {
           <form onSubmit={handleSearch} className="relative w-full">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-faint" size={17} />
             <input
-              type="text"
+              type="search"
               placeholder="Search sarees..."
+              aria-label="Search sarees"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 bg-surface-muted border border-surface-subtle rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent/50 transition-all placeholder:text-ink-faint text-ink"

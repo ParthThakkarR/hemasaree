@@ -13,9 +13,13 @@ async function invalidateProductCache() {
 }
 
 // GET all products (Public)
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const isDeletedParam = req.nextUrl.searchParams.get('isDeleted');
+    const isDeleted = isDeletedParam === 'true';
+
     const products = await prisma.product.findMany({
+      where: { isDeleted },
       include: { category: true },
       orderBy: { createdAt: 'desc' },
     });
@@ -117,23 +121,43 @@ export async function DELETE(req: NextRequest) {
 
     const { id } = validation.data;
 
-    const orderItemCount = await prisma.orderItem.count({ where: { productId: id } });
-    if (orderItemCount > 0)
-      return NextResponse.json(
-        { error: `Cannot delete. Product in ${orderItemCount} orders.` },
-        { status: 409 }
-      );
-
-    await prisma.cartItem.deleteMany({ where: { productId: id } });
-    await prisma.product.delete({ where: { id } });
+    // Soft delete implementation
+    await prisma.product.update({ 
+      where: { id },
+      data: { isDeleted: true, deletedAt: new Date() }
+    });
 
     // ✅ Invalidate cache so public API serves fresh data
     await invalidateProductCache();
 
-    return NextResponse.json({ message: 'Product deleted successfully' });
+    return NextResponse.json({ message: 'Product moved to recycle bin successfully' });
   } catch (error) {
     console.error('[PRODUCTS_DELETE_ERROR]', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
+  }
+}
+
+// PATCH restore a product
+export async function PATCH(req: NextRequest) {
+  const adminId = await verifyAdminToken(req);
+  if (!adminId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  try {
+    const body = await req.json();
+    const { id } = body;
+    if (!id) return NextResponse.json({ error: 'ID is required' }, { status: 400 });
+
+    const updated = await prisma.product.update({
+      where: { id },
+      data: { isDeleted: false, deletedAt: null }
+    });
+
+    await invalidateProductCache();
+
+    return NextResponse.json({ message: 'Product restored successfully', product: updated });
+  } catch (error) {
+    console.error('[PRODUCTS_RESTORE_ERROR]', error);
+    return NextResponse.json({ error: 'Failed to restore product' }, { status: 500 });
   }
 }
 

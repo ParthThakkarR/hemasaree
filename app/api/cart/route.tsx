@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
 
     // 🧩 Find product
     const product = await prisma.product.findUnique({ where: { id: productId } });
-    if (!product) return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    if (!product || product.isDeleted) return NextResponse.json({ error: "Product not found" }, { status: 404 });
 
     // 🔒 Always use server-side price, never trust client-supplied price
     const price = product.price;

@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://hemasaree.vercel.app';
 
   const staticEntries: MetadataRoute.Sitemap = [
     {
@@ -22,6 +22,43 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly',
       priority: 0.5,
     },
+    {
+      url: `${baseUrl}/contact`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.5,
+    },
+    {
+      url: `${baseUrl}/privacy-policy`,
+      lastModified: new Date(),
+      changeFrequency: 'yearly',
+      priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/terms`,
+      lastModified: new Date(),
+      changeFrequency: 'yearly',
+      priority: 0.3,
+    },
+    // Collection pages
+    {
+      url: `${baseUrl}/collections/wedding-edit`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/collections/festive-glamour`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/collections/heritage-silks`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
   ];
 
   // Dynamically add product/category URLs only when the database is available.
@@ -35,6 +72,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const { prisma } = await import('@lib/prisma');
 
     const products = await prisma.product.findMany({
+      where: { isDeleted: false },
       select: { id: true, updatedAt: true },
     });
 
@@ -49,11 +87,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       select: { name: true, updatedAt: true },
     });
 
+    // Category URLs use query param format matching actual site routes
     const categoryEntries: MetadataRoute.Sitemap = categories.map((category) => ({
-      url: `${baseUrl}/collections/${category.name.toLowerCase()}`,
+      url: `${baseUrl}/products?category=${encodeURIComponent(category.name)}`,
       lastModified: category.updatedAt,
-      changeFrequency: 'monthly',
-      priority: 0.6,
+      changeFrequency: 'weekly',
+      priority: 0.7,
     }));
 
     return [...staticEntries, ...productEntries, ...categoryEntries];
@@ -62,5 +101,3 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     return staticEntries;
   }
 }
-
-

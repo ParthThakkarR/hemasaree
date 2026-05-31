@@ -118,7 +118,7 @@ export default function ProductInfo({
           {isAddingToCart ? <div className="w-5 h-5 border-2 border-brand-800 border-t-transparent rounded-full animate-spin" /> : <ShoppingBag className="w-5 h-5" />}
           {product.stock > 0 ? (isAddingToCart ? 'Adding...' : 'Add to Cart') : 'Out of Stock'}
         </button>
-        <button onClick={async () => { await addToCart(1); router.push('/cart'); }} disabled={product.stock === 0 || isAddingToCart} className="flex-1 bg-brand-800 text-white py-3.5 rounded-xl font-bold text-base hover:bg-brand-900 transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-brand-sm active:scale-[0.98]">
+        <button onClick={() => router.push(`/cart?buyNow=${product.id}&polish=${polish}`)} disabled={product.stock === 0 || isAddingToCart} className="flex-1 bg-brand-800 text-white py-3.5 rounded-xl font-bold text-base hover:bg-brand-900 transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-brand-sm active:scale-[0.98]">
           Buy Now
         </button>
       </div>
@@ -129,7 +129,6 @@ export default function ProductInfo({
           <Truck size={18} className="text-dark-green flex-shrink-0" />
           <div>
             <p className="font-medium text-ink">Estimated delivery by {new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })} – {new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}</p>
-            <p className="text-xs text-ink-faint">Free shipping on orders above ₹999</p>
           </div>
         </div>
       </div>
@@ -138,7 +137,7 @@ export default function ProductInfo({
        <div className="grid grid-cols-2 gap-3">
          {[
            { icon: ShieldCheck, label: 'Genuine Product' },
-           { icon: Truck, label: 'Free Shipping' },
+           { icon: Truck, label: 'Secure Shipping' },
          ].map(badge => (
            <div key={badge.label} className="flex flex-col items-center text-center gap-1.5 py-3 bg-surface-muted rounded-xl">
              <badge.icon size={18} className="text-accent" />

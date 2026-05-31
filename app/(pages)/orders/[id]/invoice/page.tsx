@@ -155,10 +155,10 @@ export default function InvoicePage() {
                                     <h2 className="text-2xl font-serif font-bold text-ink tracking-tight">Hema Sarees</h2>
                                 </div>
                                 <div className="text-ink-muted text-sm space-y-1">
-                                    <p>123 Silk Avenue, Weaver&apos;s Lane</p>
-                                    <p>Surat, Gujarat, 395006</p>
-                                    <p>India</p>
-                                    <p className="pt-2 font-medium">support@hemasarees.com</p>
+                                    {/* TODO: Add verified business address */}
+                                    <p></p>
+                                    {/* TODO: Add verified business email */}
+                                    <p className="pt-2 font-medium"></p>
                                 </div>
                             </div>
                             <div className="text-left md:text-right">
@@ -254,7 +254,7 @@ export default function InvoicePage() {
                             <p className="text-ink-faint text-xs font-medium max-w-lg mx-auto leading-relaxed">
                                 Thank you for your purchase from Hema Sarees. We hope you love your new saree! 
                                 If you have any questions regarding this invoice, please reach out to our 
-                                support team at <span className="text-brand-800">support@hemasarees.com</span>.
+                                support team.
                             </p>
                             <div className="mt-8 flex justify-center gap-12">
                                 <div className="text-center">

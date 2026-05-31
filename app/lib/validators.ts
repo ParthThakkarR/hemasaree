@@ -159,6 +159,11 @@ const AddressSchema = z.object({
 
 export const CheckoutSchema = z.object({
   address: AddressSchema,
+  buyNowItem: z.object({
+    productId: z.string().min(1),
+    quantity: z.number().int().positive(),
+    withPolish: z.boolean().optional(),
+  }).optional(),
 });
 
 // --- Order Schemas ---

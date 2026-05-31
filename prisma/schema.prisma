@@ -142,6 +142,8 @@ model Product {
    user         User        @relation("UserProducts", fields: [userId], references: [id])
    createdAt    DateTime    @default(now())
    updatedAt    DateTime    @updatedAt
+   isDeleted    Boolean     @default(false)
+   deletedAt    DateTime?
    cartItems    CartItem[]
    orderItems   OrderItem[]
    wishlistItems WishlistItem[]
@@ -170,9 +172,9 @@ model Cart {
 model CartItem {
   id           String   @id @default(auto()) @map("_id") @db.ObjectId
   cartId       String   @db.ObjectId
-  cart         Cart     @relation(fields: [cartId], references: [id])
+  cart         Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
   productId    String   @db.ObjectId
-  product      Product  @relation(fields: [productId], references: [id])
+  product      Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   productName  String
   productImage String?
   quantity     Int      @default(1)
@@ -208,9 +210,9 @@ model Order {
 model OrderItem {
   id             String          @id @default(auto()) @map("_id") @db.ObjectId
   orderId        String          @db.ObjectId
-  order          Order           @relation(fields: [orderId], references: [id])
-  productId      String          @db.ObjectId
-  product        Product         @relation(fields: [productId], references: [id])
+  order          Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId      String?         @db.ObjectId
+  product        Product?        @relation(fields: [productId], references: [id], onDelete: SetNull)
   withPolish     Boolean         @default(false)
   status         OrderItemStatus @default(PENDING)
   productName    String

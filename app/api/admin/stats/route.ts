@@ -12,9 +12,9 @@ export async function GET(req: Request) {
     }
 
     // 1. Basic Counts
-    const totalProducts = await prisma.product.count();
+    const totalProducts = await prisma.product.count({ where: { isDeleted: false } });
     const lowStockCount = await prisma.product.count({
-      where: { stock: { lt: 5 } }
+      where: { stock: { lt: 5 }, isDeleted: false }
     });
 
     // 2. Revenue & Orders
@@ -29,9 +29,10 @@ export async function GET(req: Request) {
     // 3. Inventory Value
     const inventoryAggregate = await prisma.product.aggregate({
       _sum: { price: true },
-      where: {}
+      where: { isDeleted: false }
     });
     const allProducts = await prisma.product.findMany({
+      where: { isDeleted: false },
       select: { price: true, stock: true }
     });
     const inventoryValue = allProducts.reduce((sum, p) => sum + (p.price * p.stock), 0);

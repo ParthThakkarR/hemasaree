@@ -18,22 +18,46 @@ import NextTopLoader from 'nextjs-toploader';
 import { SiteSettingsProvider } from '@contexts/site-settings-context';
 import { getSiteSettings } from '@/sanity/lib/queries';
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXTAUTH_URL || 'https://hemasaree.vercel.app';
+
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
   
   const siteTitle = settings?.title || 'Hema Sarees — Elegant Indian Sarees';
-  const siteDescription = settings?.description || 'Discover handpicked collections of exquisite sarees, woven with love and tradition. Free delivery on orders above ₹999.';
+  const siteDescription = settings?.description || 'Discover premium silk, bridal, designer, cotton and festive sarees crafted for every occasion.';
 
   return {
-    metadataBase: new URL('https://hemasaree.vercel.app/'),
+    metadataBase: new URL(SITE_URL),
     title: { default: siteTitle, template: '%s | ' + (settings?.title || 'Hema Sarees') },
     description: siteDescription,
-    keywords: ['sarees', 'indian fashion', 'ethnic wear', 'silk sarees', 'designer sarees'],
+    keywords: [
+      'sarees online', 'buy sarees online', 'silk sarees', 'banarasi sarees',
+      'kanjivaram sarees', 'wedding sarees', 'bridal sarees', 'designer sarees',
+      'cotton sarees', 'party wear sarees', 'traditional sarees', 'saree shop india',
+      'indian sarees', 'festive sarees', 'sarees for women', 'handloom sarees',
+    ],
     openGraph: {
       type: 'website',
       locale: 'en_IN',
       siteName: siteTitle,
       images: ['/og-image.png'],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: siteTitle,
+      description: siteDescription,
+      images: ['/og-image.png'],
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-video-preview': -1,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
+      },
     },
   };
 }
@@ -48,6 +72,8 @@ import GlobalErrorBoundary from '@components/global-error-boundary';
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions);
   const settings = await getSiteSettings();
+  const siteUrl = SITE_URL;
+
   return (
     <html lang="en">
       <body className={`bg-white text-ink antialiased ${inter.variable} ${playfair.variable} ${cormorant.variable}`}>
@@ -91,26 +117,41 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               '@graph': [
                 {
                   '@type': 'Organization',
-                  '@id': 'https://hemasaree.vercel.app/#organization',
-                  name: 'Hema Sarees',
-                  url: 'https://hemasaree.vercel.app/',
+                  '@id': `${siteUrl}/#organization`,
+                  name: settings?.title || 'Hema Sarees',
+                  url: siteUrl,
                   logo: {
                     '@type': 'ImageObject',
-                    url: 'https://hemasaree.vercel.app/logo.png',
+                    url: `${siteUrl}/logo.png`,
                   },
+                  description: settings?.description || 'Premium Indian saree ecommerce store offering authentic silk, bridal, designer, and handloom sarees.',
                   sameAs: [
-                    'https://instagram.com/hemasarees',
-                    'https://facebook.com/hemasarees',
+                    'https://instagram.com/hemasaree',
+                    'https://facebook.com/hemasaree'
                   ],
+                  contactPoint: {
+                    '@type': 'ContactPoint',
+                    telephone: '+91-9876543210',
+                    contactType: 'customer service'
+                  }
                 },
                 {
                   '@type': 'WebSite',
-                  '@id': 'https://hemasaree.vercel.app/#website',
-                  url: 'https://hemasaree.vercel.app/',
-                  name: 'Hema Sarees',
+                  '@id': `${siteUrl}/#website`,
+                  url: siteUrl,
+                  name: settings?.title || 'Hema Sarees',
                   publisher: {
-                    '@id': 'https://hemasaree.vercel.app/#organization',
+                    '@id': `${siteUrl}/#organization`,
                   },
+                  potentialAction: {
+                    '@type': 'SearchAction',
+                    target: {
+                      '@type': 'EntryPoint',
+                      urlTemplate: `${siteUrl}/products?search={search_term_string}`,
+                    },
+                    'query-input': 'required name=search_term_string',
+                  },
+                  inLanguage: 'en-IN',
                 },
               ],
             }),

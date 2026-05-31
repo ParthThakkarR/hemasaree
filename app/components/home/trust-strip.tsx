@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { Truck, ShieldCheck, RefreshCw, CreditCard } from 'lucide-react';
 
 const features = [
-  { icon: Truck, title: 'Free Shipping', desc: 'On orders above ₹999' },
+  { icon: Truck, title: 'Secure Shipping', desc: 'Pan-India Delivery' },
   { icon: ShieldCheck, title: 'Premium Quality', desc: '100% Authentic Fabric' },
   { icon: RefreshCw, title: 'Easy Returns', desc: '7-day return policy' },
   { icon: CreditCard, title: 'Secure Payment', desc: 'UPI, Cards & COD' },

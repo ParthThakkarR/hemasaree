@@ -8,6 +8,7 @@ export interface ProductFilters {
   maxPrice?: number;
   color?: string;
   occasion?: string;
+  includeDeleted?: boolean;
 }
 
 export interface ProductListOptions {
@@ -23,6 +24,10 @@ export class ProductService {
    */
   static buildWhereClause(filters: ProductFilters): any {
     const where: any = {};
+
+    if (!filters.includeDeleted) {
+      where.isDeleted = false;
+    }
 
     if (filters.categoryId) {
       const isValidObjectId = /^[a-f\d]{24}$/i.test(filters.categoryId);
@@ -144,7 +149,7 @@ export class ProductService {
       },
     });
 
-    if (!product) {
+    if (!product || product.isDeleted) {
       throw new NotFoundError('Product not found');
     }
 

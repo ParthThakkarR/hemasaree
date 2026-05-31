@@ -36,6 +36,7 @@ export default function MobileNav() {
             <Link
               key={item.name}
               href={item.href}
+              aria-current={isActive ? 'page' : undefined}
               className={`relative flex flex-col items-center justify-center w-16 py-1.5 transition-colors ${
                 isActive ? 'text-brand-800' : 'text-ink-muted hover:text-ink'
               }`}

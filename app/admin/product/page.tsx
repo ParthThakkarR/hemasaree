@@ -29,10 +29,14 @@ export default function ManageProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [viewMode, setViewMode] = useState<'active' | 'deleted'>('active');
 
   // Modal States
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
 
   // Add Form State
   const [productData, setProductData] = useState({
@@ -63,7 +67,7 @@ export default function ManageProductsPage() {
   const fetchData = async () => {
     try {
       const [pRes, cRes] = await Promise.all([
-        fetch('/api/admin/products'),
+        fetch(`/api/admin/products?isDeleted=${viewMode === 'deleted'}`),
         fetch('/api/admin/categories')
       ]);
       const pData = await pRes.json();
@@ -73,7 +77,7 @@ export default function ManageProductsPage() {
     } catch (err) { console.error(err); }
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { fetchData(); }, [viewMode]);
 
   const uploadImages = async (files: FileList): Promise<string[]> => {
     const formData = new FormData();
@@ -169,6 +173,46 @@ export default function ManageProductsPage() {
     finally { setIsLoading(false); }
   };
 
+  const confirmDeleteProduct = async () => {
+    if (!productToDelete) return;
+    try {
+      setIsLoading(true);
+      const res = await fetch(`/api/admin/products?id=${productToDelete.id}`, { method: 'DELETE' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(data.error || data.message || 'Failed to delete product');
+        return;
+      }
+      toast.success(data.message || 'Product deleted successfully');
+      fetchData();
+      setIsDeleteModalOpen(false);
+      setProductToDelete(null);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to delete product');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRestore = async (id: string) => {
+    try {
+      setIsLoading(true);
+      const res = await fetch(`/api/admin/products`, { 
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to restore product');
+      toast.success(data.message || 'Product restored successfully');
+      fetchData();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to restore product');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto py-8 px-4">
       <div className="flex justify-between items-center mb-8">
@@ -237,7 +281,13 @@ export default function ManageProductsPage() {
       {/* Table */}
       <div className="bg-white rounded-2xl shadow-sm border border-[#FBF5EC] overflow-hidden">
         <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-           <h2 className="text-xl font-bold text-[#1A0A12]">Product Inventory</h2>
+           <div className="flex gap-4 items-center">
+             <h2 className="text-xl font-bold text-[#1A0A12]">Product Inventory</h2>
+             <div className="flex bg-gray-100 p-1 rounded-lg">
+               <button onClick={() => setViewMode('active')} className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'active' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}>Active</button>
+               <button onClick={() => setViewMode('deleted')} className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'deleted' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}>Recycle Bin</button>
+             </div>
+           </div>
            <span className="bg-[#FBF5EC] text-[#6B0F1A] px-3 py-1 rounded-full text-sm font-semibold">{products.length} Items</span>
         </div>
         <div className="overflow-x-auto">
@@ -269,32 +319,26 @@ export default function ManageProductsPage() {
                     </span>
                   </td>
                   <td className="p-4 text-right space-x-2 whitespace-nowrap">
-                    <button onClick={() => { setEditingProduct(p); setIsEditModalOpen(true); }} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors inline-flex">
-                      <Pencil size={18} />
-                    </button>
-                    <button
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors inline-flex"
-                      onClick={async () => {
-                        if (!window.confirm('Are you sure you want to delete this product?')) return;
-                        try {
-                          setIsLoading(true);
-                          const res = await fetch(`/api/admin/products?id=${p.id}`, { method: 'DELETE' });
-                          const data = await res.json().catch(() => ({}));
-                          if (!res.ok) {
-                            toast.error(data.error || data.message || 'Failed to delete product');
-                            return;
-                          }
-                          toast.success(data.message || 'Product deleted successfully');
-                          fetchData();
-                        } catch (err: any) {
-                          toast.error(err.message || 'Failed to delete product');
-                        } finally {
-                          setIsLoading(false);
-                        }
-                      }}
-                    >
-                      <Trash2 size={18} />
-                    </button>
+                    {viewMode === 'active' ? (
+                      <>
+                        <button onClick={() => { setEditingProduct(p); setIsEditModalOpen(true); }} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors inline-flex">
+                          <Pencil size={18} />
+                        </button>
+                        <button
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors inline-flex"
+                          onClick={() => {
+                            setProductToDelete(p);
+                            setIsDeleteModalOpen(true);
+                          }}
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </>
+                    ) : (
+                      <button onClick={() => handleRestore(p.id)} className="px-3 py-1.5 bg-green-50 text-green-700 hover:bg-green-100 rounded-lg text-sm font-medium transition-colors inline-flex">
+                        Restore
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -393,6 +437,25 @@ export default function ManageProductsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteModalOpen && productToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl p-6 text-center">
+            <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Trash2 size={32} />
+            </div>
+            <h3 className="text-2xl font-bold text-[#1A0A12] mb-2">Delete Product</h3>
+            <p className="text-gray-600 mb-6">Are you sure you want to delete <strong>{productToDelete.name}</strong>? This action cannot be undone.</p>
+            <div className="flex justify-center gap-4">
+              <button onClick={() => { setIsDeleteModalOpen(false); setProductToDelete(null); }} className="px-6 py-2 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-colors">Cancel</button>
+              <button onClick={confirmDeleteProduct} disabled={isLoading} className="px-6 py-2 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50">
+                {isLoading ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
           </div>
         </div>
       )}
