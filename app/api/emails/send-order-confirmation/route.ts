@@ -24,6 +24,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
+    if (!order.user?.email) {
+      return NextResponse.json({ error: 'User email not found for this order' }, { status: 400 });
+    }
+
     await emailQueue.add('order_confirmation', {
       type: 'order_confirmation',
       data: { to: order.user.email, order },

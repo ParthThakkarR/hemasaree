@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
         where: { id: result.orderId },
         include: { user: true, orderItems: true },
       });
-      if (orderWithUser) {
+      if (orderWithUser && orderWithUser.user?.email) {
         await emailQueue.add('order_confirmation', {
           type: 'order_confirmation',
           data: { to: orderWithUser.user.email, order: orderWithUser },

@@ -91,7 +91,7 @@ export async function PUT(req: Request) {
            where: { id: orderId },
            include: { user: true },
          });
-         if (order) {
+         if (order && order.user?.email) {
            if (status === 'SHIPPED') {
              await emailQueue.add('order_shipped', {
                type: 'order_shipped',

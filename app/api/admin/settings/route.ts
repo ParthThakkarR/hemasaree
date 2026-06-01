@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { SettingsService } from '@/lib/services/settingsService';
 import { getUserFromToken } from '@/app/lib/getUserFromToken';
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   try {
     const user = await getUserFromToken(req);
