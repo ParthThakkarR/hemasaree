@@ -115,8 +115,6 @@ export async function PUT(req: Request) {
      }
 
      return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
-
-    return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
   } catch (error) {
     console.error('[ADMIN_ORDERS_PUT_ERROR]', error);
     const { message, statusCode } = handleApiError(error);

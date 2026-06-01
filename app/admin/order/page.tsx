@@ -24,7 +24,7 @@ interface OrderItem {
 
 interface Order {
   id: string;
-  user: { firstName: string | null, email: string };
+  user: { firstName: string | null, email: string } | null;
   totalAmount: number;
   shippingAddress: string | null;
   status: OrderStatus;
@@ -182,7 +182,7 @@ export default function ManageOrdersPage() {
                                                     </div>
                                                 </td>
                                                 <td className="p-4 font-mono text-xs text-gray-500">{order.id}</td>
-                                                <td className="p-4 font-medium text-[#1A0A12]">{order.user.firstName || order.user.email}</td>
+                                                <td className="p-4 font-medium text-[#1A0A12]">{order.user?.firstName || order.user?.email || 'Deleted User'}</td>
                                                 <td className="p-4 text-gray-600">{new Date(order.createdAt).toLocaleDateString()}</td>
                                                 <td className="p-4 font-semibold text-[#6B0F1A]">₹{order.totalAmount.toFixed(2)}</td>
                                                  <td className="p-4 text-center">

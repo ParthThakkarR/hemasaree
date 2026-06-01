@@ -37,7 +37,7 @@ interface Order {
   createdAt: string;
   orderItems: OrderItem[];
   shippingAddress: string | null;
-  user: UserInfo;
+  user: UserInfo | null;
 }
 
 export default function InvoicePage() {
@@ -191,10 +191,10 @@ export default function InvoicePage() {
                                     <User size={14} className="text-brand-800" /> Billed To
                                 </h3>
                                 <div className="space-y-1 text-ink">
-                                    <p className="font-bold text-lg">{order.user.firstName} {order.user.lastName || ''}</p>
+                                    <p className="font-bold text-lg">{order.user?.firstName || 'Customer'} {order.user?.lastName || ''}</p>
                                     <div className="flex items-start gap-2 pt-2 text-ink-muted text-sm">
                                         <Mail size={14} className="mt-1 flex-shrink-0" />
-                                        <p>{order.user.email}</p>
+                                        <p>{order.user?.email || 'N/A'}</p>
                                     </div>
                                 </div>
                             </div>
