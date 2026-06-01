@@ -18,7 +18,8 @@ import NextTopLoader from 'nextjs-toploader';
 import { SiteSettingsProvider } from '@contexts/site-settings-context';
 import { getSiteSettings } from '@/sanity/lib/queries';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXTAUTH_URL || 'https://hemasaree.vercel.app';
+const rawSiteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXTAUTH_URL || 'https://hemasaree.vercel.app';
+const SITE_URL = rawSiteUrl.startsWith('http') ? rawSiteUrl : `https://${rawSiteUrl}`;
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
