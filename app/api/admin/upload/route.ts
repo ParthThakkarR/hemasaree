@@ -9,6 +9,18 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 30;
 export const fetchCache = 'force-no-store';
 
+function noCacheResponse(data: any, init?: ResponseInit) {
+  return NextResponse.json(data, {
+    ...init,
+    headers: {
+      ...init?.headers,
+      'Cache-Control': 'no-cache, no-store, must-revalidate, private',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+    },
+  });
+}
+
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
@@ -25,25 +37,25 @@ async function processAndStore(buffer: Buffer, fileName: string): Promise<string
 export async function POST(req: NextRequest) {
   const adminId = await verifyAdminToken(req);
   if (!adminId) {
-    return NextResponse.json({ error: 'Unauthorized: Admin access required' }, { status: 401 });
+    return noCacheResponse({ error: 'Unauthorized: Admin access required' }, { status: 401 });
   }
 
   try {
     const formData = await req.formData();
     const files = formData.getAll('files') as File[];
     if (!files || files.length === 0) {
-      return NextResponse.json({ error: 'No files provided.' }, { status: 400 });
+      return noCacheResponse({ error: 'No files provided.' }, { status: 400 });
     }
 
     for (const file of files) {
       if (!ALLOWED_TYPES.includes(file.type)) {
-        return NextResponse.json(
+        return noCacheResponse(
           { error: `Invalid file type for "${file.name}". Allowed: JPEG, PNG, WebP.` },
           { status: 400 }
         );
       }
       if (file.size > MAX_FILE_SIZE) {
-        return NextResponse.json(
+        return noCacheResponse(
           { error: `"${file.name}" is too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Max 5MB per file.` },
           { status: 400 }
         );
@@ -69,9 +81,9 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ message: 'Files uploaded successfully', urls });
+    return noCacheResponse({ message: 'Files uploaded successfully', urls });
   } catch (error) {
     console.error('[FILE_UPLOAD_ERROR]', error);
-    return NextResponse.json({ error: 'File upload failed. Please try again.' }, { status: 500 });
+    return noCacheResponse({ error: 'File upload failed. Please try again.' }, { status: 500 });
   }
 }

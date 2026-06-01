@@ -67,8 +67,8 @@ export default function ManageProductsPage() {
   const fetchData = async () => {
     try {
       const [pRes, cRes] = await Promise.all([
-        fetch(`/api/admin/products?isDeleted=${viewMode === 'deleted'}`),
-        fetch('/api/admin/categories')
+        fetch(`/api/admin/products?isDeleted=${viewMode === 'deleted'}`, { credentials: 'include', cache: 'no-store' }),
+        fetch('/api/admin/categories', { credentials: 'include', cache: 'no-store' })
       ]);
       const pData = await pRes.json();
       const cData = await cRes.json();
@@ -85,7 +85,7 @@ export default function ManageProductsPage() {
       formData.append('files', files[i]);
     }
     formData.append('folder', 'products');
-    const res = await fetch('/api/admin/upload', { method: 'POST', body: formData });
+    const res = await fetch('/api/admin/upload', { method: 'POST', body: formData, credentials: 'include', cache: 'no-store' });
     if (!res.ok) {
       const errData = await res.json().catch(() => ({ error: 'Upload failed' }));
       throw new Error(errData.error || 'Upload failed');
@@ -116,7 +116,7 @@ export default function ManageProductsPage() {
       };
 
       const res = await fetch('/api/admin/products', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), credentials: 'include', cache: 'no-store',
       });
 
       if (!res.ok) throw new Error('Failed to add product');
@@ -163,7 +163,7 @@ export default function ManageProductsPage() {
       };
 
       const res = await fetch('/api/admin/products', {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), credentials: 'include', cache: 'no-store',
       });
       if (!res.ok) throw new Error('Failed to update product');
       toast.success('Product updated');
@@ -177,7 +177,7 @@ export default function ManageProductsPage() {
     if (!productToDelete) return;
     try {
       setIsLoading(true);
-      const res = await fetch(`/api/admin/products?id=${productToDelete.id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/admin/products?id=${productToDelete.id}`, { method: 'DELETE', credentials: 'include', cache: 'no-store' });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         toast.error(data.error || data.message || 'Failed to delete product');
@@ -200,7 +200,9 @@ export default function ManageProductsPage() {
       const res = await fetch(`/api/admin/products`, { 
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id })
+        body: JSON.stringify({ id }),
+        credentials: 'include',
+        cache: 'no-store'
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to restore product');
