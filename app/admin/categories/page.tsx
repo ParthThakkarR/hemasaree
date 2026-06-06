@@ -61,17 +61,41 @@ export default function ManageCategoriesPage() {
         formData.append('files', file);
         formData.append('folder', 'categories');
 
-        const res = await fetch('/api/admin/upload', { method: 'POST', body: formData });
-        if (!res.ok) {
-          const errData = await res.json().catch(() => ({ error: 'Image upload failed' }));
-          throw new Error(errData.error || 'Image upload failed');
-        }
+        let lastError = '';
+        for (let attempt = 0; attempt < 2; attempt++) {
+            try {
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 60000);
 
-        const data = await res.json();
-        if (!data.urls || !Array.isArray(data.urls) || data.urls.length === 0) {
-            throw new Error('No image URL returned from upload');
+                const res = await fetch('/api/admin/upload', {
+                    method: 'POST',
+                    body: formData,
+                    signal: controller.signal,
+                });
+                clearTimeout(timeout);
+
+                if (!res.ok) {
+                    const errData = await res.json().catch(() => ({ error: 'Image upload failed' }));
+                    lastError = errData.error || 'Image upload failed';
+                    if (res.status === 413) throw new Error(lastError);
+                    continue;
+                }
+
+                const data = await res.json();
+                if (!data.urls || !Array.isArray(data.urls) || data.urls.length === 0) {
+                    throw new Error('No image URL returned from upload');
+                }
+                return data.urls[0];
+            } catch (err: any) {
+                if (err.name === 'AbortError') {
+                    lastError = 'Upload timed out. Please check your connection and try a smaller image.';
+                } else if (err.message) {
+                    lastError = err.message;
+                }
+                if (attempt === 0) continue;
+            }
         }
-        return data.urls[0];
+        throw new Error(lastError || 'Image upload failed after retrying. Please try again.');
     };
 
     const handleAddCategory = async (e: FormEvent) => {

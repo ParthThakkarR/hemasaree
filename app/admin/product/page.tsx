@@ -85,13 +85,53 @@ export default function ManageProductsPage() {
       formData.append('files', files[i]);
     }
     formData.append('folder', 'products');
+<<<<<<< HEAD
     const res = await fetch('/api/admin/upload', { method: 'POST', body: formData, credentials: 'include', cache: 'no-store' });
     if (!res.ok) {
       const errData = await res.json().catch(() => ({ error: 'Upload failed' }));
       throw new Error(errData.error || 'Upload failed');
+=======
+
+    // Retry once on failure (helps with flaky mobile connections)
+    let lastError = '';
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 60000); // 60s timeout
+
+        const res = await fetch('/api/admin/upload', {
+          method: 'POST',
+          body: formData,
+          signal: controller.signal,
+        });
+        clearTimeout(timeout);
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({ error: 'Upload failed' }));
+          lastError = errData.error || 'Upload failed';
+          if (res.status === 413) {
+            // Don't retry on "too large" — it won't help
+            throw new Error(lastError);
+          }
+          // Retry on other errors
+          continue;
+        }
+        const data = await res.json();
+        if (data.warnings) {
+          toast.error(data.warnings);
+        }
+        return data.urls;
+      } catch (err: any) {
+        if (err.name === 'AbortError') {
+          lastError = 'Upload timed out. Please check your internet connection and try with fewer/smaller images.';
+        } else if (err.message) {
+          lastError = err.message;
+        }
+        if (attempt === 0) continue; // retry
+      }
+>>>>>>> 7bacb9b ( implement admin dashboard components for category management, product listing, and file upload API route)
     }
-    const data = await res.json();
-    return data.urls;
+    throw new Error(lastError || 'Image upload failed after multiple attempts. Please try again.');
   };
 
   const handleAddProduct = async (e: FormEvent) => {
