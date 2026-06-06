@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 export const fetchCache = 'force-no-store';
 
-<<<<<<< HEAD
+/** Apply no-cache headers to prevent browser/CDN from caching responses. */
 function noCacheResponse(data: any, init?: ResponseInit) {
   return NextResponse.json(data, {
     ...init,
@@ -22,9 +22,6 @@ function noCacheResponse(data: any, init?: ResponseInit) {
   });
 }
 
-const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
-=======
 // Allowed MIME types — includes HEIC/HEIF (iPhone default format)
 const ALLOWED_MIME_TYPES = [
   'image/jpeg',
@@ -65,7 +62,6 @@ function isAllowedImage(file: File): boolean {
 
   return false;
 }
->>>>>>> 7bacb9b ( implement admin dashboard components for category management, product listing, and file upload API route)
 
 async function processAndStore(buffer: Buffer, fileName: string): Promise<string> {
   // sharp() can handle JPEG, PNG, WebP, HEIF/HEIC, TIFF, AVIF, GIF
@@ -91,7 +87,7 @@ export async function POST(req: NextRequest) {
       formData = await req.formData();
     } catch (parseError) {
       console.error('[UPLOAD] FormData parsing failed:', parseError);
-      return NextResponse.json(
+      return noCacheResponse(
         { error: 'Upload too large or connection interrupted. Try smaller images or fewer files at once.' },
         { status: 413 }
       );
@@ -104,38 +100,23 @@ export async function POST(req: NextRequest) {
 
     // Validate all files upfront
     for (const file of files) {
-<<<<<<< HEAD
-      if (!ALLOWED_TYPES.includes(file.type)) {
-        return noCacheResponse(
-          { error: `Invalid file type for "${file.name}". Allowed: JPEG, PNG, WebP.` },
-=======
       if (!isAllowedImage(file)) {
         const ext = file.name?.split('.').pop()?.toLowerCase() || 'unknown';
-        return NextResponse.json(
-          {
-            error: `"${file.name}" has an unsupported format (${file.type || ext}). Allowed: JPEG, PNG, WebP, HEIC.`,
-          },
->>>>>>> 7bacb9b ( implement admin dashboard components for category management, product listing, and file upload API route)
+        return noCacheResponse(
+          { error: `"${file.name}" has an unsupported format (${file.type || ext}). Allowed: JPEG, PNG, WebP, HEIC.` },
           { status: 400 }
         );
       }
       if (file.size > MAX_FILE_SIZE) {
-<<<<<<< HEAD
         return noCacheResponse(
-          { error: `"${file.name}" is too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Max 5MB per file.` },
-=======
-        return NextResponse.json(
-          {
-            error: `"${file.name}" is too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum is 10MB per image.`,
-          },
+          { error: `"${file.name}" is too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum is 10MB per image.` },
           { status: 400 }
         );
       }
       // Extra guard: some broken uploads report size 0
       if (file.size === 0) {
-        return NextResponse.json(
+        return noCacheResponse(
           { error: `"${file.name}" appears to be empty. Please try selecting the image again.` },
->>>>>>> 7bacb9b ( implement admin dashboard components for category management, product listing, and file upload API route)
           { status: 400 }
         );
       }
@@ -167,14 +148,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
-<<<<<<< HEAD
-    return noCacheResponse({ message: 'Files uploaded successfully', urls });
-  } catch (error) {
-    console.error('[FILE_UPLOAD_ERROR]', error);
-    return noCacheResponse({ error: 'File upload failed. Please try again.' }, { status: 500 });
-=======
     if (urls.length === 0) {
-      return NextResponse.json(
+      return noCacheResponse(
         { error: 'All files failed to upload. Please try again with different images.' },
         { status: 500 }
       );
@@ -189,13 +164,12 @@ export async function POST(req: NextRequest) {
       response.warnings = `Some files failed: ${errors.join(', ')}`;
     }
 
-    return NextResponse.json(response);
+    return noCacheResponse(response);
   } catch (error) {
     console.error('[FILE_UPLOAD_ERROR]', error);
-    return NextResponse.json(
+    return noCacheResponse(
       { error: 'File upload failed. Please check your connection and try again.' },
       { status: 500 }
     );
->>>>>>> 7bacb9b ( implement admin dashboard components for category management, product listing, and file upload API route)
   }
 }

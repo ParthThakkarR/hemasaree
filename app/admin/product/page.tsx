@@ -85,12 +85,6 @@ export default function ManageProductsPage() {
       formData.append('files', files[i]);
     }
     formData.append('folder', 'products');
-<<<<<<< HEAD
-    const res = await fetch('/api/admin/upload', { method: 'POST', body: formData, credentials: 'include', cache: 'no-store' });
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({ error: 'Upload failed' }));
-      throw new Error(errData.error || 'Upload failed');
-=======
 
     // Retry once on failure (helps with flaky mobile connections)
     let lastError = '';
@@ -102,6 +96,8 @@ export default function ManageProductsPage() {
         const res = await fetch('/api/admin/upload', {
           method: 'POST',
           body: formData,
+          credentials: 'include',
+          cache: 'no-store',
           signal: controller.signal,
         });
         clearTimeout(timeout);
@@ -129,7 +125,6 @@ export default function ManageProductsPage() {
         }
         if (attempt === 0) continue; // retry
       }
->>>>>>> 7bacb9b ( implement admin dashboard components for category management, product listing, and file upload API route)
     }
     throw new Error(lastError || 'Image upload failed after multiple attempts. Please try again.');
   };
