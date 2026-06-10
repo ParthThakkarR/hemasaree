@@ -10,10 +10,10 @@ export const fetchCache = "force-no-store";
 /** Bust every cached product-list entry so the public API serves fresh data. */
 async function invalidateProductCache() {
   try {
-    await cache.clearPattern('products:*');
-    console.log('[ADMIN] Product cache invalidated');
+    await cache.clearPattern('products:list:*');
+    console.log('[ADMIN] Product list cache invalidated');
   } catch (err) {
-    console.error('[ADMIN] Failed to invalidate product cache:', err);
+    console.error('[ADMIN] Failed to invalidate product list cache:', err);
   }
 }
 
@@ -30,7 +30,7 @@ function noCacheResponse(data: any, init?: ResponseInit) {
   });
 }
 
-// GET all products (Public)
+// GET all products (Admin)
 export async function GET(req: NextRequest) {
   try {
     const isDeletedParam = req.nextUrl.searchParams.get('isDeleted');
@@ -48,7 +48,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST a new product
+// POST a new product (Write-Through: DB + cache updated together)
 export async function POST(req: NextRequest) {
   const adminId = await verifyAdminToken(req);
   if (!adminId) return noCacheResponse({ error: 'Unauthorized' }, { status: 401 });
@@ -62,33 +62,41 @@ export async function POST(req: NextRequest) {
 
     const { name, description, color, fabric, occasion, price, mrp, stock, categoryId, images } = validation.data;
 
-    const newProduct = await prisma.product.create({
-      data: {
-        name,
-        description: description || null,
-        color,
-        fabric: fabric || null,
-        occasion,
-        price,
-        mrp: mrp || null,
-        stock,
-        categoryId,
-        images,
-        userId: adminId,
+    // Write-Through: create in DB, then update product detail cache
+    const newProduct = await cache.writeThrough(
+      `products:detail:`,
+      async () => {
+        return prisma.product.create({
+          data: {
+            name,
+            description: description || null,
+            color,
+            fabric: fabric || null,
+            occasion,
+            price,
+            mrp: mrp || null,
+            stock,
+            categoryId,
+            images,
+            userId: adminId,
+          },
+          include: { category: { select: { id: true, name: true } } },
+        });
       },
-    });
+      600
+    );
 
-    // ✅ Invalidate cache so public API serves fresh data
+    // Invalidate all product list caches (list queries depend on filters/sorting)
     await invalidateProductCache();
 
-    return noCacheResponse({ message: 'Product added successfully', newProduct });
+    return noCacheResponse({ message: 'Product added successfully', newProduct }, { status: 201 });
   } catch (err) {
-    console.error('[PRODUCTS_POST_ERROR', err);
+    console.error('[PRODUCTS_POST_ERROR]', err);
     return noCacheResponse({ error: 'Failed to add product' }, { status: 500 });
   }
 }
 
-// PUT update a product
+// PUT update a product (Write-Through: DB + cache updated together)
 export async function PUT(req: NextRequest) {
   const adminId = await verifyAdminToken(req);
   if (!adminId) return noCacheResponse({ error: 'Unauthorized' }, { status: 401 });
@@ -102,19 +110,26 @@ export async function PUT(req: NextRequest) {
 
     const { id, ...updateData } = validation.data;
 
-    // ✅ Smart append handling
     const existing = await prisma.product.findUnique({ where: { id } });
     if (!existing) return noCacheResponse({ error: 'Product not found' }, { status: 404 });
 
-    const updated = await prisma.product.update({
-      where: { id },
-      data: {
-        ...updateData,
-        images: updateData.images || existing.images,
+    // Write-Through: update in DB, then update product detail cache
+    const updated = await cache.writeThrough(
+      `products:detail:${id}`,
+      async () => {
+        return prisma.product.update({
+          where: { id },
+          data: {
+            ...updateData,
+            images: updateData.images || existing.images,
+          },
+          include: { category: { select: { id: true, name: true } } },
+        });
       },
-    });
+      600
+    );
 
-    // ✅ Invalidate cache so public API serves fresh data
+    // Invalidate all product list caches
     await invalidateProductCache();
 
     return noCacheResponse(updated);
@@ -124,7 +139,7 @@ export async function PUT(req: NextRequest) {
   }
 }
 
-// DELETE a product
+// DELETE a product (soft delete - invalidate caches)
 export async function DELETE(req: NextRequest) {
   const adminId = await verifyAdminToken(req);
   if (!adminId) return noCacheResponse({ error: 'Unauthorized' }, { status: 401 });
@@ -139,23 +154,23 @@ export async function DELETE(req: NextRequest) {
 
     const { id } = validation.data;
 
-    // Soft delete implementation
-    await prisma.product.update({ 
+    await prisma.product.update({
       where: { id },
       data: { isDeleted: true, deletedAt: new Date() }
     });
 
-    // ✅ Invalidate cache so public API serves fresh data
+    // Invalidate both detail and list caches
+    await cache.delete(`products:detail:${id}`);
     await invalidateProductCache();
 
-    return noCacheResponse({ message: 'Product moved to recycle bin successfully' });
+    return new NextResponse(null, { status: 204 });
   } catch (error) {
     console.error('[PRODUCTS_DELETE_ERROR]', error);
     return noCacheResponse({ error: 'Server error' }, { status: 500 });
   }
 }
 
-// PATCH restore a product
+// PATCH restore a product (Write-Through: DB + cache updated together)
 export async function PATCH(req: NextRequest) {
   const adminId = await verifyAdminToken(req);
   if (!adminId) return noCacheResponse({ error: 'Unauthorized' }, { status: 401 });
@@ -165,10 +180,18 @@ export async function PATCH(req: NextRequest) {
     const { id } = body;
     if (!id) return noCacheResponse({ error: 'ID is required' }, { status: 400 });
 
-    const updated = await prisma.product.update({
-      where: { id },
-      data: { isDeleted: false, deletedAt: null }
-    });
+    // Write-Through: restore in DB, then update product detail cache
+    const updated = await cache.writeThrough(
+      `products:detail:${id}`,
+      async () => {
+        return prisma.product.update({
+          where: { id },
+          data: { isDeleted: false, deletedAt: null },
+          include: { category: { select: { id: true, name: true } } },
+        });
+      },
+      600
+    );
 
     await invalidateProductCache();
 
@@ -178,5 +201,3 @@ export async function PATCH(req: NextRequest) {
     return noCacheResponse({ error: 'Failed to restore product' }, { status: 500 });
   }
 }
-
-

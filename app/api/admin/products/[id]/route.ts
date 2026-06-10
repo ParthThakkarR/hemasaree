@@ -7,13 +7,12 @@ import { cache } from '@/lib/cache';
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 
-/** Bust every cached product-list entry so the public API serves fresh data. */
 async function invalidateProductCache() {
   try {
-    await cache.clearPattern('products:*');
-    console.log('[ADMIN] Product cache invalidated');
+    await cache.clearPattern('products:list:*');
+    console.log('[ADMIN] Product list cache invalidated');
   } catch (err) {
-    console.error('[ADMIN] Failed to invalidate product cache:', err);
+    console.error('[ADMIN] Failed to invalidate product list cache:', err);
   }
 }
 
@@ -29,13 +28,28 @@ function noCacheResponse(data: any, init?: ResponseInit) {
   });
 }
 
-export async function GET() {
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
-    const products = await prisma.product.findMany({
-      include: { category: true },
-      orderBy: { createdAt: 'desc' },
-    });
-    return noCacheResponse(products);
+    const { id } = params;
+    const product = await cache.getOrSet(
+      `products:detail:${id}`,
+      async () => {
+        return prisma.product.findUnique({
+          where: { id },
+          include: { category: true },
+        });
+      },
+      600
+    );
+
+    if (!product) {
+      return noCacheResponse({ error: 'Product not found' }, { status: 404 });
+    }
+
+    return noCacheResponse(product);
   } catch (error) {
     console.error('[PRODUCTS_GET_ERROR]', error);
     return noCacheResponse({ error: 'Server error' }, { status: 500 });
@@ -69,11 +83,13 @@ export async function POST(req: NextRequest) {
         images,
         userId: adminId,
       },
+      include: { category: { select: { id: true, name: true } } },
     });
 
+    await cache.set(`products:detail:${newProduct.id}`, newProduct, 600);
     await invalidateProductCache();
 
-    return noCacheResponse({ message: 'Product added successfully', newProduct });
+    return noCacheResponse({ message: 'Product added successfully', newProduct }, { status: 201 });
   } catch (err) {
     console.error('[PRODUCTS_POST_ERROR]', err);
     return noCacheResponse({ error: 'Failed to add product' }, { status: 500 });
@@ -96,13 +112,20 @@ export async function PUT(req: NextRequest) {
     const existing = await prisma.product.findUnique({ where: { id } });
     if (!existing) return noCacheResponse({ error: 'Product not found' }, { status: 404 });
 
-    const updated = await prisma.product.update({
-      where: { id },
-      data: {
-        ...updateData,
-        images: updateData.images || existing.images,
+    const updated = await cache.writeThrough(
+      `products:detail:${id}`,
+      async () => {
+        return prisma.product.update({
+          where: { id },
+          data: {
+            ...updateData,
+            images: updateData.images || existing.images,
+          },
+          include: { category: { select: { id: true, name: true } } },
+        });
       },
-    });
+      600
+    );
 
     await invalidateProductCache();
 
@@ -137,9 +160,10 @@ export async function DELETE(req: NextRequest) {
     await prisma.cartItem.deleteMany({ where: { productId: id } });
     await prisma.product.delete({ where: { id } });
 
+    await cache.delete(`products:detail:${id}`);
     await invalidateProductCache();
 
-    return noCacheResponse({ message: 'Product deleted successfully' });
+    return new NextResponse(null, { status: 204 });
   } catch (error) {
     console.error('[PRODUCTS_DELETE_ERROR]', error);
     return noCacheResponse({ error: 'Server error' }, { status: 500 });

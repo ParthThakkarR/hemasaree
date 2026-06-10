@@ -92,7 +92,7 @@ export async function DELETE() {
         where: { userId: user.id }
       });
   
-      return NextResponse.json({ message: "Wishlist cleared" });
+      return new NextResponse(null, { status: 204 });
     } catch (error) {
       console.error("[WISHLIST_DELETE_ERROR]", error);
       return NextResponse.json({ error: "Server error" }, { status: 500 });

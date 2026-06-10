@@ -221,7 +221,7 @@ export async function DELETE(req: NextRequest) {
     await prisma.cartItem.delete({ where: { id: cartItemId } });
 
     const updatedCart = await recalcCartTotal(item.cartId);
-    return NextResponse.json({ message: "Item removed", cart: updatedCart });
+    return NextResponse.json({ message: "Item removed", cart: updatedCart }, { status: 200 });
   } catch (err) {
     console.error("[CART_DELETE_ERROR]", err);
     return NextResponse.json({ error: "Failed to remove item" }, { status: 500 });

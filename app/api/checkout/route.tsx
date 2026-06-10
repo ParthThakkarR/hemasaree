@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
       message: 'Order placed successfully!',
       orderId: result.orderId,
       totalAmount: result.totalAmount,
-    });
+    }, { status: 201 });
   } catch (error: any) {
     console.error('[CHECKOUT_ERROR]', error);
     const { message, statusCode } = handleApiError(error);

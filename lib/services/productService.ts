@@ -1,5 +1,9 @@
 import { prisma } from '../../app/lib/prisma';
 import { NotFoundError, ValidationError, ConflictError } from '../errors';
+import { cache } from '../cache';
+
+const PRODUCT_LIST_TTL = 900; // 15 min for product lists
+const PRODUCT_DETAIL_TTL = 600; // 10 min for single product
 
 export interface ProductFilters {
   categoryId?: string;
@@ -64,7 +68,8 @@ export class ProductService {
   }
 
   /**
-   * Get paginated products
+   * Get paginated products (Read-Through cached).
+   * Cache key includes all filter/sort params for precise invalidation.
    */
   static async getProducts(
     filters: ProductFilters,
@@ -75,111 +80,126 @@ export class ProductService {
     pages: number;
   }> {
     const { page = 1, limit = 12, sortBy = 'createdAt', sortOrder = 'desc' } = options;
-    const skip = (page - 1) * limit;
 
-    const where = ProductService.buildWhereClause(filters);
-    const orderBy = { [sortBy]: sortOrder };
+    const cacheKey = `products:list:${JSON.stringify({ filters, page, limit, sortBy, sortOrder })}`;
 
-    const [total, products] = await prisma.$transaction([
-      prisma.product.count({ where }),
-      prisma.product.findMany({
-        where,
-        orderBy,
-        skip,
-        take: limit,
-        include: {
-          category: { select: { id: true, name: true } },
-          _count: {
-            select: { reviews: { where: { isApproved: true } } },
-          },
-        },
-      }),
-    ]);
+    return cache.getOrSet(
+      cacheKey,
+      async () => {
+        const skip = (page - 1) * limit;
+        const where = ProductService.buildWhereClause(filters);
+        const orderBy = { [sortBy]: sortOrder };
 
-    // Get review stats
-    const productIds = products.map(p => p.id);
-    const reviewStats = await prisma.review.groupBy({
-      by: ['productId'],
-      where: { productId: { in: productIds }, isApproved: true },
-      _avg: { rating: true },
-      _count: { rating: true },
-    });
+        const [total, products] = await prisma.$transaction([
+          prisma.product.count({ where }),
+          prisma.product.findMany({
+            where,
+            orderBy,
+            skip,
+            take: limit,
+            include: {
+              category: { select: { id: true, name: true } },
+              _count: {
+                select: { reviews: { where: { isApproved: true } } },
+              },
+            },
+          }),
+        ]);
 
-    const enrichedProducts = products.map(p => {
-      const stats = reviewStats.find(r => r.productId === p.id);
-      return {
-        ...p,
-        reviewStats: stats ? {
-          avgRating: Math.round((stats._avg.rating || 0) * 10) / 10,
-          totalReviews: stats._count.rating,
-        } : undefined,
-      };
-    });
+        const productIds = products.map(p => p.id);
+        const reviewStats = await prisma.review.groupBy({
+          by: ['productId'],
+          where: { productId: { in: productIds }, isApproved: true },
+          _avg: { rating: true },
+          _count: { rating: true },
+        });
 
-    return {
-      products: enrichedProducts,
-      total,
-      pages: Math.ceil(total / limit),
-    };
+        const enrichedProducts = products.map(p => {
+          const stats = reviewStats.find(r => r.productId === p.id);
+          return {
+            ...p,
+            reviewStats: stats ? {
+              avgRating: Math.round((stats._avg.rating || 0) * 10) / 10,
+              totalReviews: stats._count.rating,
+            } : undefined,
+          };
+        });
+
+        return {
+          products: enrichedProducts,
+          total,
+          pages: Math.ceil(total / limit),
+        };
+      },
+      PRODUCT_LIST_TTL
+    );
   }
 
   /**
-   * Get product by ID with full details
+   * Get product by ID with full details (Read-Through cached).
    */
   static async getProductById(id: string): Promise<any> {
-    const product = await prisma.product.findUnique({
-      where: { id },
-      include: {
-        category: { select: { id: true, name: true } },
-        reviews: {
-          where: { isApproved: true },
+    const cacheKey = `products:detail:${id}`;
+
+    return cache.getOrSet(
+      cacheKey,
+      async () => {
+        const product = await prisma.product.findUnique({
+          where: { id },
           include: {
-            user: { select: { id: true, firstName: true, lastName: true, image: true } },
+            category: { select: { id: true, name: true } },
+            reviews: {
+              where: { isApproved: true },
+              include: {
+                user: { select: { id: true, firstName: true, lastName: true, image: true } },
+              },
+              orderBy: { createdAt: 'desc' },
+              take: 20,
+            },
+            _count: {
+              select: {
+                reviews: { where: { isApproved: true } },
+                orderItems: true,
+                wishlistItems: true,
+              },
+            },
           },
-          orderBy: { createdAt: 'desc' },
-          take: 20,
-        },
-        _count: {
-          select: {
-            reviews: { where: { isApproved: true } },
-            orderItems: true,
-            wishlistItems: true,
+        });
+
+        if (!product || product.isDeleted) {
+          throw new NotFoundError('Product not found');
+        }
+
+        const ratingStats = await prisma.review.aggregate({
+          where: { productId: id, isApproved: true },
+          _avg: { rating: true },
+        });
+
+        const ratingDistribution = await prisma.review.groupBy({
+          by: ['rating'],
+          where: { productId: id, isApproved: true },
+          _count: { rating: true },
+        });
+
+        const distributionMap = new Map(ratingDistribution.map(d => [d.rating, d._count.rating]));
+        const distribution = [5, 4, 3, 2, 1].map(star => ({
+          stars: star,
+          count: distributionMap.get(star) || 0,
+        }));
+
+        return {
+          ...product,
+          reviewStats: {
+            avgRating: ratingStats._avg.rating ? Math.round(ratingStats._avg.rating * 10) / 10 : 0,
+            totalReviews: product._count.reviews,
+            totalOrders: product._count.orderItems,
+            totalWishlists: product._count.wishlistItems,
+            distribution,
           },
-        },
+        };
       },
-    });
-
-    if (!product || product.isDeleted) {
-      throw new NotFoundError('Product not found');
-    }
-
-    const ratingStats = await prisma.review.aggregate({
-      where: { productId: id, isApproved: true },
-      _avg: { rating: true },
-    });
-
-    const ratingDistribution = await prisma.review.groupBy({
-      by: ['rating'],
-      where: { productId: id, isApproved: true },
-      _count: { rating: true },
-    });
-
-    const distributionMap = new Map(ratingDistribution.map(d => [d.rating, d._count.rating]));
-    const distribution = [5, 4, 3, 2, 1].map(star => ({
-      stars: star,
-      count: distributionMap.get(star) || 0,
-    }));
-
-    return {
-      ...product,
-      reviewStats: {
-        avgRating: ratingStats._avg.rating ? Math.round(ratingStats._avg.rating * 10) / 10 : 0,
-        totalReviews: product._count.reviews,
-        totalOrders: product._count.orderItems,
-        totalWishlists: product._count.wishlistItems,
-        distribution,
-      },
-    };
+      PRODUCT_DETAIL_TTL
+    );
   }
 
   /**

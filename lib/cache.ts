@@ -91,4 +91,53 @@ export const cache = {
       console.error(`Cache CLEAR error for pattern ${pattern}:`, error);
     }
   },
+
+  /**
+   * Read-Through pattern.
+   * Checks cache first; on miss, calls the loader, stores result, returns it.
+   * Caller never touches the DB directly.
+   */
+  async getOrSet<T>(
+    key: string,
+    loader: () => Promise<T>,
+    ttl = DEFAULT_TTL
+  ): Promise<T> {
+    try {
+      const cached = await this.get<T>(key);
+      if (cached !== null) {
+        return cached;
+      }
+    } catch (error) {
+      console.error(`Cache getOrSet GET error for key ${key}:`, error);
+    }
+
+    const data = await loader();
+
+    try {
+      await this.set(key, data, ttl);
+    } catch (error) {
+      console.error(`Cache getOrSet SET error for key ${key}:`, error);
+    }
+
+    return data;
+  },
+
+  /**
+   * Write-Through pattern.
+   * Writes to the data source first via writer(), then updates the cache.
+   * Ensures cache is always consistent with DB after a successful write.
+   */
+  async writeThrough<T>(
+    key: string,
+    writer: () => Promise<T>,
+    ttl = DEFAULT_TTL
+  ): Promise<T> {
+    const data = await writer();
+    try {
+      await this.set(key, data, ttl);
+    } catch (error) {
+      console.error(`Cache writeThrough SET error for key ${key}:`, error);
+    }
+    return data;
+  },
 };
