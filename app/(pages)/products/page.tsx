@@ -27,7 +27,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
     : 'Shop All Sarees — Silk, Bridal, Festive & More | Hema Sarees';
 
   const description = category
-    ? `Explore our curated collection of premium ${category} sarees. Authentic craftsmanship, pan-India delivery, and easy returns at Hema Sarees.`
+    ? `Explore our curated collection of premium ${category} sarees. Authentic craftsmanship and pan-India delivery at Hema Sarees.`
     : fabric
     ? `Shop beautiful ${fabric} sarees online. Premium quality, handpicked designs at Hema Sarees.`
     : occasion

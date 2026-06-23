@@ -99,14 +99,6 @@ function generateProductFaqSchema(product: {
           text: `${product.name} is dispatched within 24-48 hours of order confirmation. Delivery typically takes 3-7 business days within India. We offer secure packaging to ensure your saree arrives in perfect condition.`,
         },
       },
-      {
-        '@type': 'Question',
-        name: `Can I return ${product.name}?`,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `Yes, we offer a 7-day easy return policy. If you are not satisfied with ${product.name}, you can initiate a return within 7 days of delivery. The saree must be unused, in its original packaging, and with all tags intact.`,
-        },
-      },
     ],
   };
 }

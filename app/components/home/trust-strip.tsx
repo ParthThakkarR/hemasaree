@@ -2,14 +2,14 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Truck, ShieldCheck, RefreshCw, CreditCard, CheckCircle2, Lock } from 'lucide-react';
+import { Truck, ShieldCheck, CreditCard, CheckCircle2, Lock, ClipboardCheck } from 'lucide-react';
 
 const features = [
   { icon: ShieldCheck, title: 'Premium Quality', desc: '100% Authentic Fabric' },
   { icon: CheckCircle2, title: 'Quality Checked', desc: 'Hand-inspected before dispatch' },
   { icon: Lock, title: '100% Secure Payments', desc: 'Safe & Encrypted' },
   { icon: Truck, title: 'Secure Shipping', desc: 'Pan-India Delivery' },
-  { icon: RefreshCw, title: 'Easy Returns', desc: '7-day return policy' },
+  { icon: ClipboardCheck, title: 'All Sales Final', desc: 'Review before you buy' },
   { icon: CreditCard, title: 'Multiple Options', desc: 'UPI, Cards & COD' },
 ];
 

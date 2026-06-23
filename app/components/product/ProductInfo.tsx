@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Heart, ShoppingBag, Check, Truck, ShieldCheck, RefreshCw, Star, Lock, MessageCircle } from 'lucide-react';
+import { Heart, ShoppingBag, Check, Truck, ShieldCheck, Star, Lock, MessageCircle, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface ProductInfoProps {
@@ -153,7 +153,7 @@ export default function ProductInfo({
            { icon: ShieldCheck, label: '100% Genuine' },
            { icon: Truck, label: 'Secure Shipping' },
            { icon: Lock, label: 'Safe Checkout' },
-           { icon: RefreshCw, label: '7-Day Returns' },
+           { icon: CheckCircle2, label: 'All Sales Final' },
          ].map(badge => (
            <div key={badge.label} className="flex flex-col items-center text-center gap-1.5 py-3 bg-surface-muted rounded-xl">
              <badge.icon size={18} className="text-accent" />

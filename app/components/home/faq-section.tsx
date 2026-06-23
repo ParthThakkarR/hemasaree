@@ -18,7 +18,7 @@ const HOMEPAGE_FAQS = [
   {
     question: 'How do I choose a saree online?',
     answer:
-      'When shopping for sarees online, check the fabric composition, read the product description carefully, view all product images including close-ups, review customer ratings and reviews, and check the return policy. At Hema Sarees, we provide detailed fabric info, occasion guides, and high-quality images for every product.',
+      'When shopping for sarees online, check the fabric composition, read the product description carefully, view all product images including close-ups, and review customer ratings and reviews. At Hema Sarees, we provide detailed fabric info, occasion guides, and high-quality images for every product.',
   },
   {
     question: 'What is the difference between silk and cotton sarees?',
@@ -39,11 +39,6 @@ const HOMEPAGE_FAQS = [
     question: 'Do you deliver sarees across India?',
     answer:
       'Yes, Hema Sarees offers pan-India delivery. We ship all orders within 24-48 hours with secure packaging. Standard delivery takes 3-7 business days. We accept UPI, credit/debit cards, and cash on delivery (COD) for your convenience.',
-  },
-  {
-    question: 'What is the return policy for sarees?',
-    answer:
-      'We offer a 7-day easy return policy on all sarees. If you are not satisfied with your purchase, you can initiate a return within 7 days of delivery. The saree must be unused, in its original packaging, and with all tags intact. Refunds are processed within 5-7 business days.',
   },
 ];
 

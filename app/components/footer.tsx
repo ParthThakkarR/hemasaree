@@ -146,7 +146,7 @@ export default function Footer() {
               <li><Link href="/about" className="hover:text-white transition-colors text-sm">About Us</Link></li>
               <li><Link href="/contact" className="hover:text-white transition-colors text-sm">Contact Us</Link></li>
               <li><Link href="/orders" className="hover:text-white transition-colors text-sm">Track Order</Link></li>
-              <li><Link href="/terms" className="hover:text-white transition-colors text-sm">Shipping & Returns</Link></li>
+              <li><Link href="/terms" className="hover:text-white transition-colors text-sm">Shipping Policy</Link></li>
               <li className="pt-2">
                  <Link href="/contact" aria-label="Contact Us" className="inline-flex items-center gap-2 text-sm hover:text-white transition-colors">
                    <Mail size={16} /> support@hemasaree.com
