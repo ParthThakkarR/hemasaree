@@ -36,18 +36,25 @@ export async function generateMetadata(): Promise<Metadata> {
       'kanjivaram sarees', 'wedding sarees', 'bridal sarees', 'designer sarees',
       'cotton sarees', 'party wear sarees', 'traditional sarees', 'saree shop india',
       'indian sarees', 'festive sarees', 'sarees for women', 'handloom sarees',
+      'hema sarees', 'buy sarees india', 'handloom sarees online', 'premium sarees',
     ],
+    alternates: {
+      canonical: '/',
+      languages: {
+        'en-IN': '/',
+      },
+    },
     openGraph: {
       type: 'website',
       locale: 'en_IN',
       siteName: siteTitle,
-      images: ['/og-image.png'],
+      images: [{ url: '/og-image.png', width: 1200, height: 630, alt: siteTitle }],
     },
     twitter: {
       card: 'summary_large_image',
       title: siteTitle,
       description: siteDescription,
-      images: ['/og-image.png'],
+      images: [{ url: '/og-image.png', alt: siteTitle }],
     },
     robots: {
       index: true,
@@ -59,6 +66,9 @@ export async function generateMetadata(): Promise<Metadata> {
         'max-image-preview': 'large',
         'max-snippet': -1,
       },
+    },
+    verification: {
+      google: 'google36f65c0d266c18bf',
     },
   };
 }
@@ -123,24 +133,49 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   url: siteUrl,
                   logo: {
                     '@type': 'ImageObject',
-                    url: `${siteUrl}/logo.png`,
+                    url: `${siteUrl}/og-image.png`,
+                    width: 1200,
+                    height: 630,
                   },
                   description: settings?.description || 'Premium Indian saree ecommerce store offering authentic silk, bridal, designer, and handloom sarees.',
                   sameAs: [
                     'https://instagram.com/hemasaree',
-                    'https://facebook.com/hemasaree'
+                    'https://facebook.com/hemasaree',
                   ],
                   contactPoint: {
                     '@type': 'ContactPoint',
                     telephone: '+91-9876543210',
-                    contactType: 'customer service'
-                  }
+                    contactType: 'customer service',
+                    availableLanguage: ['English', 'Hindi', 'Gujarati'],
+                  },
+                  areaServed: {
+                    '@type': 'Country',
+                    name: 'India',
+                  },
+                  knowsAbout: [
+                    'Silk Sarees', 'Banarasi Sarees', 'Kanjivaram Sarees',
+                    'Bridal Sarees', 'Wedding Sarees', 'Designer Sarees',
+                    'Cotton Sarees', 'Festive Sarees', 'Handloom Sarees',
+                    'Indian Ethnic Wear', 'Traditional Sarees',
+                  ],
+                  hasOfferCatalog: {
+                    '@type': 'OfferCatalog',
+                    name: 'Hema Sarees Collection',
+                    itemListElement: [
+                      { '@type': 'OfferCatalog', name: 'Bridal Sarees', url: `${siteUrl}/products?category=Bridal` },
+                      { '@type': 'OfferCatalog', name: 'Silk Sarees', url: `${siteUrl}/products?category=Silk` },
+                      { '@type': 'OfferCatalog', name: 'Festive Sarees', url: `${siteUrl}/products?category=Festive` },
+                      { '@type': 'OfferCatalog', name: 'Cotton Sarees', url: `${siteUrl}/products?category=Cotton` },
+                      { '@type': 'OfferCatalog', name: 'Party Wear Sarees', url: `${siteUrl}/products?category=Party+Wear` },
+                    ],
+                  },
                 },
                 {
                   '@type': 'WebSite',
                   '@id': `${siteUrl}/#website`,
                   url: siteUrl,
                   name: settings?.title || 'Hema Sarees',
+                  description: settings?.description || 'Premium Indian saree ecommerce store.',
                   publisher: {
                     '@id': `${siteUrl}/#organization`,
                   },

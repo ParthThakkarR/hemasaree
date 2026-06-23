@@ -15,25 +15,31 @@ interface Category {
   products?: any[];
 }
 
+interface CategoryScrollProps {
+  initialCategories?: Category[];
+}
+
 // Fallback placeholder for categories without an admin-uploaded image
 const PLACEHOLDER_IMAGE = '/uploads/placeholder.png';
 
-export default function CategoryScroll() {
+export default function CategoryScroll({ initialCategories }: CategoryScrollProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState<Category[]>(initialCategories || []);
+  const [loading, setLoading] = useState(!initialCategories || initialCategories.length === 0);
 
   useEffect(() => {
+    // Only client-fetch if no server data was provided
+    if (initialCategories && initialCategories.length > 0) return;
+    
     fetch('/api/categories')
       .then(res => res.json())
       .then(data => {
         const cats = Array.isArray(data) ? data : data.categories || [];
-        // Only show categories that have at least 1 product (optional: remove filter if you want all)
         setCategories(cats);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [initialCategories]);
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
@@ -111,7 +117,7 @@ export default function CategoryScroll() {
                 >
                   <Image
                     src={getImageSrc(cat.image)}
-                    alt={cat.name}
+                    alt={`Shop ${cat.name} sarees online at Hema Sarees`}
                     fill
                     className="object-cover object-top transition-transform duration-700 group-hover:scale-105"
                     sizes="280px"

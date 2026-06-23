@@ -9,9 +9,13 @@ interface ProductGalleryProps {
   images: string[];
   name: string;
   getImageSrc: (img?: string) => string;
+  fabric?: string;
+  color?: string;
+  category?: string;
 }
 
-export default function ProductGallery({ images, name, getImageSrc }: ProductGalleryProps) {
+export default function ProductGallery({ images, name, getImageSrc, fabric, color, category }: ProductGalleryProps) {
+  const descriptiveAlt = `${name}${fabric ? ` — ${fabric}` : ''}${color ? ` in ${color}` : ''}${category ? ` | ${category} Saree` : ''} from Hema Sarees`;
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomPosition, setZoomPosition] = useState({ x: 50, y: 50 });
@@ -39,7 +43,7 @@ export default function ProductGallery({ images, name, getImageSrc }: ProductGal
       >
         <Image 
           src={getImageSrc(images[selectedIndex])} 
-          alt={`${name} - Main`} 
+          alt={descriptiveAlt} 
           fill 
           priority 
           className={`object-cover object-top transition-transform duration-300 ${isZoomed ? 'scale-[2.2]' : 'scale-100'}`}
@@ -68,7 +72,7 @@ export default function ProductGallery({ images, name, getImageSrc }: ProductGal
             >
               <Image 
                 src={getImageSrc(img)} 
-                alt={`${name} - ${idx + 1}`} 
+                alt={`${name} — view ${idx + 1}`} 
                 fill 
                 className="object-cover object-top" 
                 sizes="80px" 

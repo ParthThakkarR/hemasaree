@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ArrowRight, ArrowLeft, Lock, Loader2, Truck } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Lock, Loader2, Truck, ShieldCheck } from 'lucide-react';
 
 interface CartOrderSummaryProps {
   cart: { items: any[] };
@@ -118,8 +118,10 @@ export default function CartOrderSummary({
         </div>
       )}
       
-      <div className="mt-6 flex items-center justify-center gap-2 text-ink-faint text-xs font-medium">
-         <Lock size={12} /> Secure Checkout via Hema Sarees
+      <div className="mt-8 pt-6 border-t border-brand-100 flex items-center justify-between gap-2 text-ink-faint text-xs font-medium">
+         <div className="flex flex-col items-center gap-1"><Lock size={16} className="text-accent" /> Secure</div>
+         <div className="flex flex-col items-center gap-1"><Truck size={16} className="text-accent" /> Shipping</div>
+         <div className="flex flex-col items-center gap-1"><ShieldCheck size={16} className="text-accent" /> Genuine</div>
       </div>
     </div>
   );

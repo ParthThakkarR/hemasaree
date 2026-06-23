@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Heart, ShoppingBag, Check, Truck, ShieldCheck, RefreshCw, Star } from 'lucide-react';
+import { Heart, ShoppingBag, Check, Truck, ShieldCheck, RefreshCw, Star, Lock, MessageCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface ProductInfoProps {
@@ -136,11 +136,24 @@ export default function ProductInfo({
         </div>
       </div>
 
+      {/* WhatsApp Inquiry */}
+      <a
+        href={`https://wa.me/919876543210?text=${encodeURIComponent(`Hi, I'm interested in ${product.name} (₹${product.price.toLocaleString('en-IN')}). Can you help me?`)}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold text-sm bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/30 hover:bg-[#25D366]/20 transition-all active:scale-[0.98]"
+      >
+        <MessageCircle size={18} />
+        Inquire on WhatsApp
+      </a>
+
        {/* Trust Badges */}
        <div className="grid grid-cols-2 gap-3">
          {[
-           { icon: ShieldCheck, label: 'Genuine Product' },
+           { icon: ShieldCheck, label: '100% Genuine' },
            { icon: Truck, label: 'Secure Shipping' },
+           { icon: Lock, label: 'Safe Checkout' },
+           { icon: RefreshCw, label: '7-Day Returns' },
          ].map(badge => (
            <div key={badge.label} className="flex flex-col items-center text-center gap-1.5 py-3 bg-surface-muted rounded-xl">
              <badge.icon size={18} className="text-accent" />

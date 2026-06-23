@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { ChevronDown, Star, CheckCircle2, Pencil, Loader2 } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { useAuth } from '@contexts/auth-context';
 
@@ -94,25 +95,97 @@ export default function ProductAccordion({ product, reviews, reviewStats, onRevi
 
   return (
     <div className="pt-2">
+      {/* About This Saree */}
+      <AccordionItem id="about" title="About This Saree">
+        <div className="space-y-3 text-sm text-ink-muted leading-relaxed">
+          <p>
+            {product.description || `Introducing ${product.name} — a beautifully crafted ${product.fabric || 'handloom'} saree in ${product.color}, perfect for ${product.occasion.toLowerCase()} occasions.`}
+          </p>
+          <p>
+            This exquisite piece from our{' '}
+            <Link href={`/products?category=${encodeURIComponent(product.category?.name || '')}`} className="text-brand-800 font-medium hover:underline">
+              {product.category?.name || 'Premium'} Collection
+            </Link>{' '}
+            showcases the finest craftsmanship from Indian artisan traditions.
+            {product.fabric && ` The ${product.fabric} fabric ensures a luxurious drape and feel, making it an ideal choice for both special events and memorable celebrations.`}
+          </p>
+        </div>
+      </AccordionItem>
+
       {/* Product Details */}
       <AccordionItem id="details" title="Product Details">
         <div className="space-y-3 text-sm text-ink-muted">
-          <p>{product.description || 'Elegant handloom saree perfect for special occasions. Crafted by skilled artisans using traditional weaving techniques.'}</p>
           <div className="grid grid-cols-2 gap-3 pt-2">
             {[
-              { label: 'Fabric', value: product.fabric || 'Handloom' },
-              { label: 'Color', value: product.color },
-              { label: 'Occasion', value: product.occasion },
+              { label: 'Fabric', value: product.fabric || 'Handloom', link: product.fabric ? `/products?fabric=${encodeURIComponent(product.fabric)}` : undefined },
+              { label: 'Color', value: product.color, link: `/products?color=${encodeURIComponent(product.color)}` },
+              { label: 'Occasion', value: product.occasion, link: `/products?occasion=${encodeURIComponent(product.occasion)}` },
+              { label: 'Category', value: product.category?.name || 'Sarees', link: `/products?category=${encodeURIComponent(product.category?.name || '')}` },
               { label: 'Blouse Piece', value: 'Included (Unstitched)' },
               { label: 'Saree Length', value: '5.5 meters' },
               { label: 'Blouse Length', value: '0.8 meters' },
-              { label: 'Wash Care', value: 'Dry Clean Only' },
+              { label: 'Wash Care', value: 'Dry Clean Recommended' },
             ].map(item => (
               <div key={item.label} className="py-2 border-b border-surface-subtle last:border-0">
                 <p className="text-xs text-ink-faint uppercase tracking-wider mb-0.5">{item.label}</p>
-                <p className="text-sm font-medium text-ink">{item.value}</p>
+                {item.link ? (
+                  <Link href={item.link} className="text-sm font-medium text-brand-800 hover:underline">{item.value}</Link>
+                ) : (
+                  <p className="text-sm font-medium text-ink">{item.value}</p>
+                )}
               </div>
             ))}
+          </div>
+        </div>
+      </AccordionItem>
+
+      {/* Styling Suggestions */}
+      <AccordionItem id="styling" title="Styling Suggestions">
+        <div className="space-y-3 text-sm text-ink-muted leading-relaxed">
+          <p>
+            Style your {product.name} with traditional gold or kundan jewelry for a classic look.
+            {product.occasion.toLowerCase().includes('wedding') || product.occasion.toLowerCase().includes('bridal')
+              ? ' For bridal styling, pair with a heavy embroidered blouse, statement maang tikka, and layered necklaces. Add a waist belt (kamarband) for a regal touch.'
+              : product.occasion.toLowerCase().includes('festive')
+              ? ' For festivals, opt for vibrant accessories — colorful bangles, jhumkas, and a contrasting clutch. Fresh flowers in your hair add an authentic festive touch.'
+              : product.occasion.toLowerCase().includes('party') || product.occasion.toLowerCase().includes('casual')
+              ? ' For a modern look, try a designer blouse with interesting sleeves — puff, bell, or off-shoulder. Add statement earrings and minimalist accessories.'
+              : ' Experiment with different blouse styles — boat neck for elegance, halter for modern vibes, or traditional round neck for comfort.'}
+          </p>
+          <p>
+            {product.fabric?.toLowerCase().includes('silk')
+              ? 'Silk sarees look stunning with both heavy and minimal jewelry. Steam iron on low heat with a cloth barrier to maintain the fabric\'s natural sheen.'
+              : product.fabric?.toLowerCase().includes('cotton')
+              ? 'Cotton sarees pair beautifully with oxidized silver jewelry for a boho-chic look. Light starch helps maintain crisp pleats throughout the day.'
+              : 'Choose accessories that complement the fabric weight — delicate pieces for lightweight sarees, statement pieces for heavier drapes.'}
+          </p>
+        </div>
+      </AccordionItem>
+
+      {/* Care Instructions */}
+      <AccordionItem id="care" title="Care Instructions">
+        <div className="space-y-3 text-sm text-ink-muted leading-relaxed">
+          <div className="space-y-2.5">
+            <div className="flex items-start gap-3">
+              <span className="text-accent text-xs mt-0.5">●</span>
+              <p>{product.fabric?.toLowerCase().includes('silk') ? 'Always dry clean silk sarees. Hand washing may damage the zari and fabric sheen.' : 'Dry cleaning is recommended for best results. If hand washing, use cold water with mild detergent.'}</p>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="text-accent text-xs mt-0.5">●</span>
+              <p>Store wrapped in clean muslin or cotton cloth. Avoid plastic covers as they trap moisture.</p>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="text-accent text-xs mt-0.5">●</span>
+              <p>Keep away from direct sunlight to prevent color fading. Store in a cool, dry place.</p>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="text-accent text-xs mt-0.5">●</span>
+              <p>Refold every 3-6 months along different lines to prevent permanent creases.</p>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="text-accent text-xs mt-0.5">●</span>
+              <p>Iron on low heat with a pressing cloth. Never iron directly on embroidery or zari work.</p>
+            </div>
           </div>
         </div>
       </AccordionItem>
@@ -126,7 +199,11 @@ export default function ProductAccordion({ product, reviews, reviewStats, onRevi
            </div>
            <div className="flex items-start gap-3">
              <div className="w-8 h-8 rounded-full bg-surface-muted flex items-center justify-center flex-shrink-0 mt-0.5"><span className="text-xs">🚚</span></div>
-             <div><p className="font-medium text-ink">Delivery</p><p className="text-xs">3-7 business days within India. Standard delivery charges apply.</p></div>
+             <div><p className="font-medium text-ink">Pan-India Delivery</p><p className="text-xs">3-7 business days within India. Standard delivery charges apply.</p></div>
+           </div>
+           <div className="flex items-start gap-3">
+             <div className="w-8 h-8 rounded-full bg-surface-muted flex items-center justify-center flex-shrink-0 mt-0.5"><span className="text-xs">↩️</span></div>
+             <div><p className="font-medium text-ink">Easy Returns</p><p className="text-xs">7-day hassle-free return policy. Saree must be unused with tags intact.</p></div>
            </div>
          </div>
        </AccordionItem>

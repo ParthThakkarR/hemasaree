@@ -152,7 +152,10 @@ export default function ProductDetailClient({ initialProduct, initialRelated, po
           <ProductGallery 
             images={product.images} 
             name={product.name} 
-            getImageSrc={getImageSrc} 
+            getImageSrc={getImageSrc}
+            fabric={product.fabric}
+            color={product.color}
+            category={product.category?.name}
           />
 
           <div className="w-full lg:w-[42%] space-y-6 lg:sticky lg:top-24 lg:pb-12">

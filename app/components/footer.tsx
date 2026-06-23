@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Instagram, MapPin, Mail, ArrowRight, MessageCircle, Loader2, CreditCard, Smartphone, Banknote } from 'lucide-react';
+import { Mail, ArrowRight, Loader2, CreditCard, Smartphone, Banknote } from 'lucide-react';
 import { useSiteSettings } from '@contexts/site-settings-context';
 import { urlFor } from '@/sanity/lib/image';
 import Image from 'next/image';
@@ -67,7 +67,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8 mb-12 pt-4">
           
           {/* Col 1: Brand & Newsletter */}
-          <div className="space-y-5">
+          <div className="space-y-5 lg:col-span-1">
             <Link href="/" className="inline-flex items-center gap-2.5">
               {settings?.logo ? (
                 <div className="relative w-9 h-9 sm:w-10 sm:h-10">
@@ -115,36 +115,41 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Col 2: Shop Links */}
-          <div>
-            <h4 className="font-semibold text-brand-50 uppercase tracking-wider mb-5 text-xs">Shop</h4>
+          {/* Col 2: Saree Guides & Blog */}
+          <div className="space-y-4 lg:col-span-1">
+            <h4 className="font-semibold text-brand-50 uppercase tracking-wider mb-5 text-xs">Saree Guides</h4>
             <ul className="space-y-3">
-              <li><Link href="/products" className="text-sm hover:text-accent transition-colors">All Sarees</Link></li>
-              <li><Link href="/products?category=Bridal" className="text-sm hover:text-accent transition-colors">Bridal Collection</Link></li>
-              <li><Link href="/products?category=Festive" className="text-sm hover:text-accent transition-colors">Festive Wear</Link></li>
-              <li><Link href="/products?category=Silk" className="text-sm hover:text-accent transition-colors">Silk Sarees</Link></li>
-              <li><Link href="/products?sortPrice=newest" className="text-sm hover:text-accent transition-colors">New Arrivals</Link></li>
+              <li><Link href="/blog/best-sarees-for-weddings" className="hover:text-white transition-colors text-sm">Wedding Saree Guide</Link></li>
+              <li><Link href="/blog/silk-saree-care" className="hover:text-white transition-colors text-sm">Silk Saree Care</Link></li>
+              <li><Link href="/blog/how-to-choose-silk-saree" className="hover:text-white transition-colors text-sm">How to Choose Silk</Link></li>
+              <li><Link href="/blog/saree-trends-2026" className="hover:text-white transition-colors text-sm">Latest Saree Trends</Link></li>
+              <li><Link href="/blog" className="hover:text-white transition-colors text-sm font-medium mt-2 block">View All Guides →</Link></li>
             </ul>
           </div>
 
-           {/* Col 3: Help & Info */}
-           <div>
-             <h4 className="font-semibold text-brand-50 uppercase tracking-wider mb-5 text-xs">Help & Info</h4>
-             <ul className="space-y-3">
-               <li><Link href="/orders" className="text-sm hover:text-accent transition-colors">Track Order</Link></li>
-               <li><Link href="/terms" className="text-sm hover:text-accent transition-colors">Shipping & Delivery</Link></li>
-               <li><Link href="/about" className="text-sm hover:text-accent transition-colors">About Us</Link></li>
-               <li><Link href="/contact" className="text-sm hover:text-accent transition-colors">Contact Us</Link></li>
-             </ul>
-           </div>
+          {/* Col 3: Shop Collections */}
+          <div className="space-y-4 lg:col-span-1">
+            <h4 className="font-semibold text-brand-50 uppercase tracking-wider mb-5 text-xs">Shop Collections</h4>
+            <ul className="space-y-3">
+              <li><Link href="/products" className="text-sm hover:text-accent transition-colors">All Sarees</Link></li>
+              <li><Link href="/products?category=Bridal" className="text-sm hover:text-accent transition-colors">Bridal Sarees</Link></li>
+              <li><Link href="/products?category=Silk" className="text-sm hover:text-accent transition-colors">Silk Sarees</Link></li>
+              <li><Link href="/products?category=Cotton" className="text-sm hover:text-accent transition-colors">Cotton Sarees</Link></li>
+              <li><Link href="/products?category=Party+Wear" className="text-sm hover:text-accent transition-colors">Party Wear</Link></li>
+            </ul>
+          </div>
 
-          {/* Col 4: Contact & Social */}
-          <div>
-            <h4 className="font-semibold text-brand-50 uppercase tracking-wider mb-5 text-xs">Get in Touch</h4>
-            <ul className="space-y-4">
-              <li className="flex gap-2.5 pt-2">
-                 <Link href="/contact" aria-label="Contact Us" className="w-9 h-9 rounded-full bg-brand-900/50 border border-brand-800/30 flex items-center justify-center text-brand-100/60 hover:bg-accent hover:text-brand-950 hover:border-accent transition-all">
-                   <Mail size={16} />
+          {/* Col 4: Help & Contact */}
+          <div className="space-y-4 lg:col-span-1">
+            <h4 className="font-semibold text-brand-50 uppercase tracking-wider mb-5 text-xs">Help & Contact</h4>
+            <ul className="space-y-3">
+              <li><Link href="/about" className="hover:text-white transition-colors text-sm">About Us</Link></li>
+              <li><Link href="/contact" className="hover:text-white transition-colors text-sm">Contact Us</Link></li>
+              <li><Link href="/orders" className="hover:text-white transition-colors text-sm">Track Order</Link></li>
+              <li><Link href="/terms" className="hover:text-white transition-colors text-sm">Shipping & Returns</Link></li>
+              <li className="pt-2">
+                 <Link href="/contact" aria-label="Contact Us" className="inline-flex items-center gap-2 text-sm hover:text-white transition-colors">
+                   <Mail size={16} /> support@hemasaree.com
                  </Link>
               </li>
             </ul>

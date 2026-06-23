@@ -35,8 +35,6 @@ function generateProductFaqSchema(product: {
   occasion: string;
   category: { name: string };
 }) {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://hemasaree.vercel.app';
-
   return {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
@@ -46,7 +44,7 @@ function generateProductFaqSchema(product: {
         name: `What is the price of ${product.name}?`,
         acceptedAnswer: {
           '@type': 'Answer',
-          text: `The price of ${product.name} is ₹${product.price.toLocaleString('en-IN')}.`,
+          text: `The price of ${product.name} is ₹${product.price.toLocaleString('en-IN')}. This price is inclusive of all taxes.`,
         },
       },
       ...(product.fabric
@@ -56,7 +54,7 @@ function generateProductFaqSchema(product: {
               name: `What fabric is ${product.name} made of?`,
               acceptedAnswer: {
                 '@type': 'Answer',
-                text: `${product.name} is crafted from premium ${product.fabric}.`,
+                text: `${product.name} is crafted from premium ${product.fabric}. This fabric is known for its quality, durability, and beautiful drape.`,
               },
             },
           ]
@@ -66,7 +64,7 @@ function generateProductFaqSchema(product: {
         name: `What occasion is ${product.name} suitable for?`,
         acceptedAnswer: {
           '@type': 'Answer',
-          text: `${product.name} is perfect for ${product.occasion.toLowerCase()} occasions.`,
+          text: `${product.name} is perfect for ${product.occasion.toLowerCase()} occasions. It pairs beautifully with traditional jewelry and can be styled in multiple ways.`,
         },
       },
       {
@@ -74,7 +72,39 @@ function generateProductFaqSchema(product: {
         name: `Is ${product.name} available in other colors?`,
         acceptedAnswer: {
           '@type': 'Answer',
-          text: `${product.name} is available in ${product.color}. Browse our ${product.category.name} collection for more color options.`,
+          text: `${product.name} is available in ${product.color}. Browse our ${product.category.name} collection for more color options and similar styles.`,
+        },
+      },
+      {
+        '@type': 'Question',
+        name: `What is the saree length of ${product.name}?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `${product.name} comes with a total length of 5.5 meters (saree) and 0.8 meters (unstitched blouse piece), which is the standard length for Indian sarees.`,
+        },
+      },
+      {
+        '@type': 'Question',
+        name: `How to care for ${product.name}?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `We recommend dry cleaning for ${product.name}${product.fabric ? ` as ${product.fabric} fabric requires gentle care` : ''}. Store wrapped in muslin cloth in a cool, dry place. Avoid direct sunlight and refold every 6 months to prevent permanent creases.`,
+        },
+      },
+      {
+        '@type': 'Question',
+        name: `What is the delivery time for ${product.name}?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `${product.name} is dispatched within 24-48 hours of order confirmation. Delivery typically takes 3-7 business days within India. We offer secure packaging to ensure your saree arrives in perfect condition.`,
+        },
+      },
+      {
+        '@type': 'Question',
+        name: `Can I return ${product.name}?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `Yes, we offer a 7-day easy return policy. If you are not satisfied with ${product.name}, you can initiate a return within 7 days of delivery. The saree must be unused, in its original packaging, and with all tags intact.`,
         },
       },
     ],
