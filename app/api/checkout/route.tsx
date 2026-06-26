@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { address, buyNowItem } = validation.data;
+    const { address, buyNowItem, offerCode } = validation.data;
     const deliveryCharge = await calculateDeliveryCharge(address.state);
 
     const checkoutAddress: CheckoutAddress = {
@@ -40,7 +40,8 @@ export async function POST(req: NextRequest) {
       decodedUser.id,
       checkoutAddress,
       deliveryCharge,
-      buyNowItem
+      buyNowItem,
+      offerCode
     );
 
     // Queue order confirmation email

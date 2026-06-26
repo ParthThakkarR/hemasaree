@@ -25,7 +25,7 @@ export default function NewsletterSection() {
 
       if (res.ok) {
         setStatus('success');
-        setMessage('Welcome! Check your inbox for exclusive offers.');
+        setMessage('Welcome! Use code WELCOME200 at checkout for ₹200 off your first order.');
         setEmail('');
       } else {
         setStatus('error');

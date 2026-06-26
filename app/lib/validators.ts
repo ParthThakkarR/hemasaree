@@ -164,6 +164,7 @@ export const CheckoutSchema = z.object({
     quantity: z.number().int().positive(),
     withPolish: z.boolean().optional(),
   }).optional(),
+  offerCode: z.string().optional(),
 });
 
 // --- Order Schemas ---

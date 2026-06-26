@@ -24,6 +24,12 @@ function CartPageContent() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [settings, setSettings] = useState({ deliveryChargeGujarat: 80, deliveryChargeDefault: 150 });
+  
+  // Coupon State
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
+  const [discount, setDiscount] = useState(0);
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
 
   useEffect(() => {
     fetch('/api/settings').then(r => r.json()).then(data => {
@@ -81,6 +87,13 @@ function CartPageContent() {
     }
     return cart;
   }, [cart, buyNowProductId, buyNowProduct, buyNowPolish]);
+
+  // Recalculate discount if cart changes
+  useEffect(() => {
+    if (appliedCoupon && effectiveCart) {
+      handleApplyCoupon(appliedCoupon);
+    }
+  }, [effectiveCart]);
   
   // Address State
   const [addressMode, setAddressMode] = useState<'saved' | 'new'>('new');
@@ -134,9 +147,51 @@ function CartPageContent() {
     return normalizedState === 'gujarat' ? settings.deliveryChargeGujarat : settings.deliveryChargeDefault;
   }, [activeState, settings]);
 
-  const total = subtotal + deliveryCharge;
+  const total = Math.max(0, subtotal + deliveryCharge - discount);
 
   // Actions
+  const handleApplyCoupon = async (codeOverride?: string) => {
+    const codeToApply = typeof codeOverride === 'string' ? codeOverride : couponCode;
+    if (!codeToApply.trim() || !effectiveCart?.items.length) return;
+    
+    setIsApplyingCoupon(true);
+    try {
+      const res = await fetch('/api/offers/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: codeToApply,
+          items: effectiveCart.items.map(i => ({
+            productId: i.productId,
+            quantity: i.quantity,
+            price: i.price,
+          }))
+        })
+      });
+      const data = await res.json();
+      
+      if (!res.ok || !data.valid) {
+        throw new Error(data.error || 'Invalid coupon');
+      }
+      
+      setAppliedCoupon(data.offerCode || codeToApply.toUpperCase());
+      setDiscount(data.discount);
+      toast.success(data.message);
+    } catch (err: any) {
+      toast.error(err.message);
+      setAppliedCoupon(null);
+      setDiscount(0);
+    } finally {
+      setIsApplyingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setCouponCode('');
+    setAppliedCoupon(null);
+    setDiscount(0);
+    toast.success('Coupon removed');
+  };
   const handleQuantity = async (id: string, q: number) => {
     await updateQuantity(id, q);
   };
@@ -172,6 +227,10 @@ function CartPageContent() {
           quantity: 1,
           withPolish: buyNowPolish
         };
+      }
+      
+      if (appliedCoupon) {
+        payload.offerCode = appliedCoupon;
       }
 
       const res = await fetch('/api/checkout', {
@@ -312,6 +371,13 @@ function CartPageContent() {
                 isPlacingOrder={isPlacingOrder}
                 validateAddressAndProceed={validateAddressAndProceed}
                 placeOrder={placeOrder}
+                couponCode={couponCode}
+                setCouponCode={setCouponCode}
+                appliedCoupon={appliedCoupon}
+                discount={discount}
+                isApplyingCoupon={isApplyingCoupon}
+                handleApplyCoupon={handleApplyCoupon}
+                handleRemoveCoupon={handleRemoveCoupon}
              />
           </div>
           

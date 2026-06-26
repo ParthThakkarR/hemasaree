@@ -213,6 +213,8 @@ model Order {
    orderItems      OrderItem[]
    totalAmount     Float
    deliveryCharge  Float       @default(0)
+   discountAmount  Float       @default(0)
+   offerCode       String?
    status          OrderStatus @default(PENDING)
    createdAt       DateTime    @default(now())
    updatedAt       DateTime    @updatedAt
@@ -304,4 +306,27 @@ model Review {
   @@unique([userId, productId])
   @@index([productId])
   @@index([isApproved])
+}
+
+model Offer {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  code        String    @unique
+  title       String
+  description String?
+  type        String      // "flat" | "percentage"
+  value       Float
+  minOrder    Float     @default(0)
+  maxDiscount Float?
+  usageLimit  Int?
+  usageCount  Int       @default(0)
+  perUser     Int       @default(1)
+  isActive    Boolean   @default(true)
+  startsAt    DateTime  @default(now())
+  expiresAt   DateTime?
+  categoryId  String?   @db.ObjectId
+  isFirstOrderOnly Boolean @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([isActive, startsAt, expiresAt])
 }

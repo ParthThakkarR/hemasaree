@@ -13,6 +13,13 @@ interface CartOrderSummaryProps {
   isPlacingOrder: boolean;
   validateAddressAndProceed: () => void;
   placeOrder: () => void;
+  couponCode: string;
+  setCouponCode: (code: string) => void;
+  appliedCoupon: string | null;
+  discount: number;
+  isApplyingCoupon: boolean;
+  handleApplyCoupon: () => void;
+  handleRemoveCoupon: () => void;
 }
 
 export default function CartOrderSummary({ 
@@ -24,7 +31,14 @@ export default function CartOrderSummary({
   total, 
   isPlacingOrder, 
   validateAddressAndProceed, 
-  placeOrder 
+  placeOrder,
+  couponCode,
+  setCouponCode,
+  appliedCoupon,
+  discount,
+  isApplyingCoupon,
+  handleApplyCoupon,
+  handleRemoveCoupon
 }: CartOrderSummaryProps) {
   return (
     <div className="sticky top-32 bg-white rounded-3xl border border-brand-100 p-8 shadow-sm">
@@ -49,7 +63,46 @@ export default function CartOrderSummary({
             <span className="text-ink-faint italic text-xs">Calculated at checkout</span>
           </div>
         )}
+
+        {discount > 0 && (
+          <div className="flex justify-between text-dark-green">
+            <span className="font-medium">Discount ({appliedCoupon})</span>
+            <span className="font-bold">-₹{discount.toLocaleString('en-IN')}</span>
+          </div>
+        )}
       </div>
+
+      {step === 1 && (
+        <div className="mb-6">
+          <p className="text-sm font-semibold text-ink mb-2">Have a coupon?</p>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={couponCode}
+              onChange={(e) => setCouponCode(e.target.value)}
+              disabled={!!appliedCoupon || isApplyingCoupon}
+              placeholder="Enter code"
+              className="flex-1 bg-surface-muted border border-surface-subtle rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-800/20 focus:border-brand-800 disabled:opacity-50 uppercase placeholder:normal-case transition-all"
+            />
+            {appliedCoupon ? (
+              <button
+                onClick={handleRemoveCoupon}
+                className="bg-error/10 text-error px-4 py-3 rounded-xl font-bold text-sm hover:bg-error/20 transition-all"
+              >
+                Remove
+              </button>
+            ) : (
+              <button
+                onClick={handleApplyCoupon}
+                disabled={!couponCode.trim() || isApplyingCoupon}
+                className="bg-brand-800 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-brand-900 transition-all disabled:opacity-50 flex items-center justify-center min-w-[80px]"
+              >
+                {isApplyingCoupon ? <Loader2 size={16} className="animate-spin" /> : 'Apply'}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
       
       <div className="h-px bg-brand-100 mb-6" />
       

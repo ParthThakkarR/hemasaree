@@ -1,6 +1,7 @@
 import { prisma } from '../../app/lib/prisma';
 import { OrderStatus, OrderItemStatus } from '@prisma/client';
 import { NotFoundError, ConflictError, ValidationError } from '../errors';
+import { OfferService } from './offerService';
 
 export interface CheckoutAddress {
   houseNumber: string;
@@ -129,7 +130,8 @@ export class OrderService {
     userId: string,
     address: CheckoutAddress,
     deliveryCharge: number,
-    buyNowItem?: { productId: string; quantity: number; withPolish?: boolean }
+    buyNowItem?: { productId: string; quantity: number; withPolish?: boolean },
+    offerCode?: string
   ): Promise<OrderItemResult> {
     const { items, total, cartId } = buyNowItem
       ? await OrderService.validateBuyNowItem(buyNowItem.productId, buyNowItem.quantity, buyNowItem.withPolish)
@@ -145,6 +147,21 @@ export class OrderService {
        quantity: item.quantity,
        withPolish: item.withPolish ?? false,
      }));
+
+    let discountAmount = 0;
+    if (offerCode) {
+      // Need to fetch category IDs for validation if category-specific offers exist
+      const validationItems = await Promise.all(items.map(async (item) => {
+          const prod = await prisma.product.findUnique({ where: { id: item.productId }, select: { categoryId: true } });
+          return { price: item.price, quantity: item.quantity, categoryId: prod?.categoryId || undefined };
+      }));
+      
+      const validation = await OfferService.validateOffer(offerCode, userId, validationItems);
+      if (!validation.valid) {
+          throw new ValidationError(validation.message);
+      }
+      discountAmount = validation.discount;
+    }
 
     const newOrder = await prisma.$transaction(async tx => {
       for (const item of items) {
@@ -166,8 +183,10 @@ export class OrderService {
       const order = await tx.order.create({
         data: {
           userId,
-          totalAmount: total + deliveryCharge,
+          totalAmount: total + deliveryCharge - discountAmount,
           deliveryCharge,
+          discountAmount,
+          offerCode: offerCode ? offerCode.toUpperCase() : null,
           shippingAddress: formattedAddress,
           status: 'PENDING',
           orderItems: { create: orderItemsCreate },
@@ -182,6 +201,10 @@ export class OrderService {
     if (cartId) {
       await prisma.cartItem.deleteMany({ where: { cartId } });
       await prisma.cart.update({ where: { id: cartId }, data: { totalPrice: 0 } });
+    }
+
+    if (offerCode) {
+        await OfferService.applyOffer(offerCode);
     }
 
     return {
