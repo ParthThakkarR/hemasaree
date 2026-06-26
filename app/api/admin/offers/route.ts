@@ -27,13 +27,25 @@ export async function GET() {
   try {
     const offers = await prisma.offer.findMany({
       orderBy: { createdAt: 'desc' },
-      include: {
-        category: {
-          select: { name: true }
-        }
-      }
     });
-    return NextResponse.json(offers);
+    
+    // Manually resolve category names for offers that have categoryId
+    const categoryIds = offers.map(o => o.categoryId).filter(Boolean) as string[];
+    let categoryMap: Record<string, string> = {};
+    if (categoryIds.length > 0) {
+      const cats = await prisma.category.findMany({
+        where: { id: { in: categoryIds } },
+        select: { id: true, name: true },
+      });
+      categoryMap = Object.fromEntries(cats.map(c => [c.id, c.name]));
+    }
+    
+    const enriched = offers.map(o => ({
+      ...o,
+      categoryName: o.categoryId ? categoryMap[o.categoryId] || null : null,
+    }));
+    
+    return NextResponse.json(enriched);
   } catch (error) {
     console.error('[ADMIN_OFFERS_GET]', error);
     const { message, statusCode } = handleApiError(error);
