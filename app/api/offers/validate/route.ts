@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { OfferService, CartItemForOffer } from '@/lib/services/offerService';
-import { getUserFromToken } from '@/lib/getUserFromToken';
+import { getUserFromToken } from '@/app/lib/getUserFromToken';
 import { handleApiError } from '@/lib/errors';
 import { z } from 'zod';
 import { prisma } from '@/app/lib/prisma';
