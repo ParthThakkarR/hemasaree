@@ -37,7 +37,8 @@ const ALLOWED_EXTENSIONS = [
   '.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif',
 ];
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB to handle large phone camera photos
+const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB per image (Vercel Hobby limit: 4.5MB total request body)
+const MAX_TOTAL_SIZE = 4 * 1024 * 1024; // 4MB combined (matches Vercel serverless function limit)
 
 /**
  * Determine whether a file is an allowed image.
@@ -47,12 +48,13 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB to handle large phone camera pho
  */
 function isAllowedImage(file: File): boolean {
   const mime = file.type?.toLowerCase() || '';
+  const fileName = file.name || '';
+  const ext = '.' + (fileName.split('.').pop()?.toLowerCase() || '');
 
   // 1. Check MIME type first
   if (mime && ALLOWED_MIME_TYPES.includes(mime)) return true;
 
   // 2. Fallback: check extension
-  const ext = '.' + (file.name?.split('.').pop()?.toLowerCase() || '');
   if (ALLOWED_EXTENSIONS.includes(ext)) return true;
 
   // 3. Accept generic binary blobs that have a valid image extension
@@ -60,19 +62,49 @@ function isAllowedImage(file: File): boolean {
     return true;
   }
 
+  // 4. Some mobile browsers strip the filename entirely. Accept if MIME is
+  //    a common image type or the file has reasonable size and no text content.
+  if (!mime && !ext) return true;
+  if (mime === 'application/octet-stream' && (!ext || ext === '.')) return true;
+
   return false;
 }
 
 async function processAndStore(buffer: Buffer, fileName: string): Promise<string> {
-  // sharp() can handle JPEG, PNG, WebP, HEIF/HEIC, TIFF, AVIF, GIF
-  const webpBuffer = await sharp(buffer, { failOn: 'none' })
-    .rotate() // Auto-rotate based on EXIF (phones often store rotated)
-    .resize(1200, 1200, { fit: 'inside', withoutEnlargement: true })
-    .webp({ quality: 80 })
-    .toBuffer();
+  try {
+    // Primary conversion: WebP + MongoDB storage
+    const webpBuffer = await sharp(buffer, { failOn: 'none' })
+      .rotate() // Auto-rotate based on EXIF (phones often store rotated)
+      .resize(1200, 1200, { fit: 'inside', withoutEnlargement: true })
+      .webp({ quality: 80 })
+      .toBuffer();
 
-  const base64 = webpBuffer.toString('base64');
-  return await storeImage(base64, 'image/webp', fileName);
+    const base64 = webpBuffer.toString('base64');
+    return await storeImage(base64, 'image/webp', fileName);
+  } catch (primaryErr) {
+    // Primary conversion failed (e.g., HEIC unsupported on this platform)
+    console.warn(`[UPLOAD] Primary sharp conversion failed for "${fileName}":`, primaryErr);
+
+    // Fallback: convert to JPEG (widely supported) and save to disk
+    try {
+      const jpegBuffer = await sharp(buffer, { failOn: 'none' })
+        .rotate()
+        .resize(1200, 1200, { fit: 'inside', withoutEnlargement: true })
+        .jpeg({ quality: 85 })
+        .toBuffer();
+
+      const sanitizedName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const finalName = `${Date.now()}_${sanitizedName.split('.')[0]}.jpg`;
+      const uploadDir = path.join(process.cwd(), 'public/uploads/products');
+      await mkdir(uploadDir, { recursive: true });
+      await writeFile(path.join(uploadDir, finalName), jpegBuffer);
+      return `/uploads/products/${finalName}`;
+    } catch (secondaryErr) {
+      // Both conversions failed — caller will handle the error
+      console.error(`[UPLOAD] Fallback JPEG conversion also failed for "${fileName}":`, secondaryErr);
+      throw secondaryErr;
+    }
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -88,38 +120,47 @@ export async function POST(req: NextRequest) {
     } catch (parseError) {
       console.error('[UPLOAD] FormData parsing failed:', parseError);
       return noCacheResponse(
-        { error: 'Upload too large or connection interrupted. Try smaller images or fewer files at once.' },
+        { error: 'The total size of your upload exceeds the server limit (4MB). Please upload one image at a time or use smaller images (under 4MB each).' },
         { status: 413 }
       );
     }
 
     const files = formData.getAll('files') as File[];
     if (!files || files.length === 0) {
-      return noCacheResponse({ error: 'No files provided.' }, { status: 400 });
+      return noCacheResponse({ error: 'Please select at least one image to upload.' }, { status: 400 });
     }
 
     // Validate all files upfront
+    let totalSize = 0;
     for (const file of files) {
       if (!isAllowedImage(file)) {
         const ext = file.name?.split('.').pop()?.toLowerCase() || 'unknown';
         return noCacheResponse(
-          { error: `"${file.name}" has an unsupported format (${file.type || ext}). Allowed: JPEG, PNG, WebP, HEIC.` },
+          { error: `"${file.name}" could not be uploaded. This image format (${file.type || ext}) is not supported. Please use JPEG, PNG, WebP, or HEIC.` },
           { status: 400 }
         );
       }
       if (file.size > MAX_FILE_SIZE) {
         return noCacheResponse(
-          { error: `"${file.name}" is too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum is 10MB per image.` },
+          { error: `"${file.name}" is too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Please choose a photo smaller than 4MB.` },
           { status: 400 }
         );
       }
       // Extra guard: some broken uploads report size 0
       if (file.size === 0) {
         return noCacheResponse(
-          { error: `"${file.name}" appears to be empty. Please try selecting the image again.` },
+          { error: `"${file.name}" appears to be empty or couldn't be read. Please try selecting the image again from your device.` },
           { status: 400 }
         );
       }
+      totalSize += file.size;
+    }
+
+    if (totalSize > MAX_TOTAL_SIZE) {
+      return noCacheResponse(
+        { error: `The total size of all images (${(totalSize / 1024 / 1024).toFixed(1)}MB) exceeds the 4MB limit. Please upload one image at a time or use smaller images.` },
+        { status: 400 }
+      );
     }
 
     const urls: string[] = [];
@@ -150,7 +191,7 @@ export async function POST(req: NextRequest) {
 
     if (urls.length === 0) {
       return noCacheResponse(
-        { error: 'All files failed to upload. Please try again with different images.' },
+        { error: 'We couldn\'t upload your images right now. Please check your connection, make sure your images are in JPEG/PNG/WebP format, and try again.' },
         { status: 500 }
       );
     }
@@ -168,7 +209,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error('[FILE_UPLOAD_ERROR]', error);
     return noCacheResponse(
-      { error: 'File upload failed. Please check your connection and try again.' },
+      { error: 'Something went wrong while uploading your image. Please check your internet connection and try again. If the issue persists, try using a smaller image.' },
       { status: 500 }
     );
   }

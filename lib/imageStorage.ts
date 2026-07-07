@@ -8,12 +8,18 @@ async function getDb() {
     dbPromise = (async () => {
       const uri = process.env.DATABASE_URL || '';
       client = new MongoClient(uri, {
-        serverSelectionTimeoutMS: 5000,
-        connectTimeoutMS: 5000,
+        serverSelectionTimeoutMS: 15000,
+        connectTimeoutMS: 15000,
+        socketTimeoutMS: 30000,
       });
       await client.connect();
       return client.db();
     })();
+    dbPromise = dbPromise.catch((err) => {
+      console.warn('[IMG_STORAGE] MongoDB connection failed, will retry on next call:', err);
+      dbPromise = null;
+      throw err;
+    });
   }
   return dbPromise;
 }

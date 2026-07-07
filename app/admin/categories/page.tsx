@@ -5,6 +5,7 @@ import { Pencil, Trash2, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '@contexts/auth-context';
 import { useRouter } from 'next/navigation';
+import { isCloudinaryConfigured, uploadToCloudinary } from '@/lib/cloudinary';
 
 interface Category {
   id: string;
@@ -57,6 +58,11 @@ export default function ManageCategoriesPage() {
     }, []);
 
     const uploadImage = async (file: File): Promise<string> => {
+        if (isCloudinaryConfigured) {
+            return uploadToCloudinary(file, 'categories');
+        }
+
+        // Fallback: server-side upload (limited by Vercel's 4.5MB body limit)
         const formData = new FormData();
         formData.append('files', file);
         formData.append('folder', 'categories');
@@ -70,6 +76,7 @@ export default function ManageCategoriesPage() {
                 const res = await fetch('/api/admin/upload', {
                     method: 'POST',
                     body: formData,
+                    credentials: 'include',
                     signal: controller.signal,
                 });
                 clearTimeout(timeout);
@@ -88,14 +95,14 @@ export default function ManageCategoriesPage() {
                 return data.urls[0];
             } catch (err: any) {
                 if (err.name === 'AbortError') {
-                    lastError = 'Upload timed out. Please check your connection and try a smaller image.';
+                    lastError = 'Upload is taking too long. Please check your internet connection or try with a smaller image.';
                 } else if (err.message) {
                     lastError = err.message;
                 }
                 if (attempt === 0) continue;
             }
         }
-        throw new Error(lastError || 'Image upload failed after retrying. Please try again.');
+        throw new Error(lastError || 'Could not upload the image right now. Please check your connection and try again.');
     };
 
     const handleAddCategory = async (e: FormEvent) => {
@@ -107,6 +114,9 @@ export default function ManageCategoriesPage() {
         try {
             let finalImageUrl = categoryImageUrl;
             if (categoryImage) {
+                if (categoryImage.size > 20 * 1024 * 1024) {
+                    throw new Error(`Image is too large (${(categoryImage.size / 1024 / 1024).toFixed(1)}MB). Please use images smaller than 20MB.`);
+                }
                 finalImageUrl = await uploadImage(categoryImage);
             }
             const res = await fetch('/api/admin/categories', {

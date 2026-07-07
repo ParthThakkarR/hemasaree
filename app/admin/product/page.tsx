@@ -5,6 +5,7 @@ import { Pencil, Trash2, Plus, UploadCloud } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '@contexts/auth-context';
 import { useRouter } from 'next/navigation';
+import { isCloudinaryConfigured, uploadMultipleToCloudinary } from '@/lib/cloudinary';
 
 interface Category { id: string; name: string; }
 interface Product {
@@ -80,18 +81,22 @@ export default function ManageProductsPage() {
   useEffect(() => { fetchData(); }, [viewMode]);
 
   const uploadImages = async (files: FileList): Promise<string[]> => {
+    if (isCloudinaryConfigured) {
+      return uploadMultipleToCloudinary(files, 'products');
+    }
+
+    // Fallback: server-side upload (limited by Vercel's 4.5MB body limit)
     const formData = new FormData();
     for (let i = 0; i < files.length; i++) {
       formData.append('files', files[i]);
     }
     formData.append('folder', 'products');
 
-    // Retry once on failure (helps with flaky mobile connections)
     let lastError = '';
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 60000); // 60s timeout
+        const timeout = setTimeout(() => controller.abort(), 60000);
 
         const res = await fetch('/api/admin/upload', {
           method: 'POST',
@@ -105,28 +110,22 @@ export default function ManageProductsPage() {
         if (!res.ok) {
           const errData = await res.json().catch(() => ({ error: 'Upload failed' }));
           lastError = errData.error || 'Upload failed';
-          if (res.status === 413) {
-            // Don't retry on "too large" — it won't help
-            throw new Error(lastError);
-          }
-          // Retry on other errors
+          if (res.status === 413) throw new Error(lastError);
           continue;
         }
         const data = await res.json();
-        if (data.warnings) {
-          toast.error(data.warnings);
-        }
+        if (data.warnings) toast.error(data.warnings);
         return data.urls;
       } catch (err: any) {
         if (err.name === 'AbortError') {
-          lastError = 'Upload timed out. Please check your internet connection and try with fewer/smaller images.';
+          lastError = 'Upload is taking too long. Please check your internet connection or try with a smaller image.';
         } else if (err.message) {
           lastError = err.message;
         }
-        if (attempt === 0) continue; // retry
+        if (attempt === 0) continue;
       }
     }
-    throw new Error(lastError || 'Image upload failed after multiple attempts. Please try again.');
+    throw new Error(lastError || 'Could not upload the image right now. Please check your connection and try again.');
   };
 
   const handleAddProduct = async (e: FormEvent) => {
@@ -135,6 +134,11 @@ export default function ManageProductsPage() {
     try {
       let finalImages = [...productImageUrls];
       if (productImages && productImages.length > 0) {
+        for (let i = 0; i < productImages.length; i++) {
+          if (productImages[i].size > 20 * 1024 * 1024) {
+            throw new Error(`"${productImages[i].name}" is too large (${(productImages[i].size / 1024 / 1024).toFixed(1)}MB). Please use images smaller than 20MB.`);
+          }
+        }
         const uploaded = await uploadImages(productImages);
         finalImages = [...finalImages, ...uploaded];
       }
@@ -183,6 +187,11 @@ export default function ManageProductsPage() {
       
       // Upload new files if any
       if (newProductImages && newProductImages.length > 0) {
+        for (let i = 0; i < newProductImages.length; i++) {
+          if (newProductImages[i].size > 20 * 1024 * 1024) {
+            throw new Error(`"${newProductImages[i].name}" is too large (${(newProductImages[i].size / 1024 / 1024).toFixed(1)}MB). Please use images smaller than 20MB.`);
+          }
+        }
         const uploaded = await uploadImages(newProductImages);
         finalImages = [...finalImages, ...uploaded];
       }
