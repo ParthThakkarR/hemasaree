@@ -36,6 +36,11 @@ E-commerce platform for sarees built with Next.js 14, Prisma (MongoDB), and Type
 - Services in `lib/services/` use relative imports for errors
 - `@lib` alias points to `app/lib`, use relative paths for `lib/`
 
+## Security Rules
+- All code must follow the rules in `CLAUDE.md` — no exceptions.
+- Run `npm audit` after installing any new package.
+- Never expose secrets in frontend code or commit `.env` files.
+
 ## Prisma Import Best Practices
 - Schema: `prisma/schema.prisma`
 - After schema changes: run `npx prisma generate`
