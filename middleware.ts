@@ -204,7 +204,7 @@ function setSecurityHeaders(response: NextResponse) {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https: blob:",
     "font-src 'self' data:",
-    "connect-src 'self' https://api.razorpay.com https://*.sanity.io",
+    "connect-src 'self' https://api.razorpay.com https://*.sanity.io https://api.cloudinary.com",
     "frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com",
     "base-uri 'self'",
     "form-action 'self'"
