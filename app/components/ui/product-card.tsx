@@ -1,9 +1,10 @@
 'use client';
 
-import React, { memo, useState } from 'react';
+import React, { memo, useState, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Heart, ShoppingBag, Eye, Star } from 'lucide-react';
+import { motion, useAnimate, useReducedMotion } from 'framer-motion';
 import { useWishlist } from '@contexts/wishlist-context';
 import { useCart } from '@contexts/cart-context';
 import { useAuth } from '@contexts/auth-context';
@@ -28,22 +29,29 @@ export interface ProductCardProps {
   priority?: boolean;
 }
 
+// Haptic feedback helper
+function vibrate(pattern: number | number[]) {
+  navigator.vibrate?.(pattern);
+}
+
 const ProductCard = memo(function ProductCard({ product, priority = false }: ProductCardProps) {
   const { isInWishlist, toggleWishlist } = useWishlist();
-  const { addToCart } = useCart();
-  const { user } = useAuth();
-  const router = useRouter();
+  const { addToCart }                    = useCart();
+  const { user }                         = useAuth();
+  const router                           = useRouter();
   const [isAddingToCart, setIsAddingToCart] = useState(false);
-  const [showQuickView, setShowQuickView] = useState(false);
-  
-  const inWishlist = isInWishlist(product.id);
-  const outOfStock = typeof product.stock === 'number' && product.stock <= 0;
+  const [showQuickView, setShowQuickView]   = useState(false);
+  const cardRef                             = useRef<HTMLDivElement>(null);
 
-  // Use real MRP if available, fallback to simulated
-  const mrp = product.mrp || Math.round(product.price * 1.25);
-  const discountPercent = mrp > product.price ? Math.round(((mrp - product.price) / mrp) * 100) : 0;
+  const [heartScope, animateHeart] = useAnimate();
+  const prefersReducedMotion       = useReducedMotion();
 
-  // Check if product is "new" (created within last 14 days)
+  const inWishlist   = isInWishlist(product.id);
+  const outOfStock   = typeof product.stock === 'number' && product.stock <= 0;
+
+  const mrp            = product.mrp || Math.round(product.price * 1.25);
+  const discountPercent= mrp > product.price ? Math.round(((mrp - product.price) / mrp) * 100) : 0;
+
   const isNew = product.createdAt
     ? (Date.now() - new Date(product.createdAt).getTime()) < 14 * 24 * 60 * 60 * 1000
     : false;
@@ -54,10 +62,11 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
     return img.replace(/^\/+/, '/');
   };
 
-  const primaryImage = getImageSrc(product.images?.[0]);
+  const primaryImage   = getImageSrc(product.images?.[0]);
   const secondaryImage = product.images?.[1] ? getImageSrc(product.images[1]) : primaryImage;
 
-  const handleWishlist = (e: React.MouseEvent) => {
+  // ── Wishlist — spring pop animation ─────────────────
+  const handleWishlist = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (!user) {
@@ -65,26 +74,54 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
       router.push('/login');
       return;
     }
+
+    const adding = !inWishlist;
     toggleWishlist(product.id);
-    if (!inWishlist) toast.success('Added to wishlist');
+
+    if (adding) {
+      toast.success('Added to wishlist');
+      if (!prefersReducedMotion) {
+        // Spring pop: scale up with bounce, settle back
+        await animateHeart(heartScope.current, { scale: 1.45 }, {
+          type: 'spring', bounce: 0.5, duration: 0.35,
+        });
+        await animateHeart(heartScope.current, { scale: 1 }, {
+          type: 'spring', bounce: 0.3, duration: 0.3,
+        });
+      }
+    } else {
+      if (!prefersReducedMotion) {
+        await animateHeart(heartScope.current, { scale: 0.75 }, {
+          type: 'spring', bounce: 0, duration: 0.2,
+        });
+        await animateHeart(heartScope.current, { scale: 1 }, {
+          type: 'spring', bounce: 0.2, duration: 0.25,
+        });
+      }
+    }
   };
 
+  // ── Add to Cart — haptic + visual ───────────────────
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (outOfStock || isAddingToCart) return;
-    
+
     try {
       setIsAddingToCart(true);
       await addToCart({
-        productId: product.id,
-        quantity: 1,
-        productName: product.name,
+        productId   : product.id,
+        quantity    : 1,
+        productName : product.name,
         productImage: primaryImage,
-        price: product.price,
+        price       : product.price,
       });
+      // Haptic feedback — success commit
+      vibrate([10]);
     } catch (err) {
       console.error(err);
+      // Haptic feedback — error pattern
+      vibrate([5, 50, 50]);
     } finally {
       setIsAddingToCart(false);
     }
@@ -97,15 +134,17 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
     try {
       setIsAddingToCart(true);
       await addToCart({
-        productId: product.id,
-        quantity: 1,
-        productName: product.name,
+        productId   : product.id,
+        quantity    : 1,
+        productName : product.name,
         productImage: primaryImage,
-        price: product.price,
+        price       : product.price,
       });
+      vibrate([10]);
       router.push('/cart');
     } catch (err) {
       console.error(err);
+      vibrate([5, 50, 50]);
     } finally {
       setIsAddingToCart(false);
     }
@@ -117,10 +156,20 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
     setShowQuickView(true);
   };
 
+  // Spring presets
+  const SPRING_PRESS = { type: 'spring' as const, bounce: 0, duration: 0.3 };
+
+  const cardTap   = prefersReducedMotion ? {} : { scale: 0.98 };
+  const buttonTap = prefersReducedMotion ? {} : { scale: 0.95 };
+
   return (
     <>
-      <div className="group relative flex flex-col bg-surface rounded-2xl shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1 h-full overflow-hidden border border-surface-subtle/50">
-        
+      <motion.div
+        ref={cardRef}
+        whileTap={cardTap}
+        transition={SPRING_PRESS}
+        className="group relative flex flex-col bg-surface rounded-2xl shadow-card hover:shadow-card-hover transition-shadow duration-300 h-full overflow-hidden border border-surface-subtle/50"
+      >
         {/* Image Container */}
         <Link href={`/product/${product.id}`} className="relative aspect-[3/4] block overflow-hidden bg-surface-muted">
           {/* Badges */}
@@ -143,15 +192,19 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
           </div>
 
           {/* Wishlist Button */}
-          <button
+          <motion.button
+            whileTap={buttonTap}
+            transition={SPRING_PRESS}
             onClick={handleWishlist}
-            className="absolute top-3 right-3 z-10 w-9 h-9 flex items-center justify-center bg-white/90 backdrop-blur-sm rounded-full shadow-sm text-ink-muted hover:text-brand-800 hover:scale-110 active:scale-95 transition-all focus:outline-none"
+            className="absolute top-3 right-3 z-10 w-9 h-9 flex items-center justify-center bg-white/90 backdrop-blur-sm rounded-full shadow-sm text-ink-muted hover:text-brand-800 focus:outline-none"
             aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
           >
-            <Heart size={17} className={inWishlist ? 'fill-brand-800 text-brand-800' : ''} />
-          </button>
+            <span ref={heartScope} className="inline-flex">
+              <Heart size={17} className={inWishlist ? 'fill-brand-800 text-brand-800' : ''} />
+            </span>
+          </motion.button>
 
-          {/* Images (Swap on hover) */}
+          {/* Images — CSS opacity swap on hover */}
           <Image
             src={primaryImage}
             alt={product.name}
@@ -168,19 +221,27 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
             className="object-cover object-top absolute inset-0 opacity-0 transition-all duration-500 ease-in-out group-hover:opacity-100 group-hover:scale-105"
           />
 
-          {/* Hover Overlay (Desktop) */}
-          <div className="absolute inset-x-0 bottom-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out hidden lg:flex flex-col gap-2 bg-gradient-to-t from-ink/60 via-ink/20 to-transparent pt-10">
-            <button
+          {/* Hover Overlay (Desktop) — spring enter/exit */}
+          <motion.div
+            initial={false}
+            animate={{ opacity: 1 }}
+            className="absolute inset-x-0 bottom-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out hidden lg:flex flex-col gap-2 bg-gradient-to-t from-ink/60 via-ink/20 to-transparent pt-10"
+          >
+            <motion.button
+              whileTap={buttonTap}
+              transition={SPRING_PRESS}
               onClick={handleQuickView}
-              className="w-full bg-white/95 backdrop-blur text-ink font-semibold py-2 rounded-lg shadow-sm hover:bg-surface-muted transition-all flex items-center justify-center gap-2 text-sm"
+              className="w-full bg-white/95 backdrop-blur text-ink font-semibold py-2 rounded-lg shadow-sm hover:bg-surface-muted transition-colors flex items-center justify-center gap-2 text-sm"
             >
               <Eye size={16} /> Quick View
-            </button>
+            </motion.button>
             <div className="flex gap-2">
-              <button
+              <motion.button
+                whileTap={buttonTap}
+                transition={SPRING_PRESS}
                 onClick={handleAddToCart}
                 disabled={outOfStock || isAddingToCart}
-                className="flex-1 bg-surface-muted/95 backdrop-blur text-brand-800 font-semibold py-2 rounded-lg hover:bg-brand-50 transition-all flex items-center justify-center gap-1.5 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-surface-muted/95 backdrop-blur text-brand-800 font-semibold py-2 rounded-lg hover:bg-brand-50 transition-colors flex items-center justify-center gap-1.5 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isAddingToCart ? (
                   <div className="w-4 h-4 border-2 border-brand-800 border-t-transparent rounded-full animate-spin" />
@@ -188,16 +249,18 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
                   <ShoppingBag size={15} />
                 )}
                 {outOfStock ? 'Sold Out' : 'Add to Cart'}
-              </button>
-              <button
+              </motion.button>
+              <motion.button
+                whileTap={buttonTap}
+                transition={SPRING_PRESS}
                 onClick={handleBuyNow}
                 disabled={outOfStock || isAddingToCart}
-                className="flex-1 bg-brand-800/95 backdrop-blur text-white font-semibold py-2 rounded-lg hover:bg-brand-900 transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-brand-800/95 backdrop-blur text-white font-semibold py-2 rounded-lg hover:bg-brand-900 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Buy Now
-              </button>
+              </motion.button>
             </div>
-          </div>
+          </motion.div>
         </Link>
 
         {/* Details */}
@@ -209,19 +272,24 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
                 {typeof product.category === 'object' ? product.category.name : product.category}
               </p>
             )}
-            
+
             {/* Title */}
             <h3 className="text-sm font-medium text-ink line-clamp-2 mb-2 group-hover:text-brand-800 transition-colors leading-snug">
               {product.name}
             </h3>
           </Link>
-          
-          {/* Dynamic Rating — only shows if real reviews exist */}
+
+          {/* Rating */}
           {product.reviewStats && product.reviewStats.totalReviews > 0 && (
             <div className="flex items-center gap-1 mb-2">
               <div className="flex">
                 {[...Array(5)].map((_, i) => (
-                  <Star key={i} size={11} fill={i < Math.round(product.reviewStats!.avgRating) ? 'currentColor' : 'none'} className={i < Math.round(product.reviewStats!.avgRating) ? 'text-accent' : 'text-surface-subtle'} />
+                  <Star
+                    key={i}
+                    size={11}
+                    fill={i < Math.round(product.reviewStats!.avgRating) ? 'currentColor' : 'none'}
+                    className={i < Math.round(product.reviewStats!.avgRating) ? 'text-accent' : 'text-surface-subtle'}
+                  />
                 ))}
               </div>
               <span className="text-[10px] text-ink-faint font-medium">({product.reviewStats.avgRating})</span>
@@ -240,12 +308,14 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
                 </span>
               )}
             </div>
-            
+
             {/* Mobile Add to Cart */}
-            <button
+            <motion.button
+              whileTap={buttonTap}
+              transition={SPRING_PRESS}
               onClick={handleAddToCart}
               disabled={outOfStock || isAddingToCart}
-              className="lg:hidden w-8 h-8 rounded-full bg-brand-50 text-brand-800 flex items-center justify-center hover:bg-brand-100 active:scale-95 transition-all disabled:opacity-50"
+              className="lg:hidden w-8 h-8 rounded-full bg-brand-50 text-brand-800 flex items-center justify-center hover:bg-brand-100 transition-colors disabled:opacity-50"
               aria-label="Add to cart"
             >
               {isAddingToCart ? (
@@ -253,10 +323,10 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
               ) : (
                 <ShoppingBag size={15} />
               )}
-            </button>
+            </motion.button>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Quick View Modal */}
       {showQuickView && (
@@ -264,6 +334,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
           product={product}
           onClose={() => setShowQuickView(false)}
           getImageSrc={getImageSrc}
+          originRect={cardRef.current?.getBoundingClientRect()}
         />
       )}
     </>

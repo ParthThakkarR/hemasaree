@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@lib/auth';
+import { ReviewSchema } from '@lib/validators';
 
 export const dynamic = 'force-dynamic';
 
@@ -80,19 +81,12 @@ export async function POST(req: NextRequest) {
 
     const userId = (session.user as any).id;
     const body = await req.json();
-    const { productId, rating, title, text, images } = body;
-
-    if (!productId || !rating || !text) {
-      return NextResponse.json({ error: 'Product, rating, and review text are required' }, { status: 400 });
+    const validation = ReviewSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error.issues[0].message }, { status: 400 });
     }
 
-    if (rating < 1 || rating > 5) {
-      return NextResponse.json({ error: 'Rating must be between 1 and 5' }, { status: 400 });
-    }
-
-    if (text.length < 10) {
-      return NextResponse.json({ error: 'Review must be at least 10 characters' }, { status: 400 });
-    }
+    const { productId, rating, title, text, images } = validation.data;
 
     // Check if user already reviewed this product
     const existing = await prisma.review.findUnique({

@@ -451,9 +451,9 @@ describe('authOptions', () => {
       expect(googleProvider?.clientSecret).toBe(process.env.GOOGLE_CLIENT_SECRET || '');
     });
 
-    it('allowsDangerousEmailAccountLinking is true on GoogleProvider', () => {
+    it('allowsDangerousEmailAccountLinking is false on GoogleProvider', () => {
       const googleProvider: any = authOptions.providers.find((p: any) => p.id === 'google');
-      expect(googleProvider?.allowDangerousEmailAccountLinking).toBe(true);
+      expect(googleProvider?.allowDangerousEmailAccountLinking).toBe(false);
     });
   });
 

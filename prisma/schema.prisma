@@ -308,6 +308,18 @@ model Review {
   @@index([isApproved])
 }
 
+model Image {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  data         String
+  mimeType     String
+  originalName String
+  createdAt    DateTime @default(now())
+  size         Int
+
+  @@map("images")
+  @@index([createdAt])
+}
+
 model Offer {
   id          String    @id @default(auto()) @map("_id") @db.ObjectId
   code        String    @unique

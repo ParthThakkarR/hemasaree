@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { ChevronRight, Calendar, Clock, ArrowLeft, User } from 'lucide-react';
 import { getBlogPostBySlug, BLOG_POSTS } from '@lib/blog-seo-clusters';
+import sanitizeHtml from 'sanitize-html';
 import type { Metadata } from 'next';
 
 type PageProps = { params: { slug: string } };
@@ -155,7 +156,18 @@ export default function BlogPostPage({ params }: PageProps) {
         {/* Article Content */}
         <div className="prose prose-lg md:prose-xl prose-stone max-w-none">
           {/* Inject static HTML content. In a real CMS, use PortableText */}
-          <div dangerouslySetInnerHTML={{ __html: post.content }} />
+          <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content, {
+            allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'figure', 'figcaption', 'video', 'source']),
+            allowedAttributes: {
+              ...sanitizeHtml.defaults.allowedAttributes,
+              img: ['src', 'alt', 'width', 'height', 'loading'],
+              a: ['href', 'target', 'rel', 'title'],
+              video: ['src', 'controls', 'width', 'height'],
+              source: ['src', 'type'],
+            },
+            allowedSchemes: ['http', 'https', 'mailto'],
+            disallowedTagsMode: 'discard',
+          }) }} />
         </div>
 
         {/* CTA Section */}

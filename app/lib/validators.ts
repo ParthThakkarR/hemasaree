@@ -179,6 +179,16 @@ export const AdminOrderUpdateSchema = z.discriminatedUnion('action', [
   UpdateOrderStatusSchema,
 ]);
 
+// --- Review Schemas ---
+
+export const ReviewSchema = z.object({
+  productId: z.string().min(1, { message: 'Product ID is required' }),
+  rating: z.coerce.number().int().min(1, { message: 'Rating must be between 1 and 5' }).max(5, { message: 'Rating must be between 1 and 5' }),
+  title: z.string().max(200).optional().nullable(),
+  text: z.string().min(10, { message: 'Review must be at least 10 characters' }).max(5000, { message: 'Review is too long' }),
+  images: z.array(z.string().url()).max(10).optional(),
+});
+
 // --- Generic Schemas ---
 
 export const IdParamSchema = z.object({

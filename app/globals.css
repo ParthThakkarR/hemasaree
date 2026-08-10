@@ -1,12 +1,16 @@
+/* ═══════════════════════════════════════════════════════
+   HEMASAREE — Design System Tokens
+   ═══════════════════════════════════════════════════════ */
 :root {
+  /* ── Color Palette ──────────────────────────────────── */
   --color-surface: #FFFDF7;
   --color-surface-muted: #F8F3EA;
   --color-surface-subtle: #EDE6D6;
-  
+
   --color-ink: #2A1F1F;
   --color-ink-muted: #5C4E4E;
   --color-ink-faint: #A09090;
-  
+
   --color-brand-50: #FBF7F4;
   --color-brand-100: #F5EDE6;
   --color-brand-200: #E7D5C8;
@@ -18,32 +22,59 @@
   --color-brand-800: #5E2A35;
   --color-brand-900: #4A2028;
   --color-brand-950: #1A0A0E;
-  
+
   --color-accent: #D4AF37;
   --color-accent-light: #E8C96B;
   --color-accent-dark: #AA8C2C;
 
   --color-dark-green: #1B3A2D;
 
+  /* ── Semantic Aliases ───────────────────────────────── */
   --background: var(--color-surface);
   --text-primary: var(--color-ink);
   --primary: var(--color-brand-800);
   --primary-light: var(--color-brand-600);
   --secondary: var(--color-accent);
-  
+
+  /* ── Radius Scale ───────────────────────────────────── */
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
   --radius-xl: 1rem;
-  
+
+  /* ── Shadow Scale ───────────────────────────────────── */
   --shadow-sm: 0 1px 3px 0 rgba(42, 31, 31, 0.04);
   --shadow-md: 0 4px 12px -2px rgba(42, 31, 31, 0.08), 0 2px 4px -1px rgba(42, 31, 31, 0.04);
   --shadow-lg: 0 12px 24px -4px rgba(42, 31, 31, 0.10), 0 4px 8px -2px rgba(42, 31, 31, 0.05);
-  
+  --shadow-luxury: 0 20px 40px -8px rgba(42, 31, 31, 0.14), 0 8px 16px -4px rgba(42, 31, 31, 0.06);
+
+  /* ── Legacy Transition Tokens (non-draggable CSS only) ─ */
   --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  
+
+  /* ── Border ─────────────────────────────────────────── */
   --border-color-light: #EDE6D6;
+
+  /* ── Spring Reference Tokens (JS use) ───────────────── */
+  /* Default UI: critically damped — dropdowns, modals, sheets */
+  --spring-ui-bounce: 0;
+  --spring-ui-duration: 0.35;
+  /* Momentum: slight bounce after flick/drag release */
+  --spring-momentum-bounce: 0.15;
+  --spring-momentum-duration: 0.3;
+  /* Expressive: wishlist pop, active indicator */
+  --spring-expressive-bounce: 0.3;
+  --spring-expressive-duration: 0.4;
+
+  /* ── Glass Material Tokens ──────────────────────────── */
+  --glass-bg: rgba(255, 253, 247, 0.85);
+  --glass-bg-strong: rgba(255, 253, 247, 0.95);
+  --glass-border: rgba(255, 255, 255, 0.40);
+  --glass-blur: blur(20px);
+  --glass-saturate: saturate(180%);
+
+  /* ── Input Press Ring ───────────────────────────────── */
+  --input-ring-opacity: 0;
 }
 
 @tailwind base;
@@ -55,6 +86,9 @@
   .pb-mobile-nav { padding-bottom: 4.5rem; }
 }
 
+/* ═══════════════════════════════════════════════════════
+   BASE
+   ═══════════════════════════════════════════════════════ */
 /* Fonts are now loaded via next/font in layout.tsx */
 *, *::before, *::after { box-sizing: border-box; padding: 0; margin: 0; }
 html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
@@ -69,11 +103,32 @@ body {
   font-family: var(--font-inter), 'Inter', sans-serif;
 }
 
+/* ── Optical Typography ─────────────────────────────── */
+/* Display / Headlines — Playfair / Cormorant */
 h1, h2, h3, h4, h5, h6, .font-serif {
   font-family: var(--font-playfair), var(--font-cormorant), 'Playfair Display', 'Cormorant Garamond', serif;
   font-weight: 600;
-  letter-spacing: -0.01em;
-  line-height: 1.2;
+  /* Tighten tracking at heading sizes */
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  font-optical-sizing: auto;
+}
+
+/* Scale tracking with viewport size */
+h1 { letter-spacing: -0.025em; line-height: 1.05; }
+h2 { letter-spacing: -0.02em;  line-height: 1.1;  }
+h3 { letter-spacing: -0.015em; line-height: 1.15; }
+h4, h5, h6 { letter-spacing: -0.01em; line-height: 1.2; }
+
+/* Body text — Inter */
+p, li, span, label, input, textarea, select, blockquote {
+  letter-spacing: 0.005em;
+  line-height: 1.6;
+}
+
+/* UI labels / buttons — slight positive tracking for legibility */
+button, .btn-label, [role="button"] {
+  letter-spacing: 0.02em;
 }
 
 a { color: inherit; text-decoration: none; transition: var(--transition); }
@@ -81,7 +136,88 @@ a:hover { color: var(--secondary); }
 img, video { max-width: 100%; height: auto; display: block; }
 button { cursor: pointer; }
 
-/* ── Skeleton Loading ──────────────────────────── */
+/* ═══════════════════════════════════════════════════════
+   POINTER-DOWN PRESS FEEDBACK
+   All interactive elements respond instantly on pointer-down
+   ═══════════════════════════════════════════════════════ */
+
+/* Generic press target — instant 80ms ease-out */
+.press-target {
+  transition: transform 80ms ease-out;
+}
+.press-target:active {
+  transform: scale(0.97);
+}
+
+/* Lighter press for large cards */
+.press-card:active {
+  transform: scale(0.99);
+  transition: transform 80ms ease-out;
+}
+
+/* ═══════════════════════════════════════════════════════
+   GLASS MATERIALS
+   ═══════════════════════════════════════════════════════ */
+
+/* Navbar scrolled glass */
+.glass-nav {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur) var(--glass-saturate);
+  -webkit-backdrop-filter: var(--glass-blur) var(--glass-saturate);
+  border-bottom: 1px solid var(--glass-border);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4), var(--shadow-sm);
+}
+
+/* Dropdown / popup glass panel */
+.glass-dropdown {
+  background: rgba(255, 253, 247, 0.92);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid rgba(237, 230, 214, 0.7);
+  box-shadow: var(--shadow-lg), 0 0 0 1px rgba(255,255,255,0.3) inset;
+}
+
+/* Modal / sheet glass */
+.glass-panel {
+  background: rgba(255, 253, 247, 0.95);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(237, 230, 214, 0.6);
+  box-shadow: var(--shadow-luxury);
+}
+
+/* Mobile nav glass */
+.glass-mobile-nav {
+  background: rgba(255, 253, 247, 0.92);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-top: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 -2px 20px rgba(42, 31, 31, 0.06);
+}
+
+/* Scroll edge fade — mask content scrolling under sticky chrome */
+.scroll-edge-fade {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 12px);
+  mask-image: linear-gradient(to bottom, transparent 0%, black 12px);
+}
+
+/* ═══════════════════════════════════════════════════════
+   INPUT PRESS FEEDBACK — instant ring on pointer-down
+   ═══════════════════════════════════════════════════════ */
+.input-press {
+  transition: box-shadow 60ms ease-out, border-color 60ms ease-out;
+  outline: none;
+}
+
+.input-press:focus,
+.input-press--focused {
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.35);
+  border-color: rgba(212, 175, 55, 0.5);
+}
+
+/* ═══════════════════════════════════════════════════════
+   SKELETON / LOADING
+   ═══════════════════════════════════════════════════════ */
 @keyframes shimmer {
   from { background-position: -200% 0; }
   to { background-position: 200% 0; }
@@ -97,16 +233,16 @@ button { cursor: pointer; }
   border-radius: var(--radius-md);
 }
 
-/* ── Gold Shimmer Animation ────────────────────── */
+/* ── Gold Shimmer ───────────────────────────────────── */
 @keyframes goldShimmer {
   0% { background-position: -200% center; }
   100% { background-position: 200% center; }
 }
 
 .gold-shimmer {
-  background: linear-gradient(90deg, 
-    var(--color-accent-dark) 0%, 
-    var(--color-accent-light) 50%, 
+  background: linear-gradient(90deg,
+    var(--color-accent-dark) 0%,
+    var(--color-accent-light) 50%,
     var(--color-accent-dark) 100%);
   background-size: 200% auto;
   -webkit-background-clip: text;
@@ -115,7 +251,7 @@ button { cursor: pointer; }
   animation: goldShimmer 3s ease-in-out infinite;
 }
 
-/* ── Luxury Divider ────────────────────────────── */
+/* ── Luxury Divider ─────────────────────────────────── */
 .luxury-divider {
   display: flex;
   align-items: center;
@@ -140,7 +276,7 @@ button { cursor: pointer; }
   flex-shrink: 0;
 }
 
-/* ── Scrollbar ─────────────────────────────────── */
+/* ── Scrollbar ──────────────────────────────────────── */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: var(--color-surface-muted); }
 ::-webkit-scrollbar-thumb { background: var(--color-brand-300); border-radius: 3px; }
@@ -149,29 +285,15 @@ button { cursor: pointer; }
 .hide-scrollbar::-webkit-scrollbar { display: none; }
 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* ── Accessibility ─────────────────────────────── */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-/* ── Mobile bottom nav spacer ──────────────────── */
+/* ── Mobile bottom nav spacer ───────────────────────── */
 @media (max-width: 1023px) {
   .pb-mobile-nav { padding-bottom: 4.5rem; }
   .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
 }
 
-/* ── Custom Utilities ──────────────────────────── */
-.glass-panel {
-  background: rgba(255, 253, 247, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(237, 230, 214, 0.6);
-  box-shadow: var(--shadow-md);
-}
-
+/* ═══════════════════════════════════════════════════════
+   COMPONENT UTILITIES
+   ═══════════════════════════════════════════════════════ */
 .premium-btn {
   background: linear-gradient(135deg, var(--primary), var(--primary-light));
   color: white;
@@ -180,12 +302,11 @@ button { cursor: pointer; }
   border-radius: var(--radius-md);
   font-weight: 500;
   letter-spacing: 0.02em;
-  transition: var(--transition-smooth);
   box-shadow: 0 4px 12px rgba(94, 42, 53, 0.2);
+  transition: box-shadow 200ms ease, background 200ms ease;
 }
 
 .premium-btn:hover {
-  transform: translateY(-2px);
   box-shadow: 0 6px 18px rgba(94, 42, 53, 0.3);
   color: white;
 }
@@ -210,21 +331,15 @@ button { cursor: pointer; }
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-color-light);
   box-shadow: var(--shadow-sm);
-  transition: var(--transition-smooth);
   overflow: hidden;
 }
 
-.premium-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
-}
-
-/* ── Section Title ─────────────────────────────── */
+/* ── Section Title ──────────────────────────────────── */
 .section-title {
   font-family: 'Playfair Display', serif;
   font-weight: 700;
   color: var(--color-ink);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 
 .section-subtitle {
@@ -234,15 +349,17 @@ button { cursor: pointer; }
   max-width: 520px;
 }
 
-/* ── Animations ────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════
+   ENTRY ANIMATIONS (for non-draggable elements)
+   ═══════════════════════════════════════════════════════ */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fadeInScale {
   from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  to   { opacity: 1; transform: scale(1); }
 }
 
 .animate-fade-in {
@@ -257,7 +374,14 @@ button { cursor: pointer; }
 .stagger-2 { animation-delay: 0.2s; }
 .stagger-3 { animation-delay: 0.3s; }
 
-/* ── Range Input Styling ───────────────────────── */
+/* ── Drag cursor ────────────────────────────────────── */
+.draggable { cursor: grab; user-select: none; }
+.draggable:active,
+.dragging { cursor: grabbing; }
+
+/* ═══════════════════════════════════════════════════════
+   RANGE INPUT STYLING
+   ═══════════════════════════════════════════════════════ */
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
@@ -304,15 +428,105 @@ input[type="range"].dual-range-input {
   background: transparent !important;
 }
 
-input[type="range"].dual-range-input::-webkit-slider-thumb {
-  pointer-events: auto;
-  margin-top: 0;
+input[type="range"].dual-range-input::-webkit-slider-thumb { pointer-events: auto; margin-top: 0; }
+input[type="range"].dual-range-input::-moz-range-thumb     { pointer-events: auto; }
+input[type="range"].dual-range-input::-ms-thumb            { pointer-events: auto; }
+
+/* ═══════════════════════════════════════════════════════
+   ACCESSIBILITY MEDIA QUERIES
+   ═══════════════════════════════════════════════════════ */
+
+/* ── prefers-reduced-motion ─────────────────────────── */
+/*
+   Replace all springs/slides with 200ms opacity crossfade.
+   Framer Motion reads this and disables its animations.
+   We belt-and-suspenders with CSS too.
+*/
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.2ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Skeleton: no shimmer movement, just static color */
+  .skeleton {
+    animation: none !important;
+    background: var(--color-brand-100) !important;
+  }
+
+  /* Gold shimmer: stop */
+  .gold-shimmer {
+    animation: none !important;
+    -webkit-text-fill-color: var(--color-accent-dark);
+    color: var(--color-accent-dark);
+  }
+
+  /* Drag carousels: fall back to native scroll */
+  .draggable { cursor: default; }
+
+  /* No parallax */
+  .parallax-layer { transform: none !important; }
 }
 
-input[type="range"].dual-range-input::-moz-range-thumb {
-  pointer-events: auto;
+/* ── prefers-reduced-transparency ───────────────────── */
+/*
+   Replace all glass/blur panels with solid surfaces.
+   Prevents dizziness from translucent layering.
+*/
+@media (prefers-reduced-transparency: reduce) {
+  .glass-nav,
+  .glass-dropdown,
+  .glass-panel,
+  .glass-mobile-nav {
+    background: var(--color-surface) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border-color: var(--color-surface-subtle) !important;
+  }
+
+  /* Solid overlay backgrounds */
+  .backdrop-blur,
+  [class*="backdrop-blur"] {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
 }
 
-input[type="range"].dual-range-input::-ms-thumb {
-  pointer-events: auto;
+/* ── prefers-contrast: more ─────────────────────────── */
+/*
+   Increase contrast for all interactive elements.
+   Near-solid backgrounds, defined borders.
+*/
+@media (prefers-contrast: more) {
+  :root {
+    --color-ink-muted: #3A2A2A;
+    --color-ink-faint: #5C4E4E;
+    --border-color-light: #5C4E4E;
+  }
+
+  .glass-nav,
+  .glass-dropdown,
+  .glass-panel,
+  .glass-mobile-nav {
+    background: var(--color-surface) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: 2px solid var(--color-ink) !important;
+  }
+
+  button, [role="button"], a {
+    outline-offset: 2px;
+  }
+
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  [role="button"]:focus-visible {
+    outline: 2px solid var(--color-ink) !important;
+    outline-offset: 2px !important;
+  }
 }

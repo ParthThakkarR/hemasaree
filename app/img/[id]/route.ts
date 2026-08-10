@@ -14,11 +14,13 @@ export async function GET(
     }
 
     const buffer = Buffer.from(image.data, 'base64');
+    const allowedOrigin = process.env.ALLOWED_ORIGIN || 'https://hemasarees.vercel.app';
+
     return new NextResponse(buffer, {
       headers: {
         'Content-Type': image.mimeType,
         'Cache-Control': 'public, max-age=31536000, immutable',
-        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Origin': allowedOrigin,
       },
     });
   } catch (error) {

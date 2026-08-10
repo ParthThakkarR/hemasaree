@@ -2,30 +2,36 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import ProductCard from '@components/ui/product-card';
 import ProductSkeleton from '@components/ui/product-skeleton';
 
 interface ProductSectionProps {
-  title: string;
-  subtitle?: string;
-  products: any[];
-  isLoading: boolean;
-  viewAllHref: string;
-  badge?: string;
-  bgClassName?: string;
+  title       : string;
+  subtitle    ?: string;
+  products    : any[];
+  isLoading   : boolean;
+  viewAllHref : string;
+  badge       ?: string;
+  bgClassName ?: string;
 }
 
-export default function ProductSection({ 
-  title, 
-  subtitle, 
-  products, 
-  isLoading, 
+const SPRING_UI  = { type: 'spring' as const, bounce: 0, duration: 0.5 };
+const SPRING_BTN = { type: 'spring' as const, bounce: 0, duration: 0.3 };
+
+export default function ProductSection({
+  title,
+  subtitle,
+  products,
+  isLoading,
   viewAllHref,
   badge,
-  bgClassName = 'bg-surface'
+  bgClassName = 'bg-surface',
 }: ProductSectionProps) {
+  const prefersReducedMotion = useReducedMotion();
+  const buttonTap = prefersReducedMotion ? {} : { scale: 0.96 };
+
   return (
     <section className={`py-16 lg:py-24 ${bgClassName}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -33,7 +39,7 @@ export default function ProductSection({
           initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
+          transition={SPRING_UI}
           className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-10"
         >
           <div>
@@ -50,12 +56,14 @@ export default function ProductSection({
               <span className="luxury-divider-icon" />
             </div>
           </div>
-          <Link
-            href={viewAllHref}
-            className="group inline-flex items-center gap-2 text-brand-800 font-semibold text-sm hover:text-brand-900 transition-colors bg-brand-50 px-5 py-2.5 rounded-full hover:bg-brand-100 active:scale-[0.98]"
-          >
-            View All <ArrowRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
-          </Link>
+          <motion.div whileTap={buttonTap} transition={SPRING_BTN}>
+            <Link
+              href={viewAllHref}
+              className="group inline-flex items-center gap-2 text-brand-800 font-semibold text-sm hover:text-brand-900 transition-colors bg-brand-50 px-5 py-2.5 rounded-full hover:bg-brand-100"
+            >
+              View All <ArrowRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
+            </Link>
+          </motion.div>
         </motion.div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5 lg:gap-6">
@@ -68,10 +76,10 @@ export default function ProductSection({
             : products.slice(0, 4).map((product, i) => (
                 <motion.div
                   key={product.id}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 24 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ delay: i * 0.08, duration: 0.4 }}
+                  transition={{ ...SPRING_UI, delay: i * 0.07 }}
                 >
                   <ProductCard product={product} priority={i < 2} />
                 </motion.div>

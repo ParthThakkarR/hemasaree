@@ -51,7 +51,7 @@ export async function POST(req: Request) {
     }
 
     // Hash the new password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 12);
 
     // Update the user's password and clear the reset token fields
     await prisma.user.update({
