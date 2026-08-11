@@ -11,7 +11,7 @@ import {
   animate,
 } from 'framer-motion';
 import { ArrowRight, Pause, Play } from 'lucide-react';
-import { artisanStories, type ArtisanStory } from '@/lib/content/stories';
+import { artisanStories } from '@/lib/content/stories';
 import { useSiteSettings } from '@contexts/site-settings-context';
 
 const AUTO_ADVANCE_MS = 5500;

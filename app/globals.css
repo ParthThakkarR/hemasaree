@@ -14,7 +14,9 @@
  * 7. Accessibility           — reduced-motion, reduced-transparency, high-contrast
  */
 
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* ═══════════════════════════════════════════════════════════════════════════
    1. SEMANTIC COLOR TOKENS — Earth & Heirloom

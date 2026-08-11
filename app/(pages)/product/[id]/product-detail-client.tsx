@@ -5,7 +5,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import { motion } from 'framer-motion';
 import { ChevronRight, Home, Share2, MessageCircle, Link2 } from 'lucide-react';
 import { useCart } from '@contexts/cart-context';
 import { useWishlist } from '@contexts/wishlist-context';
