@@ -1,178 +1,296 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { motion, useScroll, useTransform, useSpring, useReducedMotion } from 'framer-motion';
-import { ArrowRight, Star } from 'lucide-react';
+import {
+  motion,
+  AnimatePresence,
+  useMotionValue,
+  useReducedMotion,
+  animate,
+} from 'framer-motion';
+import { ArrowRight, Pause, Play } from 'lucide-react';
+import { artisanStories, type ArtisanStory } from '@/lib/content/stories';
 import { useSiteSettings } from '@contexts/site-settings-context';
-import { urlFor } from '@/sanity/lib/image';
 
-const DEFAULTS = {
-  badge           : 'Handpicked Collection 2026',
-  heading         : 'Premium Silk, Bridal &',
-  headingHighlight: 'Designer Sarees Online',
-  subtitle        : 'Discover exquisite sarees crafted by master artisans. From pure Kanchipuram silk to contemporary handlooms — find the perfect drape for every occasion.',
-  heroImage1      : 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35',
-  heroImage2      : 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&q=80&w=800',
-};
+const AUTO_ADVANCE_MS = 5500;
+const DRAG_THRESHOLD  = 60; // px to trigger slide change
 
-const SPRING_UI   = { type: 'spring' as const, bounce: 0, duration: 0.5 };
-const SPRING_BTN  = { type: 'spring' as const, bounce: 0, duration: 0.3 };
+// Spring presets
+const SPRING_SLIDE = { type: 'spring' as const, bounce: 0, duration: 0.55 };
+const SPRING_BTN   = { type: 'spring' as const, bounce: 0, duration: 0.3 };
 
 export default function HeroSection() {
-  const [stats, setStats] = useState<{ totalOrders: number; avgRating: number; totalReviews: number } | null>(null);
-  const { settings }      = useSiteSettings();
+  const [current, setCurrent]   = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const prefersReducedMotion = useReducedMotion();
-  const sectionRef        = useRef<HTMLElement>(null);
+  const { settings }         = useSiteSettings();
 
-  // Parallax scroll refs
-  const { scrollY } = useScroll();
+  const dragX       = useMotionValue(0);
+  const pointerDown = useRef(false);
+  const startX      = useRef(0);
+  const timerRef    = useRef<ReturnType<typeof setTimeout>>();
 
-  // Image 1 parallax: -40px over 400px scroll
-  const img1YRaw = useTransform(scrollY, [0, 400], [0, -40]);
-  const img1Y    = useSpring(img1YRaw, { stiffness: 80, damping: 25 });
+  const stories = artisanStories;
+  const count   = stories.length;
 
-  // Image 2 parallax: -20px over 400px scroll (slower)
-  const img2YRaw = useTransform(scrollY, [0, 400], [0, -20]);
-  const img2Y    = useSpring(img2YRaw, { stiffness: 80, damping: 25 });
+  const goTo = useCallback((idx: number) => {
+    setCurrent(((idx % count) + count) % count);
+  }, [count]);
 
+  // Auto-advance
   useEffect(() => {
-    fetch('/api/products/stats')
-      .then(res => res.json())
-      .then(data => data.global && setStats(data.global))
-      .catch(() => {});
-  }, []);
+    if (isPaused || prefersReducedMotion) return;
+    timerRef.current = setTimeout(() => goTo(current + 1), AUTO_ADVANCE_MS);
+    return () => clearTimeout(timerRef.current);
+  }, [current, isPaused, goTo, prefersReducedMotion]);
 
-  const heroTitle    = settings?.heroBanner?.title || DEFAULTS.heading;
-  const heroSubtitle = settings?.heroBanner?.subtitle || DEFAULTS.subtitle;
-  const heroImage1   = settings?.heroBanner?.image
-    ? urlFor(settings.heroBanner.image).url()
-    : DEFAULTS.heroImage1;
+  // Drag handlers
+  const handlePointerDown = (e: React.PointerEvent) => {
+    pointerDown.current = true;
+    startX.current = e.clientX;
+    dragX.set(0);
+    setIsDragging(false);
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
 
-  const buttonTap = prefersReducedMotion ? {} : { scale: 0.96 };
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!pointerDown.current) return;
+    const delta = e.clientX - startX.current;
+    if (Math.abs(delta) > 4) setIsDragging(true);
+    dragX.set(delta);
+  };
+
+  const handlePointerUp = () => {
+    if (!pointerDown.current) return;
+    pointerDown.current = false;
+
+    const delta = dragX.get();
+    animate(dragX, 0, { duration: 0.15 });
+
+    if (Math.abs(delta) > DRAG_THRESHOLD) {
+      goTo(delta < 0 ? current + 1 : current - 1);
+    }
+    setTimeout(() => setIsDragging(false), 50);
+  };
+
+  const story = stories[current];
+
+  // Slide variants
+  const slideVariants = prefersReducedMotion
+    ? {
+        enter : { opacity: 0 },
+        center: { opacity: 1, transition: { duration: 0.2 } },
+        exit  : { opacity: 0, transition: { duration: 0.2 } },
+      }
+    : {
+        enter : { opacity: 0, scale: 1.04 },
+        center: { opacity: 1, scale: 1, transition: SPRING_SLIDE },
+        exit  : { opacity: 0, scale: 0.98, transition: { duration: 0.3 } },
+      };
+
+  const textVariants = prefersReducedMotion
+    ? {
+        enter : { opacity: 0 },
+        center: { opacity: 1, transition: { duration: 0.2 } },
+        exit  : { opacity: 0, transition: { duration: 0.15 } },
+      }
+    : {
+        enter : { opacity: 0, y: 20 },
+        center: { opacity: 1, y: 0, transition: { ...SPRING_SLIDE, delay: 0.15 } },
+        exit  : { opacity: 0, y: -10, transition: { duration: 0.2 } },
+      };
 
   return (
-    <section ref={sectionRef} className="relative pt-8 lg:pt-16 pb-16 lg:pb-24 overflow-hidden bg-surface">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-        <div className="grid lg:grid-cols-2 gap-10 lg:gap-8 items-center">
+    <section
+      className="relative w-full overflow-hidden"
+      style={{ height: 'min(92vh, 680px)' }}
+      aria-roledescription="carousel"
+      aria-label="Featured artisan stories"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+    >
+      {/* ── Background slides ── */}
+      <AnimatePresence initial={false} mode="sync">
+        <motion.div
+          key={`bg-${current}`}
+          variants={slideVariants}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          className="absolute inset-0"
+          aria-hidden="true"
+        >
+          <Image
+            src={story.sareeImage}
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-center"
+            draggable={false}
+          />
+          {/* Deep vignette — bottom 65% */}
+          <div className="absolute inset-0 vignette-bottom" />
+          {/* Side vignettes for depth */}
+          <div className="absolute inset-0" style={{
+            background: 'linear-gradient(to right, rgba(13,11,10,0.35) 0%, transparent 30%, transparent 70%, rgba(13,11,10,0.15) 100%)'
+          }} />
+        </motion.div>
+      </AnimatePresence>
 
-          {/* Left — Text content */}
+      {/* ── Content overlay ── */}
+      <div className="relative h-full flex flex-col justify-end px-6 sm:px-10 lg:px-16 pb-12 sm:pb-16 max-w-4xl">
+
+        {/* Artisan badge */}
+        <AnimatePresence mode="wait">
           <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={SPRING_UI}
-            className="max-w-xl"
+            key={`badge-${current}`}
+            variants={textVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            className="mb-4"
           >
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-muted border border-surface-subtle text-ink-muted text-xs font-semibold uppercase tracking-wider mb-6">
-              <motion.span
-                className="w-1.5 h-1.5 rounded-full bg-accent"
-                animate={prefersReducedMotion ? {} : { scale: [1, 1.3, 1] }}
-                transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
-              />
-              {DEFAULTS.badge}
-            </div>
-
-            <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-ink leading-[1.05] mb-5">
-              {settings?.heroBanner?.title ? (
-                <>{heroTitle}</>
-              ) : (
-                <>
-                  {DEFAULTS.heading}{' '}
-                  <span className="text-brand-800 italic">{DEFAULTS.headingHighlight}</span>
-                </>
-              )}
-            </h1>
-
-            <p className="text-base lg:text-lg text-ink-muted mb-8 leading-relaxed max-w-lg">
-              {heroSubtitle}
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-3 mb-8">
-              <motion.div whileTap={buttonTap} transition={SPRING_BTN}>
-                <Link
-                  href="/products?category=Bridal"
-                  className="group inline-flex items-center justify-center gap-2 bg-brand-800 hover:bg-brand-900 text-white px-7 py-3.5 rounded-xl font-semibold transition-colors shadow-brand-md"
-                >
-                  Explore Bridal Collection
-                  <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                </Link>
-              </motion.div>
-              <motion.div whileTap={buttonTap} transition={SPRING_BTN}>
-                <Link
-                  href="/products"
-                  className="inline-flex items-center justify-center gap-2 bg-transparent hover:bg-surface-muted text-brand-800 border border-brand-800/30 px-7 py-3.5 rounded-xl font-semibold transition-colors"
-                >
-                  Shop All Sarees
-                </Link>
-              </motion.div>
-            </div>
-
-            {/* Social Proof */}
-            {stats && stats.totalOrders > 0 && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.4, duration: 0.4 }}
-                className="flex items-center gap-3 text-sm text-ink-muted"
+            <div className="inline-flex items-center gap-2.5 region-badge !bg-white/10 !border-white/20 !text-white/70 backdrop-blur-sm">
+              <span
+                className="font-noto-serif text-white/90 font-bold"
+                lang="hi"
+                aria-label={`Artisan: ${story.name}`}
               >
-                {stats.avgRating > 0 && (
-                  <div className="flex text-accent">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} size={14} fill={i < Math.round(stats.avgRating) ? 'currentColor' : 'none'} className={i < Math.round(stats.avgRating) ? '' : 'text-surface-subtle'} />
-                    ))}
-                  </div>
-                )}
-                <span className="font-medium">
-                  {stats.totalOrders.toLocaleString('en-IN')}+ orders served
-                  {stats.avgRating > 0 && ` · ${stats.avgRating} rating`}
-                </span>
-              </motion.div>
-            )}
+                {story.nameDevanagari}
+              </span>
+              <span className="text-white/40">·</span>
+              <span>{story.region}</span>
+            </div>
           </motion.div>
+        </AnimatePresence>
 
-          {/* Right — Images with parallax */}
+        {/* Voice line — her words */}
+        <AnimatePresence mode="wait">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ ...SPRING_UI, delay: 0.1 }}
-            className="relative h-[420px] sm:h-[480px] lg:h-[560px]"
+            key={`voice-${current}`}
+            variants={textVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            className="mb-6"
           >
-            {/* Main image */}
-            <motion.div
-              style={{ y: prefersReducedMotion ? 0 : img1Y }}
-              className="absolute right-0 top-0 w-[78%] h-[88%] rounded-2xl overflow-hidden shadow-luxury z-10 parallax-layer"
+            <blockquote className="font-noto-serif text-white font-bold leading-tight"
+              style={{ fontSize: 'clamp(1.75rem, 4vw, 3rem)' }}
             >
-              <Image
-                src={heroImage1}
-                alt="Beautiful South Indian Saree"
-                fill
-                sizes="(max-width: 1024px) 78vw, 38vw"
-                className="object-cover object-top"
-                priority
-              />
-            </motion.div>
-
-            {/* Inset image */}
-            <motion.div
-              style={{ y: prefersReducedMotion ? 0 : img2Y }}
-              className="absolute left-0 bottom-0 w-[48%] h-[60%] rounded-2xl overflow-hidden shadow-luxury z-20 border-4 border-surface parallax-layer"
-            >
-              <Image
-                src={DEFAULTS.heroImage2}
-                alt="Saree Fabric Detail"
-                fill
-                sizes="(max-width: 1024px) 48vw, 24vw"
-                className="object-cover object-top"
-              />
-            </motion.div>
-
-            {/* Decorative ring */}
-            <div className="absolute -bottom-4 right-8 w-24 h-24 rounded-full border-2 border-accent/20 z-0" />
+              &ldquo;{story.voiceLine}&rdquo;
+            </blockquote>
+            <div className="mt-3 flex items-center gap-2">
+              <p className="text-white/60 text-sm">
+                — {story.name}, {story.age}, {story.village}
+              </p>
+              <span className="text-white/30">·</span>
+              <p className="text-white/50 text-xs italic">{story.craft}</p>
+            </div>
           </motion.div>
-        </div>
+        </AnimatePresence>
+
+        {/* CTAs */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={`cta-${current}`}
+            variants={textVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            className="flex flex-col sm:flex-row gap-3"
+          >
+            <motion.div whileTap={{ scale: 0.96 }} transition={SPRING_BTN}>
+              <Link
+                href={`/products?category=${encodeURIComponent(story.categoryFilter)}`}
+                className="group inline-flex items-center gap-2.5 bg-kumkum text-chandan px-7 py-3.5 rounded-xl font-bold font-noto-serif text-base hover:bg-kumkum-deep transition-colors shadow-kumkum-md"
+                onClick={(e) => { if (isDragging) e.preventDefault(); }}
+              >
+                Enter her story
+                <ArrowRight size={18} className="group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />
+              </Link>
+            </motion.div>
+            <motion.div whileTap={{ scale: 0.96 }} transition={SPRING_BTN}>
+              <Link
+                href="/products"
+                className="inline-flex items-center gap-2 text-white/80 hover:text-white border border-white/25 hover:border-white/50 px-7 py-3.5 rounded-xl font-medium text-base backdrop-blur-sm transition-colors"
+                onClick={(e) => { if (isDragging) e.preventDefault(); }}
+              >
+                All sarees
+              </Link>
+            </motion.div>
+          </motion.div>
+        </AnimatePresence>
       </div>
+
+      {/* ── Bottom controls ── */}
+      <div className="absolute bottom-5 right-6 sm:right-10 flex items-center gap-3">
+        {/* Pause/play */}
+        <motion.button
+          whileTap={{ scale: 0.88 }}
+          transition={SPRING_BTN}
+          onClick={() => setIsPaused(p => !p)}
+          aria-label={isPaused ? 'Resume autoplay' : 'Pause autoplay'}
+          className="w-8 h-8 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center text-white/70 hover:text-white hover:bg-white/25 transition-colors"
+        >
+          {isPaused
+            ? <Play  size={13} fill="currentColor" />
+            : <Pause size={13} fill="currentColor" />
+          }
+        </motion.button>
+
+        {/* Story dots */}
+        <div className="flex items-center gap-2" role="tablist" aria-label="Story selector">
+          {stories.map((s, i) => (
+            <button
+              key={s.id}
+              role="tab"
+              aria-selected={i === current}
+              aria-label={`Story ${i + 1}: ${s.name}`}
+              onClick={() => { goTo(i); setIsPaused(true); }}
+              className="group relative"
+            >
+              <motion.span
+                animate={{
+                  width: i === current ? '2rem' : '0.5rem',
+                  opacity: i === current ? 1 : 0.4,
+                }}
+                transition={{ type: 'spring', bounce: 0, duration: 0.35 }}
+                className="block h-1.5 rounded-full bg-white"
+                style={{ display: 'block' }}
+              />
+            </button>
+          ))}
+        </div>
+
+        {/* Story counter */}
+        <span className="text-white/40 text-xs tabular-nums">
+          {current + 1} / {count}
+        </span>
+      </div>
+
+      {/* ── Auto-advance progress bar ── */}
+      {!isPaused && !prefersReducedMotion && (
+        <div
+          className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/10"
+          aria-hidden="true"
+        >
+          <motion.div
+            key={`progress-${current}`}
+            className="h-full bg-haldi/70"
+            initial={{ width: '0%' }}
+            animate={{ width: '100%' }}
+            transition={{ duration: AUTO_ADVANCE_MS / 1000, ease: 'linear' }}
+          />
+        </div>
+      )}
     </section>
   );
 }

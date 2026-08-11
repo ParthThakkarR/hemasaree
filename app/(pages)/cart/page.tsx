@@ -31,6 +31,9 @@ function CartPageContent() {
   const [discount, setDiscount] = useState(0);
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
 
+  // Artisan blessing note — optional message to the weaver
+  const [blessingNote, setBlessingNote] = useState('');
+
   useEffect(() => {
     fetch('/api/settings').then(r => r.json()).then(data => {
       if(data && !data.error) setSettings(data);
@@ -242,8 +245,8 @@ function CartPageContent() {
       
       if (!res.ok) throw new Error(data.error || 'Failed to place order');
       
-      toast.success('Order placed successfully!');
-      await refreshCart(); // Clear local cart state
+      toast.success('Your chapter begins ♥');
+      await refreshCart();
       router.push('/orders');
     } catch (err: any) {
       toast.error(err.message);
@@ -262,12 +265,14 @@ function CartPageContent() {
   // Render States
   if (!user) {
     return (
-      <div className="min-h-screen bg-surface pt-32 pb-16 flex flex-col items-center justify-center text-center px-4">
-        <Lock className="w-16 h-16 text-brand-300 mb-6" />
-        <h2 className="text-3xl font-serif font-bold text-ink mb-4">Sign in to view your cart</h2>
-        <p className="text-ink-muted mb-8">Access your saved items, addresses, and track your orders.</p>
-        <Link href="/login" className="bg-brand-800 text-white px-8 py-3 rounded-xl font-semibold hover:bg-brand-900 transition-colors">
-          Sign In / Register
+      <div className="min-h-screen bg-chandan pt-32 pb-16 flex flex-col items-center justify-center text-center px-4">
+        <Lock className="w-16 h-16 text-kajal-faint mb-6" strokeWidth={1} />
+        <h2 className="font-noto-serif text-3xl font-bold text-kajal mb-4">Return home first</h2>
+        <p className="text-kajal-soft mb-8 max-w-xs">
+          Sign in to continue the adoption. Your sarees are waiting.
+        </p>
+        <Link href="/login" className="bg-kumkum text-chandan px-8 py-3 rounded-xl font-bold hover:bg-kumkum-deep transition-colors">
+          Return home
         </Link>
       </div>
     );
@@ -277,44 +282,48 @@ function CartPageContent() {
 
   if (combinedLoading && !effectiveCart) {
     return (
-      <div className="min-h-screen bg-surface pt-32 pb-16 flex justify-center">
-        <div className="w-8 h-8 border-4 border-brand-200 border-t-brand-800 rounded-full animate-spin" />
+      <div className="min-h-screen bg-chandan pt-32 pb-16 flex justify-center">
+        <div className="w-8 h-8 border-4 border-chandan-warm border-t-kumkum rounded-full animate-spin" />
       </div>
     );
   }
 
   if (!effectiveCart || effectiveCart.items.length === 0) {
     return (
-      <div className="min-h-screen bg-surface pt-32 pb-16 flex flex-col items-center justify-center text-center px-4">
-        <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring' }}>
-          <ShoppingBag className="w-20 h-20 text-surface-subtle mb-6 mx-auto" strokeWidth={1} />
+      <div className="min-h-screen bg-chandan pt-32 pb-16 flex flex-col items-center justify-center text-center px-4">
+        <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', bounce: 0 }}>
+          <ShoppingBag className="w-20 h-20 text-chandan-warm mb-6 mx-auto" strokeWidth={1} />
         </motion.div>
-        <h2 className="text-3xl font-serif font-bold text-ink mb-4">Your cart is empty</h2>
-        <p className="text-ink-muted mb-8 max-w-md">Discover our elegant collections and find the perfect saree for your next occasion.</p>
-        <Link href="/products" className="bg-brand-800 text-white px-8 py-3 rounded-xl font-semibold hover:bg-brand-900 transition-colors shadow-md">
-          Start Shopping
+        <h2 className="font-noto-serif text-3xl font-bold text-kajal mb-4">No stories chosen yet</h2>
+        <p className="text-kajal-soft mb-8 max-w-md">
+          Each saree here has a woman behind it, a region, a craft. Go find the one that speaks to you.
+        </p>
+        <Link href="/products" className="bg-kumkum text-chandan px-8 py-3 rounded-xl font-bold hover:bg-kumkum-deep transition-colors">
+          Discover sarees
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-surface pt-32 lg:pt-40 pb-24">
+    <div className="min-h-screen bg-chandan pt-32 lg:pt-40 pb-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Header & Breadcrumb */}
+        {/* Header — The Adoption Ritual */}
         <div className="mb-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className="text-4xl font-serif font-bold text-ink">Checkout</h1>
-            <p className="text-sm text-ink-muted mt-2 uppercase tracking-wider font-semibold">Complete your order in 3 simple steps</p>
+            <p className="chapter-eyebrow mb-1">The Adoption Ritual</p>
+            <h1 className="font-noto-serif text-4xl font-bold text-kajal">Seal the promise</h1>
+            <p className="text-kajal-soft mt-2 text-sm">Three steps. Then it&apos;s yours &mdash; and you are hers.</p>
           </div>
           
-          <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-[10px]">
-            <span className={step === 1 ? 'text-brand-800 bg-brand-50 px-2 py-1 rounded' : 'text-ink-faint'}>Cart</span>
-            <ArrowRight size={14} className="text-ink-faint" />
-            <span className={step === 2 ? 'text-brand-800 bg-brand-50 px-2 py-1 rounded' : 'text-ink-faint'}>Shipping</span>
-            <ArrowRight size={14} className="text-ink-faint" />
-            <span className={step === 3 ? 'text-brand-800 bg-brand-50 px-2 py-1 rounded' : 'text-ink-faint'}>Payment</span>
+          {/* Step indicators — ritual names */}
+          <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest">
+            <span className={step === 1 ? 'text-kumkum bg-kumkum/8 px-2.5 py-1 rounded-lg' : 'text-kajal-faint'}>Your stories</span>
+            <ArrowRight size={12} className="text-kajal-faint" />
+            <span className={step === 2 ? 'text-kumkum bg-kumkum/8 px-2.5 py-1 rounded-lg' : 'text-kajal-faint'}>Where it goes</span>
+            <ArrowRight size={12} className="text-kajal-faint" />
+            <span className={step === 3 ? 'text-kumkum bg-kumkum/8 px-2.5 py-1 rounded-lg' : 'text-kajal-faint'}>Honour the hands</span>
           </div>
         </div>
 
@@ -348,13 +357,44 @@ function CartPageContent() {
                 />
               )}
               {step === 3 && (
-                <CartPayment 
-                  key="step3"
-                  addressMode={addressMode}
-                  selectedSavedAddress={selectedSavedAddress}
-                  newAddr={newAddr}
-                  setStep={setStep}
-                />
+                <motion.div
+                  key="step3-ritual"
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ type: 'spring', bounce: 0, duration: 0.4 }}
+                  className="space-y-6"
+                >
+                  {/* Optional blessing note */}
+                  <div className="paper-surface rounded-2xl p-6">
+                    <h2 className="font-noto-serif text-xl font-bold text-kajal mb-1">
+                      A note to the weaver
+                      <span className="ml-2 text-sm text-kajal-whisper font-normal font-inter">(optional)</span>
+                    </h2>
+                    <p className="text-sm text-kajal-soft mb-4 leading-relaxed">
+                      We&apos;ll print this on a handmade card and place it in the box. Sometimes the artisan
+                      writes back. Most times the cloth already said everything.
+                    </p>
+                    <textarea
+                      id="blessing-note"
+                      value={blessingNote}
+                      onChange={(e) => setBlessingNote(e.target.value)}
+                      maxLength={200}
+                      rows={3}
+                      placeholder="Thank you for the 47 days…"
+                      aria-label="Optional message to the artisan"
+                      className="w-full px-4 py-3 rounded-xl border border-chandan-warm bg-chandan text-kajal text-sm resize-none input-press placeholder:text-kajal-faint focus:border-haldi focus:ring-2 focus:ring-haldi/20 outline-none transition"
+                    />
+                    <p className="text-xs text-kajal-faint mt-1.5 text-right">{blessingNote.length}/200</p>
+                  </div>
+
+                  <CartPayment
+                    addressMode={addressMode}
+                    selectedSavedAddress={selectedSavedAddress}
+                    newAddr={newAddr}
+                    setStep={setStep}
+                  />
+                </motion.div>
               )}
             </AnimatePresence>
           </div>
@@ -389,7 +429,11 @@ function CartPageContent() {
 
 export default function CartPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-surface pt-32 pb-16 flex justify-center"><div className="w-8 h-8 border-4 border-brand-200 border-t-brand-800 rounded-full animate-spin" /></div>}>
+    <Suspense fallback={
+      <div className="min-h-screen bg-chandan pt-32 pb-16 flex justify-center">
+        <div className="w-8 h-8 border-4 border-chandan-warm border-t-kumkum rounded-full animate-spin" />
+      </div>
+    }>
       <CartPageContent />
     </Suspense>
   );

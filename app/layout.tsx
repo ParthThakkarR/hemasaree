@@ -1,10 +1,30 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, Playfair_Display, Cormorant_Garamond } from 'next/font/google';
+import { Inter, Noto_Serif_Devanagari, Literata } from 'next/font/google';
 import '@/app/globals.css';
 
-const inter = Inter({ subsets: ['latin'], display: 'swap', variable: '--font-inter' });
-const playfair = Playfair_Display({ subsets: ['latin'], display: 'swap', variable: '--font-playfair' });
-const cormorant = Cormorant_Garamond({ subsets: ['latin'], display: 'swap', weight: ['400', '500', '600', '700'], style: ['normal', 'italic'], variable: '--font-cormorant' });
+// UI / Functional — invisible utility layer
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+});
+
+// Display / Headlines — Noto Serif Devanagari bridges Sanskrit heritage & modern web
+// display: 'optional' → never blocks render; Latin subset loads first
+const notoSerif = Noto_Serif_Devanagari({
+  subsets: ['latin', 'devanagari'],
+  display: 'optional',
+  variable: '--font-noto-serif',
+  weight: ['400', '700'],
+});
+
+// Body / Story — designed for long-form reading; literary warmth
+const literata = Literata({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-literata',
+  axes: ['opsz'],
+});
 import { AuthProvider } from '@contexts/auth-context';
 import { CartProvider } from '@contexts/cart-context';
 import { WishlistProvider } from '@contexts/wishlist-context';
@@ -75,7 +95,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 
 export const viewport: Viewport = {
-  themeColor: '#5E2A35',
+  themeColor: '#8B2635', // kumkum
 };
 
 import GlobalErrorBoundary from '@components/global-error-boundary';
@@ -87,7 +107,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang="en">
-      <body className={`bg-white text-ink antialiased ${inter.variable} ${playfair.variable} ${cormorant.variable}`}>
+      <body className={`bg-chandan text-kajal antialiased ${inter.variable} ${notoSerif.variable} ${literata.variable}`}>
         <NextTopLoader color="#D4AF37" showSpinner={false} height={3} />
         <GlobalErrorBoundary>
           <SiteSettingsProvider settings={settings}>
@@ -105,14 +125,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   toastOptions={{
                     duration: 3000,
                     style: {
-                      fontFamily: 'Inter, sans-serif',
+                      fontFamily: 'var(--font-inter, Inter, system-ui, sans-serif)',
                       fontSize: '14px',
                       borderRadius: '12px',
-                      border: '1px solid #EDE6D6',
-                      background: '#FFFDF7',
-                      color: '#2A1F1F',
+                      border: '1px solid #EDE0D0',
+                      background: '#FDF8F3',  // chandan
+                      color: '#1A1614',        // kajal
                     },
-                    success: { iconTheme: { primary: '#1B3A2D', secondary: '#fff' } },
+                    success: { iconTheme: { primary: '#2D5A3D', secondary: '#fff' } }, // neem
+                    error: { iconTheme: { primary: '#8B2635', secondary: '#fff' } },   // kumkum
                   }}
                 />
                 </WishlistProvider>
