@@ -138,7 +138,7 @@ export default function ProductInfo({
 
       {/* WhatsApp Inquiry */}
       <a
-        href={`https://wa.me/919876543210?text=${encodeURIComponent(`Hi, I'm interested in ${product.name} (₹${product.price.toLocaleString('en-IN')}). Can you help me?`)}`}
+        href={`https://wa.me/919429475736?text=${encodeURIComponent(`Hi, I'm interested in ${product.name} (₹${product.price.toLocaleString('en-IN')}). Can you help me?`)}`}
         target="_blank"
         rel="noopener noreferrer"
         className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold text-sm bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/30 hover:bg-[#25D366]/20 transition-all active:scale-[0.98]"
