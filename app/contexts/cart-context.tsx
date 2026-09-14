@@ -37,6 +37,9 @@ interface CartContextType {
   cartCount: number;
   isLoading: boolean;
   error: string | null;
+  isCartOpen: boolean;
+  openCart: () => void;
+  closeCart: () => void;
   addToCart: (payload: AddToCartPayload) => Promise<boolean>;
   updateQuantity: (cartItemId: string, quantity: number) => Promise<boolean>;
   removeItem: (cartItemId: string) => Promise<boolean>;
@@ -63,6 +66,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<Cart | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const fetchedRef = useRef(false);
 
   const cartCount = cart?.items.reduce((sum, i) => sum + i.quantity, 0) ?? 0;
@@ -122,6 +126,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         await refreshCart();
       }
       toast.success('Added to cart');
+      setIsCartOpen(true);
       return true;
     } catch (err: any) {
       setError(err.message);
@@ -177,10 +182,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const clearError = useCallback(() => setError(null), []);
+  const openCart = useCallback(() => setIsCartOpen(true), []);
+  const closeCart = useCallback(() => setIsCartOpen(false), []);
 
   return (
     <CartContext.Provider value={{
       cart, cartCount, isLoading, error,
+      isCartOpen, openCart, closeCart,
       addToCart, updateQuantity, removeItem, refreshCart, clearError,
     }}>
       {children}

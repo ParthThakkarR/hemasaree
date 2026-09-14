@@ -245,6 +245,7 @@ export default function ProductGallery({ images, name, getImageSrc, fabric, colo
                 alt={`${descriptiveAlt} - View ${idx + 1}`}
                 fill
                 priority={idx === 0}
+                loading={idx === 0 ? undefined : 'lazy'}
                 className="object-cover object-top transition-transform duration-700 group-hover:scale-105"
                 sizes="58vw"
               />

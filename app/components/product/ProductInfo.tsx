@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Heart, ShoppingBag, Check, Truck, ShieldCheck, Star, Lock, MessageCircle, CheckCircle2 } from 'lucide-react';
+import { Heart, ShoppingBag, Check, Truck, ShieldCheck, Star, Lock, MessageCircle, CheckCircle2, Smartphone, CreditCard, Banknote, RotateCcw } from 'lucide-react';
 import { motion } from 'framer-motion';
 import BenefitReveal from '@components/ui/BenefitReveal';
 import GuaranteeBadge from '@components/ui/GuaranteeBadge';
@@ -139,6 +139,28 @@ export default function ProductInfo({
         <button onClick={() => router.push(`/cart?buyNow=${product.id}&polish=${polish}`)} disabled={product.stock === 0 || isAddingToCart} className="flex-1 bg-brand-800 text-white py-3.5 rounded-xl font-bold text-base hover:bg-brand-900 transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-brand-sm active:scale-[0.98]">
           Buy Now
         </button>
+      </div>
+
+      {/* Decision trust cluster — returns + payments at the CTA moment */}
+      <div className="rounded-xl border border-chandan-warm bg-chandan-deep/60 px-4 py-3 space-y-2" aria-label="Purchase assurances">
+        <p className="text-xs font-semibold text-kajal flex items-center gap-1.5">
+          <RotateCcw size={13} className="text-neem flex-shrink-0" aria-hidden="true" />
+          Free shipping over ₹999 · 7-day easy returns
+        </p>
+        <div className="flex items-center gap-4 text-kajal-whisper">
+          <span className="inline-flex items-center gap-1 text-[11px] font-medium">
+            <Smartphone size={13} aria-hidden="true" /> UPI
+          </span>
+          <span className="inline-flex items-center gap-1 text-[11px] font-medium">
+            <CreditCard size={13} aria-hidden="true" /> Cards
+          </span>
+          <span className="inline-flex items-center gap-1 text-[11px] font-medium">
+            <Banknote size={13} aria-hidden="true" /> COD
+          </span>
+          <span className="inline-flex items-center gap-1 text-[11px] font-medium ml-auto">
+            <Lock size={12} aria-hidden="true" /> Secure
+          </span>
+        </div>
       </div>
 
       {/* Delivery Estimate */}

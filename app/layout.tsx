@@ -31,6 +31,7 @@ import { WishlistProvider } from '@contexts/wishlist-context';
 import Navbar from '@components/navbar';
 import Footer from '@components/footer';
 import MobileNav from '@components/mobile-nav';
+import CartDrawer from '@components/cart/cart-drawer';
 import FloatingWhatsApp from '@components/ui/floating-whatsapp';
 import BackToTop from '@components/ui/back-to-top';
 import { Toaster } from 'react-hot-toast';
@@ -123,6 +124,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 </main>
                 <Footer />
                 <MobileNav />
+                <CartDrawer />
                 <FloatingWhatsApp />
                 <BackToTop />
                 <Toaster

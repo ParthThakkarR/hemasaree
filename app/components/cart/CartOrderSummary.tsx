@@ -42,7 +42,35 @@ export default function CartOrderSummary({
 }: CartOrderSummaryProps) {
   return (
     <div className="sticky top-32 bg-white rounded-3xl border border-brand-100 p-8 shadow-sm">
-      <h2 className="text-xl font-serif font-bold text-ink mb-6">Order Summary</h2>
+      <h2 className="text-xl font-serif font-bold text-ink mb-4">Order Summary</h2>
+
+      {/* Free-shipping progress — no surprise costs */}
+      {(() => {
+        const threshold = 999;
+        const progress = Math.min(subtotal / threshold, 1);
+        const remaining = Math.max(threshold - subtotal, 0);
+        return (
+          <div className="mb-6 rounded-2xl bg-surface-muted px-4 py-3">
+            <p className="text-xs font-medium text-ink-muted mb-2">
+              {remaining > 0 ? (
+                <>Add <span className="font-bold text-brand-800">₹{remaining.toLocaleString('en-IN')}</span> more for free shipping</>
+              ) : (
+                <span className="font-semibold text-dark-green">You&apos;ve unlocked free shipping</span>
+              )}
+            </p>
+            <div
+              className="h-1.5 rounded-full bg-surface-subtle overflow-hidden"
+              role="progressbar"
+              aria-valuenow={Math.round(progress * 100)}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label="Progress to free shipping"
+            >
+              <div className="shipping-progress h-full" style={{ width: `${progress * 100}%` }} />
+            </div>
+          </div>
+        );
+      })()}
       
       <div className="space-y-4 mb-6 text-sm">
         <div className="flex justify-between text-ink-muted">

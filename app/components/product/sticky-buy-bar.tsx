@@ -111,6 +111,13 @@ export default function StickyBuyBar({
                     </span>
                   )}
                 </div>
+                <p className="text-[10px] font-medium text-kajal-whisper truncate" aria-live="polite">
+                  {outOfStock
+                    ? 'Currently out of stock'
+                    : typeof product.stock === 'number' && product.stock <= 5
+                      ? `Only ${product.stock} left · Free ship over ₹999`
+                      : 'In stock · 7-day returns'}
+                </p>
               </div>
 
               {/* Action buttons */}
