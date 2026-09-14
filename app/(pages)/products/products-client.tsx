@@ -173,8 +173,8 @@ function ProductsListingContent({ initialProducts, initialCategories, initialTot
 
   return (
     <div className="pb-16">
-      {/* Breadcrumb */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+      {/* Breadcrumb — breathing room above the banner */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-5">
         <Breadcrumb
           items={[
             { label: 'All Sarees', href: '/products' },
