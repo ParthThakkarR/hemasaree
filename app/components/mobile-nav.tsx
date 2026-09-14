@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Search, ShoppingBag, Heart, User } from 'lucide-react';
@@ -14,11 +14,17 @@ const SPRING_INDICATOR = { type: 'spring' as const, bounce: 0.2, duration: 0.35 
 const SPRING_TAP       = { type: 'spring' as const, bounce: 0.3, duration: 0.25 };
 
 export default function MobileNav() {
+  const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
   const { cartCount }    = useCart();
   const { wishlistCount }= useWishlist();
   const { user }         = useAuth();
-  const prefersReducedMotion = useReducedMotion();
+  const systemReducedMotion = useReducedMotion();
+  const prefersReducedMotion = mounted ? systemReducedMotion : false;
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Hidden on admin and studio pages
   if (pathname?.startsWith('/admin') || pathname?.startsWith('/studio')) return null;
@@ -26,9 +32,9 @@ export default function MobileNav() {
   const navItems = [
     { name: 'Home',     href: '/',         icon: Home,        badge: undefined          },
     { name: 'Shop',     href: '/products', icon: Search,      badge: undefined          },
-    { name: 'Wishlist', href: '/wishlist', icon: Heart,       badge: user ? wishlistCount : 0 },
-    { name: 'Cart',     href: '/cart',     icon: ShoppingBag, badge: cartCount          },
-    { name: user ? 'Profile' : 'Sign In', href: user ? '/profile' : '/login', icon: User, badge: undefined },
+    { name: 'Wishlist', href: '/wishlist', icon: Heart,       badge: mounted && user ? wishlistCount : 0 },
+    { name: 'Cart',     href: '/cart',     icon: ShoppingBag, badge: mounted ? cartCount : 0          },
+    { name: mounted && user ? 'Profile' : 'Sign In', href: mounted && user ? '/profile' : '/login', icon: User, badge: undefined },
   ];
 
   const tapProps = prefersReducedMotion
@@ -56,9 +62,9 @@ export default function MobileNav() {
               <Link
                 href={item.href}
                 aria-current={isActive ? 'page' : undefined}
-                className={`relative flex flex-col items-center justify-center w-16 py-1.5 transition-colors ${
+                className={`relative flex flex-col items-center justify-center w-16 min-h-[48px] py-2 transition-colors ${
                   isActive ? 'text-brand-800' : 'text-ink-muted hover:text-ink'
-                }`}
+                } ${item.name === 'Shop' && !isActive ? 'text-brand-800/70' : ''}`}
               >
                 {/* Animated gold top bar — slides via layoutId */}
                 {isActive && (

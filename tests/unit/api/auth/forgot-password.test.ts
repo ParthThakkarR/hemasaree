@@ -57,7 +57,7 @@ vi.mock('@/lib/validators', () => ({
 // ─── Helpers ─────────────────────────────────────────────
 const callRoute = async (body: Record<string, unknown>) => {
   const req = { json: vi.fn().mockResolvedValue(body) } as unknown as Request;
-  const { POST } = await import('/home/meet/Babar-Meet/hemasaree/app/api/(auth)/forgot-password/route.tsx');
+  const { POST } = await import('@/app/api/(auth)/forgot-password/route.tsx');
   return POST(req);
 };
 
@@ -348,7 +348,7 @@ it('handles email with Unicode characters', async () => {
     it('500 when JSON body parse throws', async () => {
       const req = { json: vi.fn().mockRejectedValue(new SyntaxError('bad json')) } as unknown as Request;
       mockForgotPwSchema.safeParse.mockImplementation(() => { throw new Error('should not reach'); });
-      const { POST } = await import('/home/meet/Babar-Meet/hemasaree/app/api/(auth)/forgot-password/route.tsx');
+      const { POST } = await import('@/app/api/(auth)/forgot-password/route.tsx');
       const res = await POST(req);
       expect(res.status).toBe(500);
     });
@@ -408,14 +408,14 @@ it('handles email with Unicode characters', async () => {
   describe('Raw body edge cases', () => {
     it('handles null rawBody — validation rejects', async () => {
       const req = { json: vi.fn().mockResolvedValue(null) } as unknown as Request;
-      const { POST } = await import('/home/meet/Babar-Meet/hemasaree/app/api/(auth)/forgot-password/route.tsx');
+      const { POST } = await import('@/app/api/(auth)/forgot-password/route.tsx');
       const res = await POST(req);
       expect(res.status).toBe(400);
     });
 
     it('handles undefined rawBody — validation rejects', async () => {
       const req = { json: vi.fn().mockResolvedValue(undefined) } as unknown as Request;
-      const { POST } = await import('/home/meet/Babar-Meet/hemasaree/app/api/(auth)/forgot-password/route.tsx');
+      const { POST } = await import('@/app/api/(auth)/forgot-password/route.tsx');
       const res = await POST(req);
       expect(res.status).toBe(400);
     });
@@ -427,3 +427,4 @@ it('handles email with Unicode characters', async () => {
     });
   });
 });
+

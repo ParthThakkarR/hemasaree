@@ -22,6 +22,7 @@ export class SettingsService {
             deliveryChargeDefault: 150,
             polishPrice: 450,
             isPolishEnabled: true,
+            multiCategoryBannerImage: null,
           }
         });
       }
@@ -40,6 +41,7 @@ export class SettingsService {
     deliveryChargeDefault?: number;
     polishPrice?: number;
     isPolishEnabled?: boolean;
+    multiCategoryBannerImage?: string | null;
   }) {
     let settings = await prisma.storeSettings.findFirst();
 
@@ -50,6 +52,7 @@ export class SettingsService {
           deliveryChargeDefault: data.deliveryChargeDefault ?? 150,
           polishPrice: data.polishPrice ?? 450,
           isPolishEnabled: data.isPolishEnabled ?? true,
+          multiCategoryBannerImage: data.multiCategoryBannerImage ?? null,
         }
       });
     } else {

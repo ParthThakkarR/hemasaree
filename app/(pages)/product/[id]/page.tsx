@@ -156,24 +156,35 @@ export default async function Page({ params }: Props) {
 
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://hemasaree.vercel.app';
 
-  // Fetch related products
-  const related = await prisma.product.findMany({
-    where: {
-      categoryId: product.categoryId,
-      id: { not: product.id },
-      isDeleted: false,
-    },
-    take: 4,
-  });
-
+  // Parallel fetching — related products, reviews, and settings in one go
   const SettingsService = require('@/lib/services/settingsService').SettingsService;
-  const settings = await SettingsService.getSettings();
+  const [related, approvedReviews, settings] = await Promise.all([
+    prisma.product.findMany({
+      where: {
+        categoryId: product.categoryId,
+        id: { not: product.id },
+        isDeleted: false,
+      },
+      take: 4,
+      select: {
+        id: true,
+        name: true,
+        price: true,
+        images: true,
+        stock: true,
+        color: true,
+        occasion: true,
+        category: { select: { id: true, name: true } },
+      },
+    }),
+    getApprovedReviews(product.id),
+    SettingsService.getSettings(),
+  ]);
+
   const polishPrice = settings.isPolishEnabled ? settings.polishPrice : 450;
   const isPolishEnabled = settings.isPolishEnabled;
 
-  // Fetch reviews for AggregateRating (cached — shared with metadata if needed)
-  const approvedReviews = await getApprovedReviews(product.id);
-
+  // Reviews already fetched in Promise.all above
   const ratingCount = approvedReviews.length;
   const ratingValue = ratingCount > 0 
     ? (approvedReviews.reduce((sum, r) => sum + r.rating, 0) / ratingCount).toFixed(1) 
@@ -282,18 +293,20 @@ export default async function Page({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 lg:pt-36 pb-4">
-        <nav className="flex items-center gap-1 text-sm text-ink-muted" aria-label="Breadcrumb">
-          <Link href="/" className="hover:text-brand-800 transition-colors">Home</Link>
-          <ChevronRight size={14} aria-hidden="true" />
-          <Link href="/products" className="hover:text-brand-800 transition-colors">Products</Link>
-          <ChevronRight size={14} aria-hidden="true" />
-          <Link href={`/products?category=${encodeURIComponent(product.category.name)}`} className="hover:text-brand-800 transition-colors">{product.category.name}</Link>
-          <ChevronRight size={14} aria-hidden="true" />
-          <span className="text-ink font-medium truncate max-w-[200px]">{product.name}</span>
-        </nav>
+      <div className="bg-chandan min-h-screen pt-6 lg:pt-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-4">
+          <nav className="flex items-center gap-1 text-sm text-ink-muted" aria-label="Breadcrumb">
+            <Link href="/" className="hover:text-brand-800 transition-colors">Home</Link>
+            <ChevronRight size={14} aria-hidden="true" />
+            <Link href="/products" className="hover:text-brand-800 transition-colors">Products</Link>
+            <ChevronRight size={14} aria-hidden="true" />
+            <Link href={`/products?category=${encodeURIComponent(product.category.name)}`} className="hover:text-brand-800 transition-colors">{product.category.name}</Link>
+            <ChevronRight size={14} aria-hidden="true" />
+            <span className="text-ink font-medium truncate max-w-[200px]">{product.name}</span>
+          </nav>
+        </div>
+        <ProductDetailClient initialProduct={product} initialRelated={related} polishPrice={polishPrice} isPolishEnabled={isPolishEnabled} />
       </div>
-      <ProductDetailClient initialProduct={product} initialRelated={related} polishPrice={polishPrice} isPolishEnabled={isPolishEnabled} />
     </>
   );
 }

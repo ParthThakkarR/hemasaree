@@ -3,7 +3,7 @@
 import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Mail, ArrowRight, Loader2, CreditCard, Smartphone, Banknote } from 'lucide-react';
+import { Mail, ArrowRight, Loader2, CreditCard, Smartphone, Banknote, MessageCircle } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useSiteSettings } from '@contexts/site-settings-context';
 import { urlFor } from '@/sanity/lib/image';
@@ -16,10 +16,10 @@ export default function Footer() {
   const { settings } = useSiteSettings();
   const prefersReducedMotion = useReducedMotion();
 
-  const siteTitle       = settings?.title || 'Hema Sarees';
+  const siteTitle = settings?.title || 'Hema Sarees';
   const siteDescription = settings?.description || 'Honoring tradition through every weave. Elevating Indian fashion for the modern woman with handpicked, exquisite sarees.';
 
-  const [email, setEmail]   = useState('');
+  const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -32,10 +32,10 @@ export default function Footer() {
 
     setStatus('loading');
     try {
-      const res  = await fetch('/api/newsletter', {
-        method : 'POST',
+      const res = await fetch('/api/newsletter', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body   : JSON.stringify({ email }),
+        body: JSON.stringify({ email }),
       });
       const data = await res.json();
 
@@ -129,9 +129,9 @@ export default function Footer() {
             <ul className="space-y-3">
               {[
                 { href: '/blog/best-sarees-for-weddings', label: 'Wedding Saree Guide' },
-                { href: '/blog/silk-saree-care',          label: 'Silk Saree Care' },
+                { href: '/blog/silk-saree-care', label: 'Silk Saree Care' },
                 { href: '/blog/how-to-choose-silk-saree', label: 'How to Choose Silk' },
-                { href: '/blog/saree-trends-2026',        label: 'Latest Saree Trends' },
+                { href: '/blog/saree-trends-2026', label: 'Latest Saree Trends' },
               ].map(item => (
                 <li key={item.href}>
                   <motion.div whileHover={linkHover} transition={SPRING_BTN}>
@@ -152,11 +152,11 @@ export default function Footer() {
             <h4 className="font-semibold text-brand-50 uppercase tracking-wider mb-5 text-xs">Shop Collections</h4>
             <ul className="space-y-3">
               {[
-                { href: '/products',                  label: 'All Sarees'     },
-                { href: '/products?category=Bridal',  label: 'Bridal Sarees'  },
-                { href: '/products?category=Silk',    label: 'Silk Sarees'    },
-                { href: '/products?category=Cotton',  label: 'Cotton Sarees'  },
-                { href: '/products?category=Party+Wear', label: 'Party Wear'  },
+                { href: '/products', label: 'All Sarees' },
+                { href: '/products?category=Bridal', label: 'Bridal Sarees' },
+                { href: '/products?category=Silk', label: 'Silk Sarees' },
+                { href: '/products?category=Cotton', label: 'Cotton Sarees' },
+                { href: '/products?category=Party+Wear', label: 'Party Wear' },
               ].map(item => (
                 <li key={item.href}>
                   <motion.div whileHover={linkHover} transition={SPRING_BTN}>
@@ -172,10 +172,10 @@ export default function Footer() {
             <h4 className="font-semibold text-brand-50 uppercase tracking-wider mb-5 text-xs">Help &amp; Contact</h4>
             <ul className="space-y-3">
               {[
-                { href: '/about',   label: 'About Us'        },
-                { href: '/contact', label: 'Contact Us'      },
-                { href: '/orders',  label: 'Track Order'     },
-                { href: '/terms',   label: 'Shipping Policy' },
+                { href: '/about', label: 'About Us' },
+                { href: '/contact', label: 'Contact Us' },
+                { href: '/orders', label: 'Track Order' },
+                { href: '/terms', label: 'Shipping Policy' },
               ].map(item => (
                 <li key={item.href}>
                   <motion.div whileHover={linkHover} transition={SPRING_BTN}>
@@ -193,6 +193,37 @@ export default function Footer() {
             </ul>
           </div>
 
+        </div>
+
+        {/* Trust Badges */}
+        <div className="flex flex-wrap items-center justify-center gap-6 py-6 border-t border-brand-900/50 mb-2">
+          {[
+            { emoji: '✅', label: '100% Authentic Handloom' },
+            { emoji: '🔒', label: 'Secure Checkout' },
+            { emoji: '💝', label: '10,000+ Happy Customers' },
+            { emoji: '📦', label: 'Pan-India Delivery' },
+          ].map((badge) => (
+            <div key={badge.label} className="flex items-center gap-1.5 text-brand-100/50">
+              <span className="text-sm" aria-hidden="true">{badge.emoji}</span>
+              <span className="text-[11px] font-medium">{badge.label}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Social Links */}
+        <div className="flex items-center justify-center gap-4 py-4 border-t border-brand-900/50 mb-2">
+          <span className="text-[10px] text-brand-100/40 uppercase tracking-wider font-medium">Follow Us</span>
+          <div className="flex items-center gap-3">
+            <a href="https://instagram.com/hemasaree" target="_blank" rel="noopener noreferrer" className="text-brand-100/50 hover:text-white transition-colors" aria-label="Instagram">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" /><circle cx="12" cy="12" r="5" /><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none" /></svg>
+            </a>
+            <a href="https://facebook.com/hemasaree" target="_blank" rel="noopener noreferrer" className="text-brand-100/50 hover:text-white transition-colors" aria-label="Facebook">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" /></svg>
+            </a>
+            <a href="https://wa.me/919429475736" target="_blank" rel="noopener noreferrer" className="text-brand-100/50 hover:text-[#25D366] transition-colors" aria-label="WhatsApp">
+              <MessageCircle size={18} />
+            </a>
+          </div>
         </div>
 
         {/* Payment Methods */}

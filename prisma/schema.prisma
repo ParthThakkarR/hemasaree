@@ -125,12 +125,13 @@ model Address {
 }
 
 model StoreSettings {
-  id                    String   @id @default(auto()) @map("_id") @db.ObjectId
-  deliveryChargeGujarat Float    @default(80)
-  deliveryChargeDefault Float    @default(150)
-  polishPrice           Float    @default(450)
-  isPolishEnabled       Boolean  @default(true)
-  updatedAt             DateTime @updatedAt
+  id                         String   @id @default(auto()) @map("_id") @db.ObjectId
+  deliveryChargeGujarat      Float    @default(80)
+  deliveryChargeDefault      Float    @default(150)
+  polishPrice                Float    @default(450)
+  isPolishEnabled            Boolean  @default(true)
+  multiCategoryBannerImage   String?
+  updatedAt                  DateTime @updatedAt
 }
 
 model Category {
@@ -173,8 +174,10 @@ model Product {
    @@index([price])
    @@index([occasion])
    @@index([color])
+   @@index([fabric])
    @@index([isDeleted, categoryId])
    @@index([isDeleted, createdAt])
+   @@index([isDeleted, price])
  }
 
 model Cart {

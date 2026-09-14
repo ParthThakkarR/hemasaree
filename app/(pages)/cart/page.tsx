@@ -309,21 +309,41 @@ function CartPageContent() {
     <div className="min-h-screen bg-chandan pt-32 lg:pt-40 pb-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Header — The Adoption Ritual */}
-        <div className="mb-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        {/* Header */}
+        <div className="mb-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div>
-            <p className="chapter-eyebrow mb-1">The Adoption Ritual</p>
-            <h1 className="font-noto-serif text-4xl font-bold text-kajal">Seal the promise</h1>
-            <p className="text-kajal-soft mt-2 text-sm">Three steps. Then it&apos;s yours &mdash; and you are hers.</p>
+            <p className="chapter-eyebrow mb-1">Checkout</p>
+            <h1 className="font-noto-serif text-4xl font-bold text-kajal">Your Order</h1>
+            <p className="text-kajal-soft mt-2 text-sm">Three simple steps. Then it&apos;s yours.</p>
           </div>
           
-          {/* Step indicators — ritual names */}
-          <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest">
-            <span className={step === 1 ? 'text-kumkum bg-kumkum/8 px-2.5 py-1 rounded-lg' : 'text-kajal-faint'}>Your stories</span>
-            <ArrowRight size={12} className="text-kajal-faint" />
-            <span className={step === 2 ? 'text-kumkum bg-kumkum/8 px-2.5 py-1 rounded-lg' : 'text-kajal-faint'}>Where it goes</span>
-            <ArrowRight size={12} className="text-kajal-faint" />
-            <span className={step === 3 ? 'text-kumkum bg-kumkum/8 px-2.5 py-1 rounded-lg' : 'text-kajal-faint'}>Honour the hands</span>
+          {/* Step Progress Bar — visual + clear labels */}
+          <div className="flex items-center gap-0 w-full md:w-auto">
+            {/* Step 1 */}
+            <div className="flex flex-col items-center gap-1.5">
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all ${
+                step >= 1 ? 'bg-kumkum border-kumkum text-white' : 'border-chandan-warm text-kajal-faint bg-chandan-deep'
+              }`}>1</div>
+              <span className={`text-[11px] font-semibold whitespace-nowrap ${step === 1 ? 'text-kumkum' : 'text-kajal-whisper'}`}>Your Cart</span>
+            </div>
+            {/* Connector */}
+            <div className={`flex-1 md:w-16 h-0.5 mx-1 rounded-full transition-all ${step >= 2 ? 'bg-kumkum' : 'bg-chandan-warm'}`} />
+            {/* Step 2 */}
+            <div className="flex flex-col items-center gap-1.5">
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all ${
+                step >= 2 ? 'bg-kumkum border-kumkum text-white' : 'border-chandan-warm text-kajal-faint bg-chandan-deep'
+              }`}>2</div>
+              <span className={`text-[11px] font-semibold whitespace-nowrap ${step === 2 ? 'text-kumkum' : 'text-kajal-whisper'}`}>Shipping</span>
+            </div>
+            {/* Connector */}
+            <div className={`flex-1 md:w-16 h-0.5 mx-1 rounded-full transition-all ${step >= 3 ? 'bg-kumkum' : 'bg-chandan-warm'}`} />
+            {/* Step 3 */}
+            <div className="flex flex-col items-center gap-1.5">
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all ${
+                step >= 3 ? 'bg-kumkum border-kumkum text-white' : 'border-chandan-warm text-kajal-faint bg-chandan-deep'
+              }`}>3</div>
+              <span className={`text-[11px] font-semibold whitespace-nowrap ${step === 3 ? 'text-kumkum' : 'text-kajal-whisper'}`}>Payment</span>
+            </div>
           </div>
         </div>
 

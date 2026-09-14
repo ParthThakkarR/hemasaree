@@ -21,8 +21,16 @@ export const prisma =
         url: process.env.DATABASE_URL,
       },
     },
-    log: ['error', 'warn'],
+    log: process.env.NODE_ENV === 'production' ? ['error'] : ['error', 'warn'],
   });
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
-
+// Always cache the Prisma client on the global object — critical for serverless.
+// In serverless environments (Vercel), each function invocation reuses the same
+// Node.js process for a period. Caching the client prevents connection pool
+// exhaustion from creating a new PrismaClient (and new DB connections) per request.
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma;
+} else {
+  // In production (Vercel serverless), also cache to prevent pool exhaustion
+  globalForPrisma.prisma = prisma;
+}

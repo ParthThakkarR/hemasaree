@@ -99,15 +99,27 @@ export default function ProductAccordion({ product, reviews, reviewStats, onRevi
       <AccordionItem id="about" title="About This Saree">
         <div className="space-y-3 text-sm text-ink-muted leading-relaxed">
           <p>
-            {product.description || `Introducing ${product.name} — a beautifully crafted ${product.fabric || 'handloom'} saree in ${product.color}, perfect for ${product.occasion.toLowerCase()} occasions.`}
+            {product.description || `${product.name} is a ${product.fabric || 'handloom'} saree in ${product.color} — made for ${product.occasion?.toLowerCase() || 'special'} occasions where you want to feel completely yourself.`}
           </p>
+          {product.fabric && (
+            <p>
+              The {product.fabric} fabric is chosen because it{' '}
+              {product.fabric.toLowerCase().includes('silk')
+                ? 'holds its drape beautifully across long ceremonies without requiring constant readjustment'
+                : product.fabric.toLowerCase().includes('cotton')
+                ? 'stays breathable through extended wear — no overheating, no constant re-pinning'
+                : product.fabric.toLowerCase().includes('linen')
+                ? 'stays naturally cool even in peak summer — designed for women who live in their sarees'
+                : 'has been selected for how it moves, feels, and holds its shape across real occasions'
+              }.
+            </p>
+          )}
           <p>
-            This exquisite piece from our{' '}
+            From our{' '}
             <Link href={`/products?category=${encodeURIComponent(product.category?.name || '')}`} className="text-brand-800 font-medium hover:underline">
-              {product.category?.name || 'Premium'} Collection
-            </Link>{' '}
-            showcases the finest craftsmanship from Indian artisan traditions.
-            {product.fabric && ` The ${product.fabric} fabric ensures a luxurious drape and feel, making it an ideal choice for both special events and memorable celebrations.`}
+              {product.category?.name || 'Handloom'} Collection
+            </Link>
+            {' '}— where every saree is traced to its artisan, not just its factory.
           </p>
         </div>
       </AccordionItem>
@@ -202,8 +214,11 @@ export default function ProductAccordion({ product, reviews, reviewStats, onRevi
              <div><p className="font-medium text-ink">Pan-India Delivery</p><p className="text-xs">3-7 business days within India. Standard delivery charges apply.</p></div>
            </div>
             <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-surface-muted flex items-center justify-center flex-shrink-0 mt-0.5"><span className="text-xs">✅</span></div>
-              <div><p className="font-medium text-ink">All Sales Final</p><p className="text-xs">All purchases are final. Please review your order carefully before confirming.</p></div>
+              <div className="w-8 h-8 rounded-full bg-surface-muted flex items-center justify-center flex-shrink-0 mt-0.5"><span className="text-xs">⚠️</span></div>
+              <div>
+                <p className="font-medium text-ink">All Sales Final</p>
+                <p className="text-xs">Out of respect for the artisan&apos;s craft and the handwoven nature of this piece, we do not accept returns. Please purchase mindfully.</p>
+              </div>
             </div>
          </div>
        </AccordionItem>

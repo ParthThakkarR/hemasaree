@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import { ChevronRight, Home, Share2, MessageCircle, Link2 } from 'lucide-react';
+import { ChevronRight, Home, Share2, MessageCircle, Link2, ShieldCheck, Truck, RotateCcw, CheckCircle, MapPin } from 'lucide-react';
 import { useCart } from '@contexts/cart-context';
 import { useWishlist } from '@contexts/wishlist-context';
 import { useAuth } from '@contexts/auth-context';
@@ -16,6 +16,8 @@ import ProductAccordion from '@/app/components/product/ProductAccordion';
 import ProductRelated from '@/app/components/product/ProductRelated';
 import ProvenanceTimeline from '@components/ui/ProvenanceTimeline';
 import AudioPlayer from '@components/ui/AudioPlayer';
+import Breadcrumb from '@components/ui/breadcrumb';
+import StickyBuyBar from '@/app/components/product/sticky-buy-bar';
 
 import { artisanStories } from '@/lib/content/stories';
 import { getMotifsForCategory } from '@/lib/content/motifs';
@@ -40,20 +42,22 @@ const SPRING_BTN = { type: 'spring' as const, bounce: 0, duration: 0.3 };
 export default function ProductDetailClient({
   initialProduct,
   initialRelated,
-  polishPrice   = 450,
+  polishPrice = 450,
   isPolishEnabled = true,
 }: any) {
-  const [product]         = useState(initialProduct);
-  const [related]         = useState(initialRelated);
+  const [product] = useState(initialProduct);
+  const [related] = useState(initialRelated);
   const [polish, setPolish] = useState(true);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [recentlyViewed, setRecentlyViewed] = useState<any[]>([]);
-  const [showShareMenu, setShowShareMenu]   = useState(false);
+  const [showShareMenu, setShowShareMenu] = useState(false);
+  const [pincode, setPincode] = useState('');
+  const [pincodeResult, setPincodeResult] = useState<'available' | 'unavailable' | null>(null);
 
   const { addToCart: addToCartContext } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
-  const { user }  = useAuth();
-  const router    = useRouter();
+  const { user } = useAuth();
+  const router = useRouter();
 
   // Track recently viewed
   useEffect(() => {
@@ -96,7 +100,7 @@ export default function ProductDetailClient({
   };
 
   const handleShare = (type: 'whatsapp' | 'copy') => {
-    const url  = typeof window !== 'undefined' ? window.location.href : '';
+    const url = typeof window !== 'undefined' ? window.location.href : '';
     const text = `I found ${product.name} on HemaSaree — ₹${product.price.toLocaleString('en-IN')}`;
     if (type === 'whatsapp') {
       window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`, '_blank');
@@ -118,22 +122,18 @@ export default function ProductDetailClient({
   const motifs = getMotifsForCategory(product.category?.name || '');
 
   return (
-    <div className="bg-chandan min-h-screen pt-6 lg:pt-10 pb-24">
+    <div className="pb-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-        {/* ── Breadcrumb ── */}
-        <nav
-          className="flex items-center gap-1.5 text-xs font-medium text-kajal-whisper mb-6 uppercase tracking-wider overflow-x-auto [&::-webkit-scrollbar]:hidden"
-          aria-label="Breadcrumb"
-        >
-          <Link href="/" className="hover:text-kumkum flex items-center gap-1 flex-shrink-0 transition-colors">
-            <Home size={13} aria-hidden="true" /> Home
-          </Link>
-          <ChevronRight size={12} className="text-kajal-faint flex-shrink-0" />
-          <Link href="/products" className="hover:text-kumkum flex-shrink-0 transition-colors">Explore</Link>
-          <ChevronRight size={12} className="text-kajal-faint flex-shrink-0" />
-          <span className="text-kumkum truncate max-w-[200px]">{product.name}</span>
-        </nav>
+        {/* Breadcrumb */}
+        <Breadcrumb
+          items={[
+            { label: 'All Sarees', href: '/products' },
+            ...(product.category?.name ? [{ label: product.category.name, href: `/products?category=${encodeURIComponent(product.category.name)}` }] : []),
+            { label: product.name },
+          ]}
+          className="mb-4"
+        />
 
         {/* ── Share button ── */}
         <div className="flex justify-end mb-4 relative">
@@ -158,7 +158,7 @@ export default function ProductDetailClient({
         </div>
 
         {/* ── ABOVE FOLD — Gallery + Product Info ── */}
-        <div className="flex flex-col lg:flex-row gap-10 lg:gap-14 items-start">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-14 items-start">
           <ProductGallery
             images={product.images}
             name={product.name}
@@ -187,23 +187,91 @@ export default function ProductDetailClient({
               </div>
             </div>
 
-            {/* Product info — unchanged logic */}
-            <ProductInfo
-              product={product}
-              displayPrice={displayPrice}
-              isInWishlist={isInWishlist}
-              handleWishlist={handleWishlist}
-              polish={polish && isPolishEnabled}
-              setPolish={setPolish}
-              POLISH_PRICE={polishPrice}
-              isPolishEnabled={isPolishEnabled}
-              addToCart={addToCart}
-              isAddingToCart={isAddingToCart}
-              router={router}
-              reviewStats={product.reviewStats}
-            />
+            {/* Product info — with CTA marker for sticky bar */}
+            <div id="product-main-cta">
+              <ProductInfo
+                product={product}
+                displayPrice={displayPrice}
+                isInWishlist={isInWishlist}
+                handleWishlist={handleWishlist}
+                polish={polish && isPolishEnabled}
+                setPolish={setPolish}
+                POLISH_PRICE={polishPrice}
+                isPolishEnabled={isPolishEnabled}
+                addToCart={addToCart}
+                isAddingToCart={isAddingToCart}
+                router={router}
+                reviewStats={product.reviewStats}
+              />
+            </div>
 
-            {/* "Keep close" wishlist label — microcopy update handled in ProductInfo */}
+            {/* Trust Badges Row */}
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { icon: ShieldCheck, label: 'Secure Payment', sublabel: '100% protected' },
+                { icon: Truck, label: 'Free Shipping', sublabel: 'Orders above ₹999' },
+                { icon: RotateCcw, label: '7-Day Returns', sublabel: 'No questions asked' },
+                { icon: CheckCircle, label: 'Authentic Handloom', sublabel: 'Artisan verified' },
+              ].map(({ icon: Icon, label, sublabel }) => (
+                <div key={label} className="flex items-center gap-2.5 p-3 rounded-xl bg-chandan-deep border border-chandan-warm">
+                  <Icon size={18} className="text-neem flex-shrink-0" />
+                  <div>
+                    <p className="text-xs font-semibold text-kajal leading-tight">{label}</p>
+                    <p className="text-[10px] text-kajal-whisper">{sublabel}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Pincode Delivery Checker */}
+            <div className="paper-surface rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <MapPin size={15} className="text-kumkum" />
+                <p className="text-sm font-semibold text-kajal">Check Delivery</p>
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={pincode}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+                    setPincode(val);
+                    setPincodeResult(null);
+                  }}
+                  placeholder="Enter pincode"
+                  maxLength={6}
+                  className="flex-1 px-3 py-2 rounded-lg border border-chandan-warm bg-chandan text-sm text-kajal input-press placeholder:text-kajal-faint"
+                />
+                <button
+                  onClick={() => {
+                    if (pincode.length === 6) {
+                      setPincodeResult('available');
+                    }
+                  }}
+                  disabled={pincode.length !== 6}
+                  className="px-4 py-2 bg-kumkum text-white text-sm font-semibold rounded-lg hover:bg-kumkum-deep transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Check
+                </button>
+              </div>
+              {pincodeResult === 'available' && (
+                <p className="text-xs text-neem font-medium mt-2 flex items-center gap-1">
+                  <CheckCircle size={13} /> Delivery available — estimated 5-7 business days
+                </p>
+              )}
+            </div>
+
+            {/* WhatsApp Inquiry */}
+            <a
+              href={`https://wa.me/919429475736?text=${encodeURIComponent(`Hi! I'm interested in ${product.name} (₹${product.price.toLocaleString('en-IN')}). Can you tell me more?`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-[#25D366]/30 bg-[#25D366]/5 text-[#128C7E] font-semibold text-sm hover:bg-[#25D366]/10 transition-colors"
+            >
+              <MessageCircle size={18} fill="#25D366" stroke="none" />
+              Have questions? Ask on WhatsApp
+            </a>
+
             {/* Accordion */}
             <ProductAccordion
               product={product}
@@ -363,6 +431,14 @@ export default function ProductDetailClient({
           </div>
         )}
       </div>
+
+      {/* Sticky Buy Bar — mobile only */}
+      <StickyBuyBar
+        product={product}
+        displayPrice={displayPrice}
+        isAddingToCart={isAddingToCart}
+        onAddToCart={() => addToCart(1)}
+      />
     </div>
   );
 }

@@ -14,6 +14,16 @@ const mockPrisma = vi.hoisted(() => ({
 
 vi.mock('@/app/lib/prisma', () => ({ prisma: mockPrisma }));
 
+vi.mock('@/lib/cache', () => ({
+  cache: {
+    get: vi.fn().mockResolvedValue(null),
+    set: vi.fn().mockResolvedValue(undefined),
+    delete: vi.fn().mockResolvedValue(undefined),
+    clearPattern: vi.fn().mockResolvedValue(undefined),
+    getOrSet: vi.fn().mockImplementation(async (_key: string, loader: () => Promise<any>) => loader()),
+    writeThrough: vi.fn().mockImplementation(async (_key: string, writer: () => Promise<any>) => writer()),
+  },
+}));
 describe('ProductService - Extended', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
@@ -64,7 +74,8 @@ describe('ProductService - Extended', () => {
 
     it('handles empty filters', () => {
       const where = ProductService.buildWhereClause({});
-      expect(Object.keys(where)).toHaveLength(0);
+      expect(where.isDeleted).toBe(false);
+      expect(where.categoryId).toBeUndefined();
     });
 
     it('handles case insensitive search', () => {

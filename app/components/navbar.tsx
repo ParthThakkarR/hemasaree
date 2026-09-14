@@ -17,6 +17,7 @@ const SPRING_UI     = { type: 'spring' as const, bounce: 0,    duration: 0.35 };
 const SPRING_EXPRESS= { type: 'spring' as const, bounce: 0.25, duration: 0.3  };
 
 export default function Navbar() {
+  const [mounted, setMounted] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
@@ -28,7 +29,8 @@ export default function Navbar() {
 
   const pathname = usePathname();
   const router   = useRouter();
-  const prefersReducedMotion = useReducedMotion();
+  const systemReducedMotion = useReducedMotion();
+  const prefersReducedMotion = mounted ? systemReducedMotion : false;
 
   const { user, logout, isLoading } = useAuth();
   const { cartCount }               = useCart();
@@ -36,6 +38,11 @@ export default function Navbar() {
   const { settings }                = useSiteSettings();
 
   const siteTitle = settings?.title || 'Hema Sarees';
+
+  // ── Hydration mount detection ─────────────────────────
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // ── Scroll detection ─────────────────────────────────
   useEffect(() => {
@@ -89,7 +96,7 @@ export default function Navbar() {
     { name: 'Party Wear', href: '/products?category=Party Wear' },
   ];
 
-  if (pathname.startsWith('/admin')) return null;
+  if (pathname?.startsWith('/admin')) return null;
 
   // ── Dropdown animation variants ──────────────────────
   const dropdownVariants = prefersReducedMotion
@@ -123,15 +130,15 @@ export default function Navbar() {
         animate={isScrolled ? 'scrolled' : 'top'}
         variants={prefersReducedMotion
           ? {
-              top    : { backgroundColor: 'rgba(255,253,247,1)', borderBottomColor: 'transparent' },
+              top    : { backgroundColor: 'rgba(255,253,247,1)', borderBottomColor: 'rgba(0,0,0,0)' },
               scrolled: { backgroundColor: 'rgba(255,253,247,1)', borderBottomColor: 'rgba(237,230,214,0.4)' },
             }
           : {
               top    : {
                 backgroundColor: 'rgba(255,253,247,1)',
                 backdropFilter : 'blur(0px) saturate(100%)',
-                borderBottomColor: 'transparent',
-                boxShadow: '0 0 0 rgba(0,0,0,0)',
+                borderBottomColor: 'rgba(0,0,0,0)',
+                boxShadow: '0 0 0 0px rgba(0,0,0,0)',
               },
               scrolled: {
                 backgroundColor: 'rgba(255,253,247,0.85)',
@@ -171,7 +178,7 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-7">
+          <nav aria-label="Main Navigation" className="hidden lg:flex items-center gap-7">
             <Link
               href="/"
               className={`text-[13px] font-semibold uppercase tracking-wider transition-colors hover:text-brand-800 ${
@@ -190,11 +197,12 @@ export default function Navbar() {
               onKeyDown={(e) => { if (e.key === 'Escape') setIsCollectionsOpen(false); }}
             >
               <button
+                suppressHydrationWarning
                 aria-expanded={isCollectionsOpen}
                 aria-haspopup="true"
                 onPointerDown={() => setIsCollectionsOpen(prev => !prev)}
                 className={`flex items-center gap-1 text-[13px] font-semibold uppercase tracking-wider transition-colors hover:text-brand-800 ${
-                  pathname.includes('category') ? 'text-brand-800' : 'text-ink/60'
+                  pathname?.includes('category') ? 'text-brand-800' : 'text-ink/60'
                 }`}
               >
                 Collections
@@ -211,6 +219,7 @@ export default function Navbar() {
               <AnimatePresence>
                 {isCollectionsOpen && (
                   <motion.div
+                    key="collections-dropdown"
                     role="menu"
                     variants={dropdownVariants}
                     initial="hidden"
@@ -239,10 +248,28 @@ export default function Navbar() {
             <Link
               href="/products"
               className={`text-[13px] font-semibold uppercase tracking-wider transition-colors hover:text-brand-800 ${
-                pathname === '/products' && !pathname.includes('category') ? 'text-brand-800' : 'text-ink/60'
+                pathname === '/products' && !pathname?.includes('category') ? 'text-brand-800' : 'text-ink/60'
               }`}
             >
               All Sarees
+            </Link>
+
+            <Link
+              href="/about"
+              className={`text-[13px] font-semibold uppercase tracking-wider transition-colors hover:text-brand-800 ${
+                pathname === '/about' ? 'text-brand-800' : 'text-ink/60'
+              }`}
+            >
+              About
+            </Link>
+
+            <Link
+              href="/contact"
+              className={`text-[13px] font-semibold uppercase tracking-wider transition-colors hover:text-brand-800 ${
+                pathname === '/contact' ? 'text-brand-800' : 'text-ink/60'
+              }`}
+            >
+              Contact
             </Link>
           </nav>
 
@@ -273,16 +300,16 @@ export default function Navbar() {
               <motion.div whileTap={iconTap} transition={SPRING_EXPRESS}>
                 <Link href="/wishlist" aria-label="Wishlist" className="relative p-2.5 text-ink hover:text-brand-800 transition-colors rounded-full hover:bg-surface-muted inline-flex">
                   <Heart size={21} />
-                  {user && wishlistCount > 0 && (
+                  {mounted && user && wishlistCount > 0 && (
                     <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-accent rounded-full" />
                   )}
                 </Link>
               </motion.div>
 
               <motion.div whileTap={iconTap} transition={SPRING_EXPRESS}>
-                <Link href="/cart" aria-label={`Shopping cart${cartCount > 0 ? `, ${cartCount} items` : ''}`} className="relative p-2.5 text-ink hover:text-brand-800 transition-colors rounded-full hover:bg-surface-muted inline-flex">
+                <Link href="/cart" aria-label={`Shopping cart${mounted && cartCount > 0 ? `, ${cartCount} items` : ''}`} className="relative p-2.5 text-ink hover:text-brand-800 transition-colors rounded-full hover:bg-surface-muted inline-flex">
                   <ShoppingBag size={21} />
-                  {cartCount > 0 && (
+                  {mounted && cartCount > 0 && (
                     <span className="absolute top-1 right-1 min-w-[18px] h-[18px] bg-brand-800 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-surface px-0.5" aria-hidden="true">
                       {cartCount > 99 ? '99+' : cartCount}
                     </span>
@@ -293,7 +320,7 @@ export default function Navbar() {
 
             {/* User Profile */}
             <div className="relative">
-              {isLoading ? (
+              {!mounted || isLoading ? (
                 <div className="w-9 h-9 rounded-full bg-surface-muted animate-pulse" />
               ) : user ? (
                 <div

@@ -142,7 +142,7 @@ describe('searchService.searchProducts', () => {
     const { searchProducts } = await import('@/lib/searchService');
     await searchProducts({ query: 'SILK' });
     const call = mocks.mockPrisma.product.findMany.mock.calls[0][0];
-    const orClause = call.where.AND[0].OR;
+    const orClause = (call.where.AND.find(c => c.OR) || {}).OR;
     expect(orClause[0].name.mode).toBe('insensitive');
   });
 
@@ -399,7 +399,7 @@ describe('searchService.searchProducts', () => {
     const { searchProducts } = await import('@/lib/searchService');
     await searchProducts({ query: '' });
     const call = mocks.mockPrisma.product.findMany.mock.calls[0][0];
-    expect(call.where.AND.length).toBe(0);
+    expect(call.where.AND.length).toBe(1);
   });
 
   it('handles null query', async () => {
@@ -408,7 +408,7 @@ describe('searchService.searchProducts', () => {
     const { searchProducts } = await import('@/lib/searchService');
     await searchProducts({ query: null });
     const call = mocks.mockPrisma.product.findMany.mock.calls[0][0];
-    expect(call.where.AND.length).toBe(0);
+    expect(call.where.AND.length).toBe(1);
   });
 
   it('handles undefined query', async () => {
@@ -417,7 +417,7 @@ describe('searchService.searchProducts', () => {
     const { searchProducts } = await import('@/lib/searchService');
     await searchProducts({ query: undefined });
     const call = mocks.mockPrisma.product.findMany.mock.calls[0][0];
-    expect(call.where.AND.length).toBe(0);
+    expect(call.where.AND.length).toBe(1);
   });
 
   it('uses Promise.all for parallel queries', async () => {
@@ -475,7 +475,7 @@ describe('searchService.searchProducts', () => {
     const { searchProducts } = await import('@/lib/searchService');
     await searchProducts({ minPrice: 0 });
     const call = mocks.mockPrisma.product.findMany.mock.calls[0][0];
-    expect(call.where.AND.length).toBe(0);
+    expect(call.where.AND.length).toBe(2);
   });
 
   it('handles zero maxPrice', async () => {
@@ -484,7 +484,7 @@ describe('searchService.searchProducts', () => {
     const { searchProducts } = await import('@/lib/searchService');
     await searchProducts({ maxPrice: 0 });
     const call = mocks.mockPrisma.product.findMany.mock.calls[0][0];
-    expect(call.where.AND.length).toBe(0);
+    expect(call.where.AND.length).toBe(2);
   });
 
   it('handles negative prices', async () => {
@@ -566,3 +566,5 @@ describe('searchService.searchProducts', () => {
     expect(mocks.mockPrisma.product.count).toHaveBeenCalled();
   });
 });
+
+

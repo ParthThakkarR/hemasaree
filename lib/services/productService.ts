@@ -7,10 +7,12 @@ const PRODUCT_DETAIL_TTL = 600; // 10 min for single product
 
 export interface ProductFilters {
   categoryId?: string;
+  categoryIds?: string[];
   search?: string;
   minPrice?: number;
   maxPrice?: number;
   color?: string;
+  fabric?: string;
   occasion?: string;
   includeDeleted?: boolean;
 }
@@ -33,7 +35,31 @@ export class ProductService {
       where.isDeleted = false;
     }
 
-    if (filters.categoryId) {
+    // Multi-category support: categoryIds takes precedence over categoryId
+    if (filters.categoryIds && filters.categoryIds.length > 0) {
+      const objectIds: string[] = [];
+      const names: string[] = [];
+      for (const cat of filters.categoryIds) {
+        if (/^[a-f\d]{24}$/i.test(cat)) {
+          objectIds.push(cat);
+        } else {
+          names.push(cat);
+        }
+      }
+      // Build OR condition for mixed IDs and names
+      const categoryConditions: any[] = [];
+      if (objectIds.length > 0) {
+        categoryConditions.push({ categoryId: { in: objectIds } });
+      }
+      if (names.length > 0) {
+        categoryConditions.push({ category: { name: { in: names, mode: 'insensitive' } } });
+      }
+      if (categoryConditions.length === 1) {
+        Object.assign(where, categoryConditions[0]);
+      } else if (categoryConditions.length > 1) {
+        where.OR = [...(where.OR || []), ...categoryConditions];
+      }
+    } else if (filters.categoryId) {
       const isValidObjectId = /^[a-f\d]{24}$/i.test(filters.categoryId);
       if (isValidObjectId) {
         where.categoryId = filters.categoryId;
@@ -43,11 +69,23 @@ export class ProductService {
     }
 
     if (filters.search) {
-      where.OR = [
+      const searchConditions = [
         { name: { contains: filters.search, mode: 'insensitive' } },
         { color: { contains: filters.search, mode: 'insensitive' } },
         { occasion: { contains: filters.search, mode: 'insensitive' } },
       ];
+      // If we already have OR from categories, merge carefully
+      if (where.OR) {
+        // Wrap existing OR in AND to combine with search OR
+        const existingOr = where.OR;
+        delete where.OR;
+        where.AND = [
+          { OR: existingOr },
+          { OR: searchConditions },
+        ];
+      } else {
+        where.OR = searchConditions;
+      }
     }
 
     if (filters.minPrice !== undefined || filters.maxPrice !== undefined) {
@@ -58,6 +96,10 @@ export class ProductService {
 
     if (filters.color) {
       where.color = { contains: filters.color, mode: 'insensitive' };
+    }
+
+    if (filters.fabric) {
+      where.fabric = { contains: filters.fabric, mode: 'insensitive' };
     }
 
     if (filters.occasion) {

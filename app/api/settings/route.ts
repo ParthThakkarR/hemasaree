@@ -11,6 +11,7 @@ export async function GET() {
       deliveryChargeDefault: settings.deliveryChargeDefault,
       polishPrice: settings.polishPrice,
       isPolishEnabled: settings.isPolishEnabled,
+      multiCategoryBannerImage: settings.multiCategoryBannerImage || null,
     });
   } catch (error) {
     console.error('[SETTINGS_GET_ERROR]', error);

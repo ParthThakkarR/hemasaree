@@ -1,8 +1,8 @@
-'use client';
+﻿'use client';
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import Image from 'next/image';
-import { Star, ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { Star, ChevronLeft, ChevronRight, CheckCircle2, X, ZoomIn } from 'lucide-react';
 import { motion, useMotionValue, useReducedMotion, animate } from 'framer-motion';
 
 interface Review {
@@ -12,12 +12,12 @@ interface Review {
   text: string;
   images: string[];
   createdAt: string;
-  user: { firstName?: string; lastName?: string; name?: string; image?: string };
+  user: { firstName?: string; lastName?: string; name?: string; image?: string; city?: string };
   product?: { id: string; name: string; images: string[] };
 }
 
-const CARD_WIDTH  = 320; // px
-const CARD_GAP    = 20;  // px — gap-5
+const CARD_WIDTH  = 320;
+const CARD_GAP    = 20;
 const SNAP_UNIT   = CARD_WIDTH + CARD_GAP;
 const DECEL_RATE  = 0.998;
 
@@ -33,9 +33,10 @@ function rubberBand(val: number, min: number, max: number, coeff = 0.55): number
 }
 
 export default function ReviewsSection() {
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [reviews, setReviews]       = useState<Review[]>([]);
+  const [loading, setLoading]       = useState(true);
   const [isDragging, setIsDragging] = useState(false);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const trackRef     = useRef<HTMLDivElement>(null);
@@ -49,12 +50,26 @@ export default function ReviewsSection() {
   const animCtrl   = useRef<{ stop?: () => void }>({});
 
   useEffect(() => {
-    fetch('/api/reviews?limit=8')
+    fetch('/api/reviews?limit=12')
       .then(res => res.json())
       .then(data => setReviews(data.reviews || []))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+
+  // Close lightbox on Escape
+  useEffect(() => {
+    if (!lightboxSrc) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setLightboxSrc(null);
+    };
+    document.addEventListener('keydown', handleKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', handleKey);
+      document.body.style.overflow = '';
+    };
+  }, [lightboxSrc]);
 
   const getMaxDrag = useCallback(() => {
     const container = containerRef.current;
@@ -120,18 +135,13 @@ export default function ReviewsSection() {
     const currentX = x.get();
     const max      = getMaxDrag();
 
-    // Snap back from rubber-band edge
     if (currentX > 0 || currentX < max) {
       const edgeTarget = currentX > 0 ? 0 : max;
-      const ctrl = animate(x, edgeTarget, {
-        type: 'spring', bounce: 0, duration: 0.5,
-        velocity: velocity / 1000,
-      });
+      const ctrl = animate(x, edgeTarget, { type: 'spring', bounce: 0, duration: 0.5, velocity: velocity / 1000 });
       animCtrl.current = { stop: ctrl.stop.bind(ctrl) };
       return;
     }
 
-    // Momentum projection → nearest snap
     const projected  = currentX + project(velocity);
     const snapTarget = nearestSnap(projected);
     const ctrl = animate(x, snapTarget, {
@@ -171,116 +181,187 @@ export default function ReviewsSection() {
   if (!loading && reviews.length === 0) return null;
 
   return (
-    <section className="py-16 lg:py-20 bg-surface">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-end justify-between mb-10">
-          <div>
-            <h2 className="text-2xl md:text-3xl font-serif font-bold text-ink mb-2">What Our Customers Say</h2>
-            <div className="luxury-divider" />
+    <>
+      {/* Photo Lightbox */}
+      {lightboxSrc && (
+        <div
+          className="fixed inset-0 z-[200] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Review photo"
+          onClick={() => setLightboxSrc(null)}
+        >
+          <button
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 text-white hover:bg-white/20 flex items-center justify-center transition-colors"
+            onClick={() => setLightboxSrc(null)}
+            aria-label="Close photo"
+          >
+            <X size={20} />
+          </button>
+          <div
+            className="relative max-w-2xl w-full max-h-[80vh] aspect-square rounded-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Image src={lightboxSrc} alt="Customer review photo" fill className="object-contain" sizes="(max-width: 768px) 100vw, 50vw" />
           </div>
-          {reviews.length > 2 && (
-            <div className="hidden sm:flex gap-2">
-              <button
-                onClick={() => scrollByCard('left')}
-                aria-label="Previous review"
-                className="w-10 h-10 rounded-full border border-surface-subtle flex items-center justify-center text-ink-muted hover:bg-surface-muted transition-colors press-target"
+        </div>
+      )}
+
+      <section className="py-16 lg:py-20 bg-surface" aria-labelledby="reviews-heading">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-end justify-between mb-10">
+            <div>
+              <h2 id="reviews-heading" className="text-2xl md:text-3xl font-serif font-bold text-ink mb-1">
+                Women Who Trusted Their Saree.
+              </h2>
+              <p className="text-sm text-ink-muted">Real purchases, real occasions, real stories.</p>
+              <div className="luxury-divider mt-3" />
+            </div>
+            {reviews.length > 2 && (
+              <div className="hidden sm:flex gap-2">
+                <button
+                  onClick={() => scrollByCard('left')}
+                  aria-label="Previous review"
+                  className="w-10 h-10 rounded-full border border-surface-subtle flex items-center justify-center text-ink-muted hover:bg-surface-muted transition-colors press-target"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                <button
+                  onClick={() => scrollByCard('right')}
+                  aria-label="Next review"
+                  className="w-10 h-10 rounded-full border border-surface-subtle flex items-center justify-center text-ink-muted hover:bg-surface-muted transition-colors press-target"
+                >
+                  <ChevronRight size={18} />
+                </button>
+              </div>
+            )}
+          </div>
+
+          {loading ? (
+            <div className="flex gap-5 overflow-hidden">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="w-[320px] flex-shrink-0 bg-surface-muted rounded-2xl p-6 animate-pulse h-52" />
+              ))}
+            </div>
+          ) : (
+            <div
+              ref={containerRef}
+              className={`relative overflow-hidden ${isDragging ? 'dragging' : 'draggable'}`}
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+              onPointerCancel={handlePointerUp}
+              style={{ touchAction: 'pan-y pinch-zoom' }}
+            >
+              <motion.div
+                ref={trackRef}
+                style={{ x }}
+                className="flex gap-5 pb-4 w-max"
               >
-                <ChevronLeft size={18} />
-              </button>
-              <button
-                onClick={() => scrollByCard('right')}
-                aria-label="Next review"
-                className="w-10 h-10 rounded-full border border-surface-subtle flex items-center justify-center text-ink-muted hover:bg-surface-muted transition-colors press-target"
-              >
-                <ChevronRight size={18} />
-              </button>
+                {reviews.map((review) => {
+                  const hasImages = review.images && review.images.length > 0;
+                  const hasPhoto  = review.user.image;
+
+                  return (
+                    <div
+                      key={review.id}
+                      className="w-[320px] flex-shrink-0 bg-white rounded-2xl p-5 border border-surface-subtle shadow-sm hover:shadow-md transition-shadow"
+                      style={{ pointerEvents: isDragging ? 'none' : 'auto' }}
+                    >
+                      {/* Rating + product name */}
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="flex text-accent" aria-label={`${review.rating} out of 5 stars`}>
+                          {[...Array(5)].map((_, i) => (
+                            <Star key={i} size={13} fill={i < review.rating ? 'currentColor' : 'none'} className={i < review.rating ? '' : 'text-surface-subtle'} />
+                          ))}
+                        </div>
+                        {review.product && (
+                          <span className="text-[10px] text-ink-faint truncate max-w-[120px]">{review.product.name}</span>
+                        )}
+                      </div>
+
+                      {/* Title */}
+                      {review.title && (
+                        <p className="font-semibold text-sm text-ink mb-1.5">{review.title}</p>
+                      )}
+
+                      {/* Text */}
+                      <p className="text-sm text-ink-muted leading-relaxed mb-3 line-clamp-4">
+                        {review.text}
+                      </p>
+
+                      {/* Customer photos — clickable */}
+                      {hasImages && (
+                        <div className="flex gap-1.5 mb-3">
+                          {review.images.slice(0, 3).map((img, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => setLightboxSrc(img)}
+                              className="relative w-14 h-14 rounded-lg overflow-hidden bg-surface-muted border border-surface-subtle group hover:ring-2 hover:ring-brand-800 transition-all"
+                              aria-label="View review photo"
+                            >
+                              <Image
+                                src={img}
+                                alt="Customer photo"
+                                fill
+                                className="object-cover"
+                                sizes="56px"
+                                loading="lazy"
+                              />
+                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                                <ZoomIn size={14} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true" />
+                              </div>
+                            </button>
+                          ))}
+                          {review.images.length > 3 && (
+                            <div className="w-14 h-14 rounded-lg bg-surface-muted border border-surface-subtle flex items-center justify-center">
+                              <span className="text-[10px] font-semibold text-ink-muted">+{review.images.length - 3}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Author */}
+                      <div className="flex items-center gap-2.5 pt-3 border-t border-surface-subtle">
+                        {/* Avatar — larger, shows photo if available */}
+                        <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-brand-800 text-accent flex items-center justify-center text-xs font-bold">
+                          {hasPhoto ? (
+                            <Image
+                              src={review.user.image!}
+                              alt={getDisplayName(review.user)}
+                              width={40}
+                              height={40}
+                              className="object-cover w-full h-full"
+                            />
+                          ) : (
+                            <span>{getInitial(review.user)}</span>
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold text-ink flex items-center gap-1 truncate">
+                            {getDisplayName(review.user)}
+                            <CheckCircle2 size={11} className="text-dark-green flex-shrink-0" aria-label="Verified buyer" />
+                          </p>
+                          <p className="text-[10px] text-ink-faint">
+                            Verified Buyer
+                            {review.user.city ? ` · ${review.user.city}` : ''}
+                            {' · '}{formatDate(review.createdAt)}
+                          </p>
+                          {hasImages && (
+                            <span className="text-[9px] font-bold text-brand-800 uppercase tracking-wider">
+                              Photo Review
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </motion.div>
             </div>
           )}
         </div>
-
-        {loading ? (
-          <div className="flex gap-5 overflow-hidden">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="w-[320px] flex-shrink-0 bg-surface-muted rounded-2xl p-6 animate-pulse h-48" />
-            ))}
-          </div>
-        ) : (
-          <div
-            ref={containerRef}
-            className={`relative overflow-hidden ${isDragging ? 'dragging' : 'draggable'}`}
-            onPointerDown={handlePointerDown}
-            onPointerMove={handlePointerMove}
-            onPointerUp={handlePointerUp}
-            onPointerCancel={handlePointerUp}
-            style={{ touchAction: 'pan-y pinch-zoom' }}
-          >
-            <motion.div
-              ref={trackRef}
-              style={{ x }}
-              className="flex gap-5 pb-4 w-max"
-            >
-              {reviews.map((review) => {
-                const hasImages = review.images && review.images.length > 0;
-
-                return (
-                  <div
-                    key={review.id}
-                    className="w-[320px] flex-shrink-0 bg-white rounded-2xl p-5 border border-surface-subtle shadow-sm hover:shadow-md transition-shadow"
-                    style={{ pointerEvents: isDragging ? 'none' : 'auto' }}
-                  >
-                    {/* Rating */}
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="flex text-accent">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} size={13} fill={i < review.rating ? 'currentColor' : 'none'} className={i < review.rating ? '' : 'text-surface-subtle'} />
-                        ))}
-                      </div>
-                      {review.product && (
-                        <span className="text-[10px] text-ink-faint truncate max-w-[120px]">{review.product.name}</span>
-                      )}
-                    </div>
-
-                    {/* Title */}
-                    {review.title && (
-                      <p className="font-semibold text-sm text-ink mb-1.5">{review.title}</p>
-                    )}
-
-                    {/* Text */}
-                    <p className="text-sm text-ink-muted leading-relaxed mb-3 line-clamp-4">
-                      {review.text}
-                    </p>
-
-                    {/* Customer images */}
-                    {hasImages && (
-                      <div className="flex gap-1.5 mb-3">
-                        {review.images.slice(0, 3).map((img, idx) => (
-                          <div key={idx} className="w-14 h-14 relative rounded-lg overflow-hidden bg-surface-muted border border-surface-subtle">
-                            <Image src={img} alt="Customer photo" fill className="object-cover" sizes="56px" />
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Author */}
-                    <div className="flex items-center gap-2 pt-3 border-t border-surface-subtle">
-                      <div className="w-7 h-7 rounded-full bg-brand-800 text-accent flex items-center justify-center text-[10px] font-bold">
-                        {getInitial(review.user)}
-                      </div>
-                      <div>
-                        <p className="text-xs font-semibold text-ink flex items-center gap-1">
-                          {getDisplayName(review.user)}
-                          <CheckCircle2 size={11} className="text-dark-green" />
-                        </p>
-                        <p className="text-[10px] text-ink-faint">Verified Buyer · {formatDate(review.createdAt)}</p>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </motion.div>
-          </div>
-        )}
-      </div>
-    </section>
+      </section>
+    </>
   );
 }

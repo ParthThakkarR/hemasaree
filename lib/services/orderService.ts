@@ -27,7 +27,7 @@ export interface OrderItemResult {
 import { SettingsService } from './settingsService';
 
 export async function calculateDeliveryCharge(state: string): Promise<number> {
-  const normalizedState = (state ?? '').toLowerCase().trim();
+  const normalizedState = String(state ?? '').toLowerCase().trim();
   const settings = await SettingsService.getSettings();
   return normalizedState === 'gujarat' ? settings.deliveryChargeGujarat : settings.deliveryChargeDefault;
 }

@@ -52,7 +52,7 @@ vi.mock('@/lib/validators', () => ({
 // ─── Dynamic import after mocks ──────────────────────────
 const callRoute = async (body: Record<string, unknown>) => {
   const req = { json: vi.fn().mockResolvedValue(body) } as unknown as Request;
-  const { POST } = await import('/home/meet/Babar-Meet/hemasaree/app/api/(auth)/send-otp/route.tsx');
+  const { POST } = await import('@/app/api/(auth)/send-otp/route.tsx');
   return POST(req);
 };
 
@@ -234,7 +234,7 @@ describe('POST /api/auth/send-otp', () => {
 
     it('400 when body is null → Zod fails', async () => {
       const req = { json: vi.fn().mockResolvedValue(null) } as unknown as Request;
-      const { POST } = await import('/home/meet/Babar-Meet/hemasaree/app/api/(auth)/send-otp/route.tsx');
+      const { POST } = await import('@/app/api/(auth)/send-otp/route.tsx');
       const res = await POST(req);
       expect(res.status).toBe(400);
     });
@@ -279,7 +279,7 @@ describe('POST /api/auth/send-otp', () => {
     it('500 when JSON parse throws', async () => {
       const req = { json: vi.fn().mockRejectedValue(new SyntaxError('bad json')) } as unknown as Request;
       mockSendOtpSchema.safeParse.mockImplementation(() => { throw new Error('should not reach'); });
-      const { POST } = await import('/home/meet/Babar-Meet/hemasaree/app/api/(auth)/send-otp/route.tsx');
+      const { POST } = await import('@/app/api/(auth)/send-otp/route.tsx');
       const res = await POST(req);
       expect(res.status).toBe(500);
     });
@@ -505,3 +505,4 @@ describe('POST /api/auth/send-otp', () => {
     });
   });
 });
+

@@ -27,6 +27,7 @@ const { mockPrisma, mockUser } = vi.hoisted(() => ({
   },
 }));
 
+vi.mock('@/lib/services/settingsService', () => ({ SettingsService: { getSettings: vi.fn().mockResolvedValue({ deliveryCharge: 50, freeDeliveryThreshold: 500, isPolishEnabled: true, polishPrice: 450 }) } }));
 vi.mock('@/app/lib/prisma', () => ({ prisma: mockPrisma }));
 vi.mock('@/app/lib/getUserFromToken', () => ({ getUserFromToken: vi.fn() }));
 vi.mock('@prisma/client', () => ({
@@ -34,7 +35,7 @@ vi.mock('@prisma/client', () => ({
   OrderItemStatus: { PENDING: 'PENDING', CANCELLED: 'CANCELLED', DELIVERED: 'DELIVERED', RETURN_REQUESTED: 'RETURN_REQUESTED' },
 }));
 
-import { GET, POST, PUT, DELETE } from '/home/meet/Babar-Meet/hemasaree/app/api/cart/route.tsx';
+import { GET, POST, PUT, DELETE } from '@/app/api/cart/route.tsx';
 import { getUserFromToken } from '@/app/lib/getUserFromToken';
 
 const makeReq = (body?: Record<string, unknown>) => ({
@@ -576,3 +577,8 @@ describe('DELETE /api/cart (remove item)', () => {
     expect(res.status).toBe(404);
   });
 });
+
+
+
+
+

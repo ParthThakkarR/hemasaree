@@ -8,7 +8,7 @@ const { mockSearchProducts } = vi.hoisted(() => ({
 
 vi.mock('@/lib/searchService', () => ({ searchProducts: mockSearchProducts }));
 
-import { GET } from '/home/meet/Babar-Meet/hemasaree/app/api/search/route.ts';
+import { GET } from '@/app/api/search/route.ts';
 
 const makeReq = (url: string) => ({ url } as unknown as Request);
 
@@ -183,3 +183,4 @@ describe('GET /api/search', () => {
     );
   });
 });
+

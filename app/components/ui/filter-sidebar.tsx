@@ -42,12 +42,18 @@ const SORT_OPTIONS = [
   { label: 'Popular', value: 'popular' },
 ];
 
+/** Parse comma-separated category param into an array */
+function parseCategoryParam(param: string | null): string[] {
+  if (!param) return [];
+  return param.split(',').map(c => c.trim()).filter(Boolean);
+}
+
 export default function FilterSidebar({ categories, isMobileOpen, onMobileClose }: FilterSidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || '');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(parseCategoryParam(searchParams.get('category')));
   const [minPrice, setMinPrice] = useState(Number(searchParams.get('minPrice')) || 0);
   const [maxPrice, setMaxPrice] = useState(Number(searchParams.get('maxPrice')) || 10000);
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
@@ -82,7 +88,7 @@ export default function FilterSidebar({ categories, isMobileOpen, onMobileClose 
 
   // Sync state when URL changes externally
   useEffect(() => {
-    setSelectedCategory(searchParams.get('category') || '');
+    setSelectedCategories(parseCategoryParam(searchParams.get('category')));
     setMinPrice(Number(searchParams.get('minPrice')) || 0);
     setMaxPrice(Number(searchParams.get('maxPrice')) || 10000);
     setSearchQuery(searchParams.get('search') || '');
@@ -116,6 +122,25 @@ export default function FilterSidebar({ categories, isMobileOpen, onMobileClose 
     router.push(`${pathname}?${current.toString()}`, { scroll: false });
   };
 
+  /** Toggle a category in the multi-select list */
+  const toggleCategory = (categoryName: string) => {
+    let newCategories: string[];
+    if (selectedCategories.includes(categoryName)) {
+      // Remove it
+      newCategories = selectedCategories.filter(c => c !== categoryName);
+    } else {
+      // Add it
+      newCategories = [...selectedCategories, categoryName];
+    }
+    // Update URL
+    updateFilters('category', newCategories.length > 0 ? newCategories.join(',') : null);
+  };
+
+  /** Clear all selected categories */
+  const clearCategories = () => {
+    updateFilters('category', null);
+  };
+
   const clearFilters = () => {
     router.push(pathname, { scroll: false });
     onMobileClose();
@@ -132,22 +157,41 @@ export default function FilterSidebar({ categories, isMobileOpen, onMobileClose 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery]);
 
-  const hasActiveFilters = selectedCategory || selectedColor || selectedFabric || selectedOccasion || searchParams.get('search') || (maxPrice < 10000) || (minPrice > 0) || sortBy;
+  const hasActiveFilters = selectedCategories.length > 0 || selectedColor || selectedFabric || selectedOccasion || searchParams.get('search') || (maxPrice < 10000) || (minPrice > 0) || sortBy;
 
-  const AccordionHeader = ({ label, sectionKey }: { label: string; sectionKey: string }) => (
+  const AccordionHeader = ({ label, sectionKey, count }: { label: string; sectionKey: string; count?: number }) => (
     <button
       onClick={() => toggleSection(sectionKey)}
       className="w-full flex items-center justify-between py-2 text-sm font-semibold text-ink uppercase tracking-wider hover:text-brand-800 transition-colors"
     >
-      {label}
+      <span className="flex items-center gap-2">
+        {label}
+        {count && count > 0 ? (
+          <span className="bg-brand-800 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center normal-case tracking-normal">
+            {count}
+          </span>
+        ) : null}
+      </span>
       <ChevronDown size={16} className={`text-ink-faint transition-transform duration-200 ${openSections[sectionKey] ? 'rotate-180' : ''}`} />
     </button>
   );
 
-  const CheckOption = ({ label, isSelected, onChange }: { label: string; isSelected: boolean; onChange: () => void }) => (
+  /** True checkbox option that supports multi-select */
+  const CheckboxOption = ({ label, isSelected, onChange }: { label: string; isSelected: boolean; onChange: () => void }) => (
     <label className="flex items-center gap-2.5 cursor-pointer group py-1">
       <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${isSelected ? 'border-brand-800 bg-brand-800' : 'border-surface-subtle group-hover:border-brand-300 bg-white'}`}>
         {isSelected && <svg viewBox="0 0 14 14" fill="none" className="w-3 h-3 text-white"><path d="M3 7.5L5.5 10L11 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+      </div>
+      <span className={`text-sm ${isSelected ? 'font-medium text-ink' : 'text-ink-muted group-hover:text-ink'}`}>{label}</span>
+      <input type="checkbox" className="hidden" checked={isSelected} onChange={onChange} />
+    </label>
+  );
+
+  /** Radio-style option for single-select fields like sort */
+  const RadioOption = ({ label, isSelected, onChange }: { label: string; isSelected: boolean; onChange: () => void }) => (
+    <label className="flex items-center gap-2.5 cursor-pointer group py-1">
+      <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${isSelected ? 'border-brand-800' : 'border-surface-subtle group-hover:border-brand-300'}`}>
+        {isSelected && <div className="w-2 h-2 rounded-full bg-brand-800" />}
       </div>
       <span className={`text-sm ${isSelected ? 'font-medium text-ink' : 'text-ink-muted group-hover:text-ink'}`}>{label}</span>
       <input type="radio" className="hidden" checked={isSelected} onChange={onChange} />
@@ -177,13 +221,34 @@ export default function FilterSidebar({ categories, isMobileOpen, onMobileClose 
         />
       </div>
 
+      {/* Popular Quick Filters */}
+      <div className="py-4 border-b border-surface-subtle">
+        <p className="text-[10px] font-bold text-ink-faint uppercase tracking-wider mb-2.5">Popular</p>
+        <div className="flex flex-wrap gap-1.5">
+          {[
+            { label: 'Under ₹2,000', action: () => { setMaxPrice(2000); updateFilters('maxPrice', '2000'); } },
+            { label: 'New Arrivals', action: () => updateFilters('sortPrice', 'newest') },
+            { label: 'In Stock', action: () => {} },
+            { label: 'Free Shipping', action: () => {} },
+          ].map((item) => (
+            <button
+              key={item.label}
+              onClick={() => { item.action(); navigator.vibrate?.(5); }}
+              className="px-3 py-1.5 rounded-full text-[11px] font-medium border border-accent/30 bg-accent/5 text-accent-dark hover:bg-accent/15 transition-all"
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Sort */}
       <div className="py-4 border-b border-surface-subtle">
         <AccordionHeader label="Sort By" sectionKey="sort" />
         {openSections.sort && (
           <div className="flex flex-col gap-0.5 mt-1 animate-fade-in">
             {SORT_OPTIONS.map(opt => (
-              <CheckOption
+              <RadioOption
                 key={opt.value}
                 label={opt.label}
                 isSelected={sortBy === opt.value}
@@ -194,14 +259,23 @@ export default function FilterSidebar({ categories, isMobileOpen, onMobileClose 
         )}
       </div>
 
-      {/* Category */}
+      {/* Category — TRUE MULTI-SELECT */}
       <div className="py-4 border-b border-surface-subtle">
-        <AccordionHeader label="Category" sectionKey="category" />
+        <AccordionHeader label="Category" sectionKey="category" count={selectedCategories.length} />
         {openSections.category && (
           <div className="flex flex-col gap-0.5 mt-1 animate-fade-in">
-            <CheckOption label="All Categories" isSelected={selectedCategory === ''} onChange={() => updateFilters('category', null)} />
+            <CheckboxOption
+              label="All Categories"
+              isSelected={selectedCategories.length === 0}
+              onChange={clearCategories}
+            />
             {categories.map((cat) => (
-              <CheckOption key={cat.id} label={cat.name} isSelected={selectedCategory === cat.name} onChange={() => updateFilters('category', selectedCategory === cat.name ? null : cat.name)} />
+              <CheckboxOption
+                key={cat.id}
+                label={cat.name}
+                isSelected={selectedCategories.includes(cat.name)}
+                onChange={() => toggleCategory(cat.name)}
+              />
             ))}
           </div>
         )}

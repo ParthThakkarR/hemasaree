@@ -1,41 +1,80 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'framer-motion';
-import { Truck, ShieldCheck, CreditCard, CheckCircle2, Lock, ClipboardCheck } from 'lucide-react';
+import { motion, useReducedMotion } from 'framer-motion';
+import { Users, RotateCcw, Gem, BookOpen, Heart } from 'lucide-react';
 
-const features = [
-  { icon: ShieldCheck, title: 'Premium Quality', desc: '100% Authentic Fabric' },
-  { icon: CheckCircle2, title: 'Quality Checked', desc: 'Hand-inspected before dispatch' },
-  { icon: Lock, title: '100% Secure Payments', desc: 'Safe & Encrypted' },
-  { icon: Truck, title: 'Secure Shipping', desc: 'Pan-India Delivery' },
-  { icon: ClipboardCheck, title: 'All Sales Final', desc: 'Review before you buy' },
-  { icon: CreditCard, title: 'Multiple Options', desc: 'UPI, Cards & COD' },
-];
+const WHY_US = [
+  {
+    icon: Heart,
+    title: 'Artisan Direct',
+    micro: 'No middlemen.',
+    body: 'More of what you pay reaches the hands that made your saree.',
+  },
+  {
+    icon: RotateCcw,
+    title: 'Respect the Craft',
+    micro: 'All sales are final.',
+    body: "To honor the countless hours and devotion poured into each handwoven piece, we do not accept returns.",
+  },
+  {
+    icon: Gem,
+    title: 'Heirloom Quality',
+    micro: 'Woven to outlast trends.',
+    body: 'Some of our customers are gifting HemaSaree sarees to the next generation.',
+  },
+  {
+    icon: BookOpen,
+    title: 'Lifetime Care Guide',
+    micro: 'From the artisan to you.',
+    body: 'Every saree ships with a handwritten care note from the weaver who made it.',
+  },
+  {
+    icon: Users,
+    title: 'Community of Women',
+    micro: 'You are not alone in this.',
+    body: 'Join thousands of women across India who wear their heritage every day.',
+  },
+] as const;
 
 export default function TrustStrip() {
+  const prefersReducedMotion = useReducedMotion();
+
   return (
-    <section className="bg-brand-950 text-white py-12 lg:py-14">
+    <section
+      className="bg-brand-950 text-white py-14 lg:py-16"
+      aria-label="Why women choose HemaSaree"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-6">
-          {features.map((feature, i) => (
-            <motion.div
-              key={feature.title}
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.08, duration: 0.4 }}
-              className="flex flex-col items-center text-center gap-3"
-            >
-              <div className="w-12 h-12 rounded-full bg-brand-900/60 border border-brand-800/50 flex items-center justify-center">
-                <feature.icon size={22} className="text-accent" />
-              </div>
-              <div>
-                <h4 className="font-semibold tracking-wide text-sm text-brand-50">{feature.title}</h4>
-                <p className="text-xs text-brand-100/60 mt-0.5">{feature.desc}</p>
-              </div>
-            </motion.div>
-          ))}
+        <p className="text-center text-xs font-bold uppercase tracking-widest text-accent/70 mb-10">
+          Why Women Choose HemaSaree
+        </p>
+
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 md:gap-6">
+          {WHY_US.map((pillar, i) => {
+            const Icon = pillar.icon;
+            return (
+              <motion.div
+                key={pillar.title}
+                initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.09, duration: 0.4 }}
+                className="flex flex-col items-center text-center gap-3"
+              >
+                <div className="w-12 h-12 rounded-full bg-brand-900/60 border border-brand-800/50 flex items-center justify-center">
+                  <Icon size={22} className="text-accent" aria-hidden="true" />
+                </div>
+                <div>
+                  <h3 className="font-semibold tracking-wide text-sm text-brand-50 mb-0.5">
+                    {pillar.title}
+                  </h3>
+                  <p className="text-xs text-accent/80 font-medium mb-1">{pillar.micro}</p>
+                  <p className="text-xs text-brand-100/55 leading-relaxed">{pillar.body}</p>
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </section>

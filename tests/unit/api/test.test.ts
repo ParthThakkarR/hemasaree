@@ -24,11 +24,21 @@ vi.mock('next/server', () => ({
   },
 }));
 
+import { NextRequest } from 'next/server';
+
+// Mock next-auth/jwt
+vi.mock('next-auth/jwt', () => ({
+  getToken: vi.fn().mockResolvedValue({ isAdmin: true }),
+}));
+
 import { GET as testRoute } from '@/app/api/test/route';
 
 describe('Test API Route', () => {
+  let mockReq: NextRequest;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    mockReq = {} as NextRequest;
   });
 
   afterEach(() => {
@@ -44,7 +54,7 @@ describe('Test API Route', () => {
     
     mockPrisma.user.findFirst.mockResolvedValue(mockUser);
 
-    const res = await testRoute();
+    const res = await testRoute(mockReq);
     
     expect(mockPrisma.user.findFirst).toHaveBeenCalledWith({
       include: { addresses: true },
@@ -54,7 +64,7 @@ describe('Test API Route', () => {
   it('should return null when no users exist', async () => {
     mockPrisma.user.findFirst.mockResolvedValue(null);
 
-    const res = await testRoute();
+    const res = await testRoute(mockReq);
     
     expect(mockPrisma.user.findFirst).toHaveBeenCalledWith({
       include: { addresses: true },
@@ -64,6 +74,6 @@ describe('Test API Route', () => {
   it('should throw when database error occurs', async () => {
     mockPrisma.user.findFirst.mockRejectedValue(new Error('Database error'));
 
-    await expect(testRoute()).rejects.toThrow('Database error');
+    await expect(testRoute(mockReq)).rejects.toThrow('Database error');
   });
 });

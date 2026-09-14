@@ -10,7 +10,7 @@ vi.mock('@/lib/services/productService', () => ({
   ProductService: { getProductById: mockGetProductById },
 }));
 
-import { GET } from '/home/meet/Babar-Meet/hemasaree/app/api/products/[id]/route.tsx';
+import { GET } from '@/app/api/products/[id]/route.tsx';
 
 describe('GET /api/products/[id]', () => {
   beforeEach(() => { vi.clearAllMocks(); mockGetProductById.mockReset(); });
@@ -77,3 +77,4 @@ describe('GET /api/products/[id]', () => {
     expect(body.rating).toBe(4.5);
   });
 });
+

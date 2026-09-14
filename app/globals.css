@@ -546,6 +546,50 @@ h6 { font-size: 0.875rem; line-height: 1.4; font-weight: 600; }
 }
 @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 
+/* ── Scroll margin for anchor navigation (accounts for sticky navbar) ── */
+[id] {
+  scroll-margin-top: 5.5rem;
+}
+
+/* ── Fade in animation ── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* ── Slide right animation (mobile drawer) ── */
+@keyframes slideRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+.animate-slide-right {
+  animation: slideRight 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ── Free shipping progress bar ── */
+.shipping-progress {
+  background: linear-gradient(90deg, var(--color-neem) 0%, var(--color-neem-light) 100%);
+  border-radius: 999px;
+  height: 4px;
+  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ── Focus-within form group ── */
+.form-group:focus-within {
+  border-color: var(--color-haldi);
+  box-shadow: 0 0 0 3px rgba(212, 165, 55, 0.15);
+}
+
+/* ── Desktop-only large bottom padding for non-mobile-nav ── */
+@media (min-width: 1024px) {
+  .pb-mobile-nav {
+    padding-bottom: 0;
+  }
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    7. NARRATIVE COMPONENT UTILITIES
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -694,4 +738,83 @@ h6 { font-size: 0.875rem; line-height: 1.4; font-weight: 600; }
   /* Ensure minimum contrast on muted text */
   .provenance-label,
   .chapter-eyebrow { color: var(--color-kajal-soft) !important; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   8. PSYCHOLOGY ENHANCEMENT UTILITIES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Urgency Pulse — amber warning glow for low-stock indicators ── */
+@keyframes urgencyPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212, 165, 55, 0); }
+  50%       { box-shadow: 0 0 0 4px rgba(212, 165, 55, 0.18); }
+}
+
+.urgency-pulse {
+  animation: urgencyPulse 2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .urgency-pulse { animation: none; }
+}
+
+/* ── Benefit item entrance — subtle slide-in for benefit reveals ── */
+@keyframes benefitEnter {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.benefit-item {
+  animation: benefitEnter 0.3s ease-out both;
+}
+
+.benefit-item:nth-child(1) { animation-delay: 0ms; }
+.benefit-item:nth-child(2) { animation-delay: 80ms; }
+.benefit-item:nth-child(3) { animation-delay: 160ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .benefit-item { animation: none; }
+}
+
+/* ── Photo Lightbox dialog base styles ── */
+.photo-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(13, 11, 10, 0.88);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+/* ── Drag cursor states for carousels ── */
+.draggable { cursor: grab; }
+.dragging  { cursor: grabbing; user-select: none; }
+
+/* ── Print styles — artisan care guide ── */
+@media print {
+  .no-print, nav, footer,
+  [data-hide-print] { display: none !important; }
+
+  body {
+    background: white !important;
+    color: #1A1614 !important;
+    font-size: 12pt;
+  }
+
+  .care-guide-print {
+    page-break-inside: avoid;
+    border: 1px solid #EDE0D0;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  a[href]::after {
+    content: ' (' attr(href) ')';
+    font-size: 9pt;
+    color: #8B827A;
+  }
 }

@@ -5,7 +5,7 @@ import { ShieldCheck, Truck, RotateCcw, Heart } from 'lucide-react';
 
 // Sections
 import HeroSection from '@components/home/hero-section';
-import FAQSection, { HOMEPAGE_FAQ_SCHEMA } from '@components/home/faq-section';
+import FAQSection from '@components/home/faq-section';
 import NewsletterSection from '@components/home/newsletter-section';
 import TrustStrip from '@components/home/trust-strip';
 
@@ -16,6 +16,7 @@ import OccasionCard from '@components/ui/OccasionCard';
 // Content
 import { artisanStories } from '@/lib/content/stories';
 import { occasions } from '@/lib/content/occasions';
+import { generateFAQSchema } from '@/lib/content/objections';
 
 // Data
 import { ProductService } from '@/lib/services/productService';
@@ -83,13 +84,65 @@ export default async function Home() {
     <div className="min-h-screen bg-chandan">
       {/* Structured Data */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(homepageSchema) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(HOMEPAGE_FAQ_SCHEMA) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(generateFAQSchema()) }} />
 
       {/* ════════════════════════════════════════
           HERO — "The Trunk Opens"
           Full-viewport artisan story carousel
           ════════════════════════════════════════ */}
       <HeroSection />
+
+      {/* ════════════════════════════════════════
+          SHOP BY CATEGORY — Visual entry points
+          Helps browsers start shopping immediately
+          ════════════════════════════════════════ */}
+      {categories.length > 0 && (
+        <section className="section bg-chandan" aria-labelledby="shop-by-category-title">
+          <div className="container-editorial">
+            <div className="text-center mb-10">
+              <h2 id="shop-by-category-title" className="font-noto-serif text-3xl md:text-4xl font-bold text-kajal">
+                Shop by Category
+              </h2>
+              <p className="section-subtitle mt-3 mx-auto text-center">
+                Find the perfect saree for your occasion
+              </p>
+            </div>
+
+            <div className={`grid gap-4 md:gap-5 ${
+              categories.length <= 3 ? 'grid-cols-1 sm:grid-cols-3 max-w-4xl mx-auto' :
+              categories.length <= 4 ? 'grid-cols-2 md:grid-cols-4' :
+              'grid-cols-2 md:grid-cols-3 lg:grid-cols-5'
+            }`}>
+              {categories.slice(0, 6).map((cat) => (
+                <Link
+                  key={cat.id}
+                  href={`/products?category=${encodeURIComponent(cat.name)}`}
+                  className="group relative block rounded-2xl overflow-hidden aspect-[3/4] bg-chandan-deep border border-chandan-warm hover:shadow-luxury transition-shadow"
+                >
+                  {cat.image ? (
+                    <Image
+                      src={cat.image}
+                      alt={cat.name}
+                      fill
+                      sizes="(max-width: 640px) 50vw, 20vw"
+                      className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-gradient-to-br from-kumkum/20 to-haldi/20" />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-kajal/70 via-transparent to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <h3 className="font-noto-serif text-lg font-bold text-white">{cat.name}</h3>
+                    {cat.description && (
+                      <p className="text-white/60 text-xs mt-0.5 line-clamp-1">{cat.description}</p>
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ════════════════════════════════════════
           CHAPTER 1 — "This Season's Stories"
@@ -120,7 +173,11 @@ export default async function Home() {
           </div>
 
           {/* Story cards — horizontal on mobile (scroll), grid on desktop */}
-          <div className="flex gap-5 overflow-x-auto pb-4 [&::-webkit-scrollbar]:hidden sm:grid sm:grid-cols-3 sm:overflow-visible sm:pb-0">
+          <div className={`flex gap-5 overflow-x-auto pb-4 [&::-webkit-scrollbar]:hidden sm:grid sm:overflow-visible sm:pb-0 justify-center mx-auto ${
+            artisanStories.length === 1 ? 'sm:grid-cols-1 max-w-sm' :
+            artisanStories.length === 2 ? 'sm:grid-cols-2 max-w-3xl' :
+            'sm:grid-cols-3 w-full'
+          }`}>
             {artisanStories.map((story, i) => (
               <StoryCard key={story.id} story={story} index={i} className="min-w-[72vw] sm:min-w-0 sm:w-auto" />
             ))}
@@ -223,7 +280,11 @@ export default async function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className={`grid gap-6 justify-center mx-auto ${
+            artisanStories.length === 1 ? 'grid-cols-1 max-w-sm' :
+            artisanStories.length === 2 ? 'grid-cols-1 sm:grid-cols-2 max-w-3xl' :
+            'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 w-full'
+          }`}>
             {artisanStories.map((story, i) => (
               <Link
                 key={story.id}

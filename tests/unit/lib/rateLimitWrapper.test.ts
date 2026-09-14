@@ -8,7 +8,7 @@ const { mockRateLimit } = vi.hoisted(() => ({
 
 vi.mock('@/lib/rate-limit-redis', () => ({ rateLimit: mockRateLimit }));
 
-const { withRateLimit } = await import('/home/meet/Babar-Meet/hemasaree/lib/rateLimitWrapper.ts');
+const { withRateLimit } = await import('@/lib/rateLimitWrapper.ts');
 
 const { NextResponse } = await import('next/server');
 
@@ -152,3 +152,4 @@ describe('withRateLimit', () => {
     expect(mockRateLimit).toHaveBeenNthCalledWith(2, 'ratelimit:ip2:/api/test', 5, 60);
   });
 });
+

@@ -22,7 +22,7 @@ vi.mock('@/app/lib/prisma', () => ({ prisma: mockPrisma }));
 vi.mock('next-auth', () => ({ getServerSession: mockSession }));
 vi.mock('@/app/lib/auth', () => ({ authOptions: {} }));
 
-import { GET, POST } from '/home/meet/Babar-Meet/hemasaree/app/api/reviews/route.tsx';
+import { GET, POST } from '@/app/api/reviews/route.tsx';
 
 const makeReq = (url = 'http://localhost:3000/api/reviews', body?: Record<string, unknown>) => ({
   nextUrl: new URL(url),
@@ -304,10 +304,10 @@ describe('POST /api/reviews (submit)', () => {
     mockPrisma.orderItem.findFirst.mockResolvedValue(null);
     mockPrisma.review.create.mockResolvedValue({ id: 'r1' });
     await POST(makeReq('http://localhost:3000/api/reviews', {
-      productId: 'p1', rating: 5, text: 'Great product, highly recommended!', images: ['img1.jpg', 'img2.jpg'],
+      productId: 'p1', rating: 5, text: 'Great product, highly recommended!', images: ['http://example.com/img1.jpg', 'http://example.com/img2.jpg'],
     }));
     expect(mockPrisma.review.create).toHaveBeenCalledWith(
-      expect.objectContaining({ data: expect.objectContaining({ images: ['img1.jpg', 'img2.jpg'] }) })
+      expect.objectContaining({ data: expect.objectContaining({ images: ['http://example.com/img1.jpg', 'http://example.com/img2.jpg'] }) })
     );
   });
 
@@ -340,3 +340,5 @@ describe('POST /api/reviews (submit)', () => {
     expect(res.status).toBe(500);
   });
 });
+
+

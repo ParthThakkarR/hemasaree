@@ -30,7 +30,7 @@ vi.mock('@/lib/email/emailQueue', () => ({
   emailQueue: { add: vi.fn().mockResolvedValue({}) },
 }));
 
-import { POST } from '/home/meet/Babar-Meet/hemasaree/app/api/checkout/route.tsx';
+import { POST } from '@/app/api/checkout/route.tsx';
 import { getUserFromToken } from '@/app/lib/getUserFromToken';
 
 const makeReq = (body?: Record<string, unknown>) => ({
@@ -58,7 +58,7 @@ describe('POST /api/checkout', () => {
       const res = await POST(makeReq({
         address: { streetAddress: '123 Main St', city: 'Mumbai', state: 'Maharashtra', zipCode: '400001', label: 'Home' },
       }));
-      expect(res.status).toBe(200);
+      expect(res.status).toBe(201);
       const body = await res.json();
       expect(body.orderId).toBe('order1');
     });
@@ -82,7 +82,7 @@ describe('POST /api/checkout', () => {
       await POST(makeReq({
         address: { streetAddress: '123 Main St', city: 'Mumbai', state: 'MH', zipCode: '400001', label: 'Home' },
       }));
-      expect(mockCreateOrder).toHaveBeenCalledWith('user123', expect.any(Object), 100);
+      expect(mockCreateOrder).toHaveBeenCalledWith('user123', expect.any(Object), 100, undefined, undefined);
     });
 
     it('passes address to OrderService.createOrder', async () => {
@@ -93,8 +93,8 @@ describe('POST /api/checkout', () => {
 
       await POST(makeReq({ address }));
       expect(mockCreateOrder).toHaveBeenCalledWith('user123', expect.objectContaining({
-        streetAddress: '123 Main St', city: 'Mumbai', state: 'MH', zipCode: '400001',
-      }), 100);
+        houseNumber: 'N/A', area: '123 Main St', city: 'Mumbai', state: 'MH', pincode: '400001',
+      }), 100, undefined, undefined);
     });
 
     it('returns totalAmount in response', async () => {
@@ -146,7 +146,7 @@ describe('POST /api/checkout', () => {
       const res = await POST(makeReq({
         address: { streetAddress: '123 Main St', city: 'Mumbai', state: 'MH', zipCode: '400001' },
       }));
-      expect(res.status).toBe(200);
+      expect(res.status).toBe(201);
     });
 
     it('handles different state delivery charges', async () => {
@@ -279,7 +279,7 @@ describe('POST /api/checkout', () => {
           zipCode: '400001',
         },
       }));
-      expect(res.status).toBe(200);
+      expect(res.status).toBe(201);
     });
 
     it('handles very long address fields', async () => {
@@ -295,7 +295,7 @@ describe('POST /api/checkout', () => {
           zipCode: '400001',
         },
       }));
-      expect(res.status).toBe(200);
+      expect(res.status).toBe(201);
     });
 
     it('handles address with unicode characters', async () => {
@@ -311,7 +311,7 @@ describe('POST /api/checkout', () => {
           zipCode: '400001',
         },
       }));
-      expect(res.status).toBe(200);
+      expect(res.status).toBe(201);
     });
 
     it('handles null address', async () => {
@@ -338,7 +338,13 @@ describe('POST /api/checkout', () => {
         POST(makeReq({ address: { streetAddress: '123 Main', city: 'Mumbai', state: 'MH', zipCode: '400001' } })),
         POST(makeReq({ address: { streetAddress: '123 Main', city: 'Mumbai', state: 'MH', zipCode: '400001' } })),
       ]);
-      expect(results.every((r) => r.status === 200)).toBe(true);
+      expect(results.every((r) => r.status === 201)).toBe(true);
     });
   });
 });
+
+
+
+
+
+

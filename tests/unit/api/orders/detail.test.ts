@@ -23,7 +23,7 @@ vi.mock('@/app/lib/getUserFromToken', () => ({
   getUserFromToken: vi.fn(),
 }));
 
-import { GET } from '/home/meet/Babar-Meet/hemasaree/app/api/orders/[id]/route.tsx';
+import { GET } from '@/app/api/orders/[id]/route.tsx';
 import { getUserFromToken } from '@/app/lib/getUserFromToken';
 
 const callRoute = async (orderId: string) => {
@@ -359,3 +359,4 @@ describe('GET /api/orders/[id]', () => {
     });
   });
 });
+

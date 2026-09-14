@@ -3,6 +3,8 @@
 import React from 'react';
 import { Heart, ShoppingBag, Check, Truck, ShieldCheck, Star, Lock, MessageCircle, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import BenefitReveal from '@components/ui/BenefitReveal';
+import GuaranteeBadge from '@components/ui/GuaranteeBadge';
 
 interface ProductInfoProps {
   product: any;
@@ -24,9 +26,10 @@ export default function ProductInfo({
   polish, setPolish, POLISH_PRICE, isPolishEnabled = true, addToCart, isAddingToCart, router,
   reviewStats
 }: ProductInfoProps) {
-  // Use real MRP if available, otherwise calculate simulated
-  const mrp = product.mrp || Math.round(displayPrice * 1.25);
-  const discountPercent = mrp > displayPrice ? Math.round(((mrp - displayPrice) / mrp) * 100) : 0;
+  // Only show strikethrough when MRP is explicitly set — no fake inflation
+  const hasRealMRP = typeof product.mrp === 'number' && product.mrp > displayPrice;
+  const mrp = hasRealMRP ? product.mrp! : null;
+  const discountPercent = mrp ? Math.round(((mrp - displayPrice) / mrp) * 100) : 0;
 
   return (
     <motion.div 
@@ -61,16 +64,28 @@ export default function ProductInfo({
           </div>
         )}
 
+        {/* Benefit Reveal — transformation outcomes, not specs */}
+        <BenefitReveal
+          fabric={product.fabric}
+          occasion={product.occasion}
+          category={typeof product.category === 'object' ? product.category?.name : product.category}
+          mode="inline"
+          className="mb-4"
+        />
+
         {/* Price */}
         <div className="flex items-baseline gap-3">
           <p className="text-3xl font-bold text-ink tracking-tight">₹{displayPrice.toLocaleString('en-IN')}</p>
-          {discountPercent > 0 && (
+          {mrp && discountPercent > 0 && (
             <>
               <span className="text-lg text-ink-faint line-through">₹{mrp.toLocaleString('en-IN')}</span>
               <span className="text-sm font-bold text-dark-green bg-green-50 px-2 py-0.5 rounded-md">{discountPercent}% OFF</span>
             </>
           )}
         </div>
+        {mrp && discountPercent > 0 && (
+          <p className="text-xs font-semibold text-dark-green mt-1">You save ₹{(mrp - displayPrice).toLocaleString('en-IN')}</p>
+        )}
         <p className="text-xs text-ink-faint mt-1">Inclusive of all taxes</p>
       </div>
 
@@ -148,12 +163,11 @@ export default function ProductInfo({
       </a>
 
        {/* Trust Badges */}
-       <div className="grid grid-cols-2 gap-3">
+       <div className="grid grid-cols-3 gap-3">
          {[
            { icon: ShieldCheck, label: '100% Genuine' },
            { icon: Truck, label: 'Secure Shipping' },
            { icon: Lock, label: 'Safe Checkout' },
-           { icon: CheckCircle2, label: 'All Sales Final' },
          ].map(badge => (
            <div key={badge.label} className="flex flex-col items-center text-center gap-1.5 py-3 bg-surface-muted rounded-xl">
              <badge.icon size={18} className="text-accent" />
@@ -161,6 +175,9 @@ export default function ProductInfo({
            </div>
          ))}
        </div>
+
+       {/* Guarantee badge — replaces All Sales Final */}
+       <GuaranteeBadge variant="full" />
     </motion.div>
   );
 }

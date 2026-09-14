@@ -3,10 +3,12 @@
 import React, { useEffect, useState, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
-import { Filter, X, SlidersHorizontal } from 'lucide-react';
+import { Filter, X, SlidersHorizontal, ChevronDown } from 'lucide-react';
 import ProductCard from '@components/ui/product-card';
 import FilterSidebar from '@components/ui/filter-sidebar';
 import ProductSkeleton from '@components/ui/product-skeleton';
+import GuaranteeBadge from '@components/ui/GuaranteeBadge';
+import Breadcrumb from '@components/ui/breadcrumb';
 
 interface Category {
   id: string;
@@ -28,23 +30,30 @@ interface ProductsClientProps {
   initialProducts: Product[];
   initialCategories: Category[];
   initialTotal: number;
+  multiCategoryBannerImage?: string | null;
 }
 
-function ProductsListingContent({ initialProducts, initialCategories, initialTotal }: ProductsClientProps) {
+/** Parse comma-separated category param into an array */
+function parseCategoryParam(param: string | null): string[] {
+  if (!param) return [];
+  return param.split(',').map(c => c.trim()).filter(Boolean);
+}
+
+function ProductsListingContent({ initialProducts, initialCategories, initialTotal, multiCategoryBannerImage }: ProductsClientProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  
+
   const [categories] = useState<Category[]>(initialCategories);
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [suggestedProducts, setSuggestedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-  
+
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(Math.ceil(initialTotal / 12));
   const [totalProducts, setTotalProducts] = useState(initialTotal);
-  
+
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
 
   // Track whether URL params have changed from initial load
@@ -54,16 +63,16 @@ function ProductsListingContent({ initialProducts, initialCategories, initialTot
   const fetchProducts = useCallback(async (page: number, append = false) => {
     try {
       append ? setLoadingMore(true) : setLoading(true);
-      
+
       const params = new URLSearchParams(Array.from(searchParams.entries()));
       params.set('page', page.toString());
       params.set('limit', '12');
 
       const res = await fetch(`/api/products?${params.toString()}`, { cache: 'no-store' });
       const data = await res.json();
-      
+
       const fetchedProducts = Array.isArray(data.products) ? data.products : [];
-      
+
       setProducts(prev => append ? [...prev, ...fetchedProducts] : fetchedProducts);
       setTotalPages(data.pagination?.totalPages || 1);
       setTotalProducts(data.pagination?.totalProducts || 0);
@@ -83,7 +92,7 @@ function ProductsListingContent({ initialProducts, initialCategories, initialTot
       return;
     }
     fetchProducts(1, false);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   const loadMore = () => {
@@ -102,16 +111,35 @@ function ProductsListingContent({ initialProducts, initialCategories, initialTot
     }
   }, [loading, products.length]);
 
-  // Active filter chips helper
-  const removeFilter = (key: string) => {
+  // Remove a specific filter
+  const removeFilter = (key: string, value?: string) => {
     const newParams = new URLSearchParams(Array.from(searchParams.entries()));
-    newParams.delete(key);
+
+    // For category, handle removing individual categories from comma-separated list
+    if (key === 'category' && value) {
+      const currentCategories = parseCategoryParam(newParams.get('category'));
+      const remaining = currentCategories.filter(c => c !== value);
+      if (remaining.length > 0) {
+        newParams.set('category', remaining.join(','));
+      } else {
+        newParams.delete('category');
+      }
+    } else {
+      newParams.delete(key);
+    }
+
     newParams.set('page', '1');
     router.push(`${pathname}?${newParams.toString()}`, { scroll: false });
   };
 
-  const activeFilters: { key: string; label: string }[] = [];
-  if (searchParams.get('category')) activeFilters.push({ key: 'category', label: searchParams.get('category')! });
+  // Build active filter chips
+  const selectedCategories = parseCategoryParam(searchParams.get('category'));
+
+  const activeFilters: { key: string; label: string; value?: string }[] = [];
+  // Add individual category chips
+  for (const cat of selectedCategories) {
+    activeFilters.push({ key: 'category', label: cat, value: cat });
+  }
   if (searchParams.get('search')) activeFilters.push({ key: 'search', label: `"${searchParams.get('search')}"` });
   if (searchParams.get('color')) activeFilters.push({ key: 'color', label: searchParams.get('color')! });
   if (searchParams.get('fabric')) activeFilters.push({ key: 'fabric', label: searchParams.get('fabric')! });
@@ -124,24 +152,45 @@ function ProductsListingContent({ initialProducts, initialCategories, initialTot
     activeFilters.push({ key: 'sortPrice', label: sortLabel });
   }
 
-  // Resolve banner image from categories
+  // Resolve banner image based on category selection
   const bannerSrc = (() => {
-    const selectedCategory = searchParams.get('category');
-    if (selectedCategory) {
-      const catData = categories.find(c => c.name === selectedCategory);
+    if (selectedCategories.length === 1) {
+      // Single category → show that category's image
+      const catData = categories.find(c => c.name === selectedCategories[0]);
       if (catData?.image) return catData.image;
     }
+    // Multiple categories or no category → show admin-configured banner or default
+    if (multiCategoryBannerImage) return multiCategoryBannerImage;
     return 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&q=80&w=1600';
   })();
 
+  // Dynamic banner title
+  const bannerTitle = (() => {
+    if (selectedCategories.length === 0) return 'Handwoven for Your Occasion';
+    if (selectedCategories.length === 1) return `${selectedCategories[0]} Collection`;
+    return `${selectedCategories.join(' & ')} Collections`;
+  })();
+
   return (
-    <div className="min-h-screen bg-surface pt-8 lg:pt-12 pb-16">
-      
-      {/* Header Banner — Issue 4: replaced <img> with next/image */}
-      <div className="relative h-[220px] sm:h-[280px] md:h-[320px] mb-8 lg:mb-12 rounded-2xl overflow-hidden mx-4 sm:mx-6 lg:mx-8 max-w-7xl lg:mx-auto">
+    <div className="pb-16">
+      {/* Breadcrumb */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+        <Breadcrumb
+          items={[
+            { label: 'All Sarees', href: '/products' },
+            ...(selectedCategories.length === 1
+              ? [{ label: `${selectedCategories[0]} Collection` }]
+              : selectedCategories.length > 1
+                ? [{ label: `${selectedCategories.join(' & ')}` }]
+                : []),
+          ]}
+        />
+      </div>
+
+      <div className="relative h-[250px] sm:h-[350px] md:h-[450px] lg:h-[520px] mb-8 lg:mb-12 rounded-2xl overflow-hidden mx-4 sm:mx-6 lg:mx-auto max-w-5xl">
         <Image
           src={bannerSrc}
-          alt={searchParams.get('category') ? `${searchParams.get('category')} sarees collection` : 'Sarees collection'}
+          alt={selectedCategories.length > 0 ? `${selectedCategories.join(', ')} sarees collection` : 'Sarees collection'}
           fill
           priority
           sizes="100vw"
@@ -150,12 +199,12 @@ function ProductsListingContent({ initialProducts, initialCategories, initialTot
         <div className="absolute inset-0 bg-gradient-to-t from-brand-950/90 via-brand-950/30 to-transparent flex flex-col justify-end p-6 sm:p-8 md:p-12">
           <div className="max-w-2xl">
             <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-2">
-              {searchParams.get('category') ? `${searchParams.get('category')} Collection` : 'All Sarees'}
+              {bannerTitle}
             </h1>
             <p className="text-brand-50/80 text-sm sm:text-base max-w-lg">
-              {searchParams.get('search') 
+              {searchParams.get('search')
                 ? `Search results for "${searchParams.get('search')}"`
-                : 'Discover our handpicked collection of exquisite sarees, woven with love and tradition.'}
+                : 'Every saree traced to its artisan. All sales final.'}
             </p>
           </div>
         </div>
@@ -163,51 +212,116 @@ function ProductsListingContent({ initialProducts, initialCategories, initialTot
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col lg:flex-row gap-8">
-          
+
           {/* Sidebar */}
-          <FilterSidebar 
-            categories={categories} 
+          <FilterSidebar
+            categories={categories}
             isMobileOpen={isMobileFiltersOpen}
             onMobileClose={() => setIsMobileFiltersOpen(false)}
           />
 
           {/* Main Content */}
           <div className="flex-1">
-            
-            {/* Toolbar */}
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-sm text-ink-muted">
-                Showing <span className="text-ink font-semibold">{products.length}</span> of {totalProducts} sarees
-              </p>
-              
-              <button 
-                onClick={() => setIsMobileFiltersOpen(true)}
-                aria-label="Open filters"
-                className="lg:hidden flex items-center gap-2 px-4 py-2 bg-surface-muted border border-surface-subtle rounded-xl text-sm font-medium hover:bg-brand-50 hover:text-brand-800 transition-all active:scale-[0.98]"
-              >
-                <SlidersHorizontal size={15} /> Filters
-                {activeFilters.length > 0 && (
-                  <span className="bg-brand-800 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
-                    {activeFilters.length}
-                  </span>
-                )}
-              </button>
+
+            {/* Quick Filter Category Pills */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-4 [&::-webkit-scrollbar]:hidden">
+              {[{ name: 'All', href: '' }, ...categories.slice(0, 6)].map((cat) => {
+                const isActive = cat.name === 'All'
+                  ? selectedCategories.length === 0
+                  : selectedCategories.includes(cat.name);
+                return (
+                  <button
+                    key={cat.name}
+                    onClick={() => {
+                      const newParams = new URLSearchParams(Array.from(searchParams.entries()));
+                      if (cat.name === 'All') {
+                        newParams.delete('category');
+                      } else {
+                        newParams.set('category', cat.name);
+                      }
+                      newParams.set('page', '1');
+                      router.push(`${pathname}?${newParams.toString()}`, { scroll: false });
+                    }}
+                    className={`flex-shrink-0 px-4 py-2 rounded-full text-xs font-semibold border transition-all whitespace-nowrap ${
+                      isActive
+                        ? 'bg-brand-800 text-white border-brand-800 shadow-brand-sm'
+                        : 'bg-white text-ink-muted border-surface-subtle hover:border-brand-200 hover:text-ink'
+                    }`}
+                  >
+                    {cat.name === 'All' ? 'All Sarees' : cat.name}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Toolbar — Product Count + Sort + Filters */}
+            <div className="flex items-center justify-between gap-4 mb-4">
+              <div className="flex items-center gap-3">
+                <p className="text-sm text-ink-muted">
+                  Showing <span className="text-ink font-semibold">{products.length}</span> of{' '}
+                  <span className="font-medium">{totalProducts}</span>{' '}
+                  {selectedCategories.length === 1 ? `${selectedCategories[0]} ` : ''}sarees
+                </p>
+                <GuaranteeBadge variant="compact" className="hidden md:flex" />
+              </div>
+
+              <div className="flex items-center gap-2">
+                {/* Inline Sort Dropdown */}
+                <div className="relative hidden sm:block">
+                  <select
+                    value={searchParams.get('sortPrice') || ''}
+                    onChange={(e) => {
+                      const newParams = new URLSearchParams(Array.from(searchParams.entries()));
+                      if (e.target.value) {
+                        newParams.set('sortPrice', e.target.value);
+                      } else {
+                        newParams.delete('sortPrice');
+                      }
+                      newParams.set('page', '1');
+                      router.push(`${pathname}?${newParams.toString()}`, { scroll: false });
+                    }}
+                    className="appearance-none bg-surface-muted border border-surface-subtle rounded-xl pl-3 pr-8 py-2 text-xs font-medium text-ink cursor-pointer hover:bg-brand-50 hover:text-brand-800 transition-all focus:outline-none focus:ring-2 focus:ring-accent/30"
+                  >
+                    <option value="">Sort by</option>
+                    <option value="newest">Newest</option>
+                    <option value="low">Price: Low to High</option>
+                    <option value="high">Price: High to Low</option>
+                    <option value="popular">Popular</option>
+                  </select>
+                  <ChevronDown size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-faint pointer-events-none" />
+                </div>
+
+                {/* Mobile Filters Button */}
+                <button
+                  onClick={() => setIsMobileFiltersOpen(true)}
+                  aria-label="Open filters"
+                  className="lg:hidden flex items-center gap-2 px-4 py-2 bg-surface-muted border border-surface-subtle rounded-xl text-sm font-medium hover:bg-brand-50 hover:text-brand-800 transition-all active:scale-[0.98]"
+                >
+                  <SlidersHorizontal size={15} />
+                  Filters
+                  {activeFilters.length > 0 && (
+                    <span className="bg-brand-800 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                      {activeFilters.length}
+                    </span>
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* Active Filter Chips */}
             {activeFilters.length > 0 && (
               <div className="flex flex-wrap items-center gap-2 mb-6">
-                {activeFilters.map(filter => (
+                {activeFilters.map((filter, idx) => (
                   <button
-                    key={filter.key}
-                    onClick={() => removeFilter(filter.key)}
+                    key={`${filter.key}-${filter.value || filter.label}-${idx}`}
+                    onClick={() => removeFilter(filter.key, filter.value)}
                     className="group flex items-center gap-1.5 px-3 py-1.5 bg-brand-50 text-brand-800 text-xs font-semibold rounded-full border border-brand-100 hover:bg-brand-100 transition-all"
                   >
                     <span>{filter.label}</span>
                     <X size={13} className="text-brand-400 group-hover:text-brand-800 transition-colors" />
                   </button>
                 ))}
-                <button 
+                <button
                   onClick={() => router.push(pathname, { scroll: false })}
                   className="text-xs font-semibold text-ink-muted hover:text-brand-800 underline underline-offset-2 ml-1 transition-colors"
                 >
@@ -218,14 +332,17 @@ function ProductsListingContent({ initialProducts, initialCategories, initialTot
 
             {/* Product Grid */}
             {loading ? (
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 lg:gap-6">
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 lg:gap-6 w-full">
                 {Array.from({ length: 9 }).map((_, i) => (
                   <ProductSkeleton key={i} />
                 ))}
               </div>
             ) : products.length > 0 ? (
               <>
-                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 lg:gap-6">
+                <div className={`grid gap-4 md:gap-5 lg:gap-6 ${products.length === 1 ? 'grid-cols-1 max-w-sm' :
+                  products.length === 2 ? 'grid-cols-1 sm:grid-cols-2 max-w-2xl' :
+                    'grid-cols-2 lg:grid-cols-3 w-full'
+                  }`}>
                   {products.map((p, i) => (
                     <ProductCard key={p.id} product={p} priority={i < 4} />
                   ))}
@@ -234,8 +351,8 @@ function ProductsListingContent({ initialProducts, initialCategories, initialTot
                 {/* Load More */}
                 {currentPage < totalPages && (
                   <div className="mt-12 text-center">
-                    <button 
-                      onClick={loadMore} 
+                    <button
+                      onClick={loadMore}
                       disabled={loadingMore}
                       className="inline-flex items-center justify-center px-8 py-3 bg-brand-800 text-white font-semibold rounded-xl hover:bg-brand-900 transition-all active:scale-[0.98] disabled:opacity-50 shadow-brand-sm"
                     >
@@ -255,7 +372,7 @@ function ProductsListingContent({ initialProducts, initialCategories, initialTot
                   <p className="text-ink-muted text-sm max-w-md mx-auto mb-6">
                     We couldn&apos;t find any sarees matching your filters. Try adjusting your search or explore our recommendations below.
                   </p>
-                  <button 
+                  <button
                     onClick={() => router.push(pathname, { scroll: false })}
                     className="inline-flex items-center justify-center px-6 py-2.5 bg-brand-800 text-white font-semibold rounded-xl hover:bg-brand-900 transition-colors shadow-brand-sm"
                   >
@@ -275,7 +392,7 @@ function ProductsListingContent({ initialProducts, initialCategories, initialTot
                 )}
               </div>
             )}
-            
+
           </div>
         </div>
       </div>

@@ -66,7 +66,13 @@ export default function ProductSection({
           </motion.div>
         </motion.div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5 lg:gap-6">
+        <div className={`grid gap-4 md:gap-5 lg:gap-6 justify-center mx-auto ${
+          isLoading ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 w-full' :
+          products.length === 1 ? 'grid-cols-1 max-w-sm' :
+          products.length === 2 ? 'grid-cols-1 sm:grid-cols-2 max-w-2xl' :
+          products.length === 3 ? 'grid-cols-1 sm:grid-cols-3 max-w-5xl' :
+          'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 w-full'
+        }`}>
           {isLoading
             ? Array.from({ length: 4 }).map((_, i) => (
                 <div key={i}>

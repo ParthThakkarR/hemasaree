@@ -12,9 +12,10 @@ describe('emailTemplates', () => {
     });
 
     it('includes app URL in welcome template', async () => {
+      process.env.NEXT_PUBLIC_APP_URL = 'http://localhost:3000';
       const { welcomeTemplate } = await import('@/lib/email/templates');
       const html = welcomeTemplate('Jane');
-      expect(html).toContain('localhost:3000');
+      expect(html).toContain('http://localhost:3000');
     });
 
     it('includes Welcome to Hemasaree header', async () => {

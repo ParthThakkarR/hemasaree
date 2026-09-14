@@ -32,6 +32,7 @@ export async function PUT(req: NextRequest) {
       deliveryChargeDefault: body.deliveryChargeDefault,
       polishPrice: body.polishPrice,
       isPolishEnabled: body.isPolishEnabled,
+      multiCategoryBannerImage: body.multiCategoryBannerImage,
     });
 
     return NextResponse.json({ success: true, settings: updatedSettings });

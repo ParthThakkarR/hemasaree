@@ -49,7 +49,7 @@ vi.mock('@prisma/client', () => ({
   },
 }));
 
-import { POST } from '/home/meet/Babar-Meet/hemasaree/app/api/orders/[id]/cancel/route.tsx';
+import { POST } from '@/app/api/orders/[id]/cancel/route.tsx';
 import { getUserFromToken } from '@/app/lib/getUserFromToken';
 
 const callRoute = async (orderId: string) => {
@@ -521,3 +521,4 @@ describe('POST /api/orders/[id]/cancel', () => {
     });
   });
 });
+

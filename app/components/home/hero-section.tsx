@@ -13,17 +13,17 @@ import {
 import { ArrowRight, Pause, Play } from 'lucide-react';
 import { artisanStories } from '@/lib/content/stories';
 import { useSiteSettings } from '@contexts/site-settings-context';
+import GuaranteeBadge from '@components/ui/GuaranteeBadge';
 
 const AUTO_ADVANCE_MS = 5500;
-const DRAG_THRESHOLD  = 60; // px to trigger slide change
+const DRAG_THRESHOLD  = 60;
 
-// Spring presets
 const SPRING_SLIDE = { type: 'spring' as const, bounce: 0, duration: 0.55 };
 const SPRING_BTN   = { type: 'spring' as const, bounce: 0, duration: 0.3 };
 
 export default function HeroSection() {
-  const [current, setCurrent]   = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
+  const [current, setCurrent]       = useState(0);
+  const [isPaused, setIsPaused]     = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const prefersReducedMotion = useReducedMotion();
   const { settings }         = useSiteSettings();
@@ -47,6 +47,16 @@ export default function HeroSection() {
     return () => clearTimeout(timerRef.current);
   }, [current, isPaused, goTo, prefersReducedMotion]);
 
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft')  { goTo(current - 1); setIsPaused(true); }
+      if (e.key === 'ArrowRight') { goTo(current + 1); setIsPaused(true); }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [current, goTo]);
+
   // Drag handlers
   const handlePointerDown = (e: React.PointerEvent) => {
     pointerDown.current = true;
@@ -66,10 +76,8 @@ export default function HeroSection() {
   const handlePointerUp = () => {
     if (!pointerDown.current) return;
     pointerDown.current = false;
-
     const delta = dragX.get();
     animate(dragX, 0, { duration: 0.15 });
-
     if (Math.abs(delta) > DRAG_THRESHOLD) {
       goTo(delta < 0 ? current + 1 : current - 1);
     }
@@ -78,7 +86,6 @@ export default function HeroSection() {
 
   const story = stories[current];
 
-  // Slide variants
   const slideVariants = prefersReducedMotion
     ? {
         enter : { opacity: 0 },
@@ -136,9 +143,8 @@ export default function HeroSection() {
             className="object-cover object-center"
             draggable={false}
           />
-          {/* Deep vignette — bottom 65% */}
+          {/* Deep vignette */}
           <div className="absolute inset-0 vignette-bottom" />
-          {/* Side vignettes for depth */}
           <div className="absolute inset-0" style={{
             background: 'linear-gradient(to right, rgba(13,11,10,0.35) 0%, transparent 30%, transparent 70%, rgba(13,11,10,0.15) 100%)'
           }} />
@@ -172,7 +178,7 @@ export default function HeroSection() {
           </motion.div>
         </AnimatePresence>
 
-        {/* Voice line — her words */}
+        {/* Voice line — transformation hook */}
         <AnimatePresence mode="wait">
           <motion.div
             key={`voice-${current}`}
@@ -182,7 +188,8 @@ export default function HeroSection() {
             exit="exit"
             className="mb-6"
           >
-            <blockquote className="font-noto-serif text-white font-bold leading-tight"
+            <blockquote
+              className="font-noto-serif text-white font-bold leading-tight"
               style={{ fontSize: 'clamp(1.75rem, 4vw, 3rem)' }}
             >
               &ldquo;{story.voiceLine}&rdquo;
@@ -197,7 +204,7 @@ export default function HeroSection() {
           </motion.div>
         </AnimatePresence>
 
-        {/* CTAs */}
+        {/* CTAs + guarantee */}
         <AnimatePresence mode="wait">
           <motion.div
             key={`cta-${current}`}
@@ -205,27 +212,38 @@ export default function HeroSection() {
             initial="enter"
             animate="center"
             exit="exit"
-            className="flex flex-col sm:flex-row gap-3"
+            className="flex flex-col gap-4"
           >
-            <motion.div whileTap={{ scale: 0.96 }} transition={SPRING_BTN}>
-              <Link
-                href={`/products?category=${encodeURIComponent(story.categoryFilter)}`}
-                className="group inline-flex items-center gap-2.5 bg-kumkum text-chandan px-7 py-3.5 rounded-xl font-bold font-noto-serif text-base hover:bg-kumkum-deep transition-colors shadow-kumkum-md"
-                onClick={(e) => { if (isDragging) e.preventDefault(); }}
-              >
-                Enter her story
-                <ArrowRight size={18} className="group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />
-              </Link>
-            </motion.div>
-            <motion.div whileTap={{ scale: 0.96 }} transition={SPRING_BTN}>
-              <Link
-                href="/products"
-                className="inline-flex items-center gap-2 text-white/80 hover:text-white border border-white/25 hover:border-white/50 px-7 py-3.5 rounded-xl font-medium text-base backdrop-blur-sm transition-colors"
-                onClick={(e) => { if (isDragging) e.preventDefault(); }}
-              >
-                All sarees
-              </Link>
-            </motion.div>
+            {/* Guarantee teaser */}
+            <GuaranteeBadge variant="hero" />
+
+            {/* Action buttons */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <motion.div whileTap={{ scale: 0.96 }} transition={SPRING_BTN}>
+                <Link
+                  href={`/products?category=${encodeURIComponent(story.categoryFilter)}`}
+                  className="group inline-flex items-center gap-2.5 bg-kumkum text-chandan px-7 py-3.5 rounded-xl font-bold font-noto-serif text-base hover:bg-kumkum-deep transition-colors shadow-kumkum-md"
+                  onClick={(e) => { if (isDragging) e.preventDefault(); }}
+                >
+                  Drape her story
+                  <ArrowRight size={18} className="group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />
+                </Link>
+              </motion.div>
+              <motion.div whileTap={{ scale: 0.96 }} transition={SPRING_BTN}>
+                <Link
+                  href="/products"
+                  className="inline-flex items-center gap-2 text-white/80 hover:text-white border border-white/25 hover:border-white/50 px-7 py-3.5 rounded-xl font-medium text-base backdrop-blur-sm transition-colors"
+                  onClick={(e) => { if (isDragging) e.preventDefault(); }}
+                >
+                  All sarees
+                </Link>
+              </motion.div>
+            </div>
+
+            {/* Social proof + price anchor */}
+            <p className="text-white/45 text-xs font-medium">
+              Starting from ₹999 · Trusted by thousands of women across India
+            </p>
           </motion.div>
         </AnimatePresence>
       </div>

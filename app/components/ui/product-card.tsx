@@ -11,6 +11,8 @@ import { useAuth } from '@contexts/auth-context';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import QuickViewModal from '@components/ui/quick-view-modal';
+import UrgencyIndicator from '@components/ui/UrgencyIndicator';
+import { getBenefits } from '@/lib/content/benefits';
 
 export interface ProductCardProps {
   product: {
@@ -23,13 +25,13 @@ export interface ProductCardProps {
     stock?: number;
     description?: string;
     fabric?: string;
+    occasion?: string;
     createdAt?: string;
     reviewStats?: { avgRating: number; totalReviews: number };
   };
   priority?: boolean;
 }
 
-// Haptic feedback helper
 function vibrate(pattern: number | number[]) {
   navigator.vibrate?.(pattern);
 }
@@ -49,12 +51,24 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
   const inWishlist   = isInWishlist(product.id);
   const outOfStock   = typeof product.stock === 'number' && product.stock <= 0;
 
-  const mrp            = product.mrp || Math.round(product.price * 1.25);
-  const discountPercent= mrp > product.price ? Math.round(((mrp - product.price) / mrp) * 100) : 0;
+  // Only show MRP strikethrough when explicitly set — no fake inflation
+  const hasRealMRP      = typeof product.mrp === 'number' && product.mrp > product.price;
+  const discountPercent = hasRealMRP ? Math.round(((product.mrp! - product.price) / product.mrp!) * 100) : 0;
+  const savingsAmount = hasRealMRP ? product.mrp! - product.price : 0;
 
   const isNew = product.createdAt
     ? (Date.now() - new Date(product.createdAt).getTime()) < 14 * 24 * 60 * 60 * 1000
     : false;
+
+  const categoryName =
+    typeof product.category === 'object' ? product.category?.name : product.category;
+
+  // Get 3 benefits for benefit reveal panel
+  const benefits = getBenefits({
+    fabric: product.fabric,
+    occasion: product.occasion,
+    category: categoryName,
+  });
 
   const getImageSrc = (img?: string) => {
     if (!img) return '/uploads/placeholder.png';
@@ -65,7 +79,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
   const primaryImage   = getImageSrc(product.images?.[0]);
   const secondaryImage = product.images?.[1] ? getImageSrc(product.images[1]) : primaryImage;
 
-  // ── Wishlist — spring pop animation ─────────────────
+  // ── Wishlist ──────────────────────────────────────────────────────────────
   const handleWishlist = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -74,53 +88,33 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
       router.push('/login');
       return;
     }
-
     const adding = !inWishlist;
     toggleWishlist(product.id);
-
     if (adding) {
       toast.success('Added to wishlist');
       if (!prefersReducedMotion) {
-        // Spring pop: scale up with bounce, settle back
-        await animateHeart(heartScope.current, { scale: 1.45 }, {
-          type: 'spring', bounce: 0.5, duration: 0.35,
-        });
-        await animateHeart(heartScope.current, { scale: 1 }, {
-          type: 'spring', bounce: 0.3, duration: 0.3,
-        });
+        await animateHeart(heartScope.current, { scale: 1.45 }, { type: 'spring', bounce: 0.5, duration: 0.35 });
+        await animateHeart(heartScope.current, { scale: 1 }, { type: 'spring', bounce: 0.3, duration: 0.3 });
       }
     } else {
       if (!prefersReducedMotion) {
-        await animateHeart(heartScope.current, { scale: 0.75 }, {
-          type: 'spring', bounce: 0, duration: 0.2,
-        });
-        await animateHeart(heartScope.current, { scale: 1 }, {
-          type: 'spring', bounce: 0.2, duration: 0.25,
-        });
+        await animateHeart(heartScope.current, { scale: 0.75 }, { type: 'spring', bounce: 0, duration: 0.2 });
+        await animateHeart(heartScope.current, { scale: 1 }, { type: 'spring', bounce: 0.2, duration: 0.25 });
       }
     }
   };
 
-  // ── Add to Cart — haptic + visual ───────────────────
+  // ── Add to Cart ───────────────────────────────────────────────────────────
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (outOfStock || isAddingToCart) return;
-
     try {
       setIsAddingToCart(true);
-      await addToCart({
-        productId   : product.id,
-        quantity    : 1,
-        productName : product.name,
-        productImage: primaryImage,
-        price       : product.price,
-      });
-      // Haptic feedback — success commit
+      await addToCart({ productId: product.id, quantity: 1, productName: product.name, productImage: primaryImage, price: product.price });
       vibrate([10]);
     } catch (err) {
       console.error(err);
-      // Haptic feedback — error pattern
       vibrate([5, 50, 50]);
     } finally {
       setIsAddingToCart(false);
@@ -133,13 +127,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
     if (outOfStock) return;
     try {
       setIsAddingToCart(true);
-      await addToCart({
-        productId   : product.id,
-        quantity    : 1,
-        productName : product.name,
-        productImage: primaryImage,
-        price       : product.price,
-      });
+      await addToCart({ productId: product.id, quantity: 1, productName: product.name, productImage: primaryImage, price: product.price });
       vibrate([10]);
       router.push('/cart');
     } catch (err) {
@@ -156,9 +144,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
     setShowQuickView(true);
   };
 
-  // Spring presets
   const SPRING_PRESS = { type: 'spring' as const, bounce: 0, duration: 0.3 };
-
   const cardTap   = prefersReducedMotion ? {} : { scale: 0.98 };
   const buttonTap = prefersReducedMotion ? {} : { scale: 0.95 };
 
@@ -221,19 +207,26 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
             className="object-cover object-top absolute inset-0 opacity-0 transition-all duration-500 ease-in-out group-hover:opacity-100 group-hover:scale-105"
           />
 
-          {/* Hover Overlay (Desktop) — spring enter/exit */}
-          <motion.div
-            initial={false}
-            animate={{ opacity: 1 }}
-            className="absolute inset-x-0 bottom-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out hidden lg:flex flex-col gap-2 bg-gradient-to-t from-ink/60 via-ink/20 to-transparent pt-10"
-          >
+          {/* Hover Overlay (Desktop) — Benefit Reveal + Actions */}
+          <div className="absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out hidden lg:flex flex-col bg-gradient-to-t from-ink/80 via-ink/50 to-transparent pt-10 pb-3 px-3 gap-2">
+            {/* Benefit reveal bullets */}
+            <div className="space-y-1.5 mb-1" aria-hidden="true">
+              {benefits.map((b) => (
+                <div key={b.headline} className="flex items-center gap-2">
+                  <span className="text-sm leading-none flex-shrink-0">{b.icon}</span>
+                  <p className="text-white text-[11px] font-semibold leading-tight">{b.headline}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Action buttons */}
             <motion.button
               whileTap={buttonTap}
               transition={SPRING_PRESS}
               onClick={handleQuickView}
               className="w-full bg-white/95 backdrop-blur text-ink font-semibold py-2 rounded-lg shadow-sm hover:bg-surface-muted transition-colors flex items-center justify-center gap-2 text-sm"
             >
-              <Eye size={16} /> Quick View
+              <Eye size={16} aria-hidden="true" /> Quick View
             </motion.button>
             <div className="flex gap-2">
               <motion.button
@@ -246,7 +239,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
                 {isAddingToCart ? (
                   <div className="w-4 h-4 border-2 border-brand-800 border-t-transparent rounded-full animate-spin" />
                 ) : (
-                  <ShoppingBag size={15} />
+                  <ShoppingBag size={15} aria-hidden="true" />
                 )}
                 {outOfStock ? 'Sold Out' : 'Add to Cart'}
               </motion.button>
@@ -260,16 +253,16 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
                 Buy Now
               </motion.button>
             </div>
-          </motion.div>
+          </div>
         </Link>
 
         {/* Details */}
         <div className="p-3.5 sm:p-4 flex flex-col flex-grow">
           <Link href={`/product/${product.id}`} className="flex-grow">
             {/* Category */}
-            {product.category && (
+            {categoryName && (
               <p className="text-[10px] text-ink-faint uppercase tracking-wider mb-1 font-medium">
-                {typeof product.category === 'object' ? product.category.name : product.category}
+                {categoryName}
               </p>
             )}
 
@@ -282,7 +275,7 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
           {/* Rating */}
           {product.reviewStats && product.reviewStats.totalReviews > 0 && (
             <div className="flex items-center gap-1 mb-2">
-              <div className="flex">
+              <div className="flex" aria-label={`${product.reviewStats.avgRating} stars`}>
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
@@ -296,35 +289,45 @@ const ProductCard = memo(function ProductCard({ product, priority = false }: Pro
             </div>
           )}
 
-          {/* Price & Mobile Actions */}
-          <div className="mt-auto pt-1 flex items-center justify-between gap-2">
-            <div className="flex items-baseline gap-2">
+          {/* Price & Savings */}
+          <div className="mt-auto pt-1">
+            <div className="flex items-baseline gap-2 flex-wrap">
               <span className="font-bold text-base text-ink">
                 ₹{product.price.toLocaleString('en-IN')}
               </span>
-              {mrp > product.price && (
+              {/* Only show MRP when genuinely set — no fake inflation */}
+              {hasRealMRP && (
                 <span className="text-xs text-ink-faint line-through">
-                  ₹{mrp.toLocaleString('en-IN')}
+                  ₹{product.mrp!.toLocaleString('en-IN')}
+                </span>
+              )}
+              {hasRealMRP && savingsAmount > 0 && (
+                <span className="text-[10px] font-bold text-neem bg-neem-pale px-1.5 py-0.5 rounded-md">
+                  Save ₹{savingsAmount.toLocaleString('en-IN')}
                 </span>
               )}
             </div>
 
-            {/* Mobile Add to Cart */}
-            <motion.button
-              whileTap={buttonTap}
-              transition={SPRING_PRESS}
-              onClick={handleAddToCart}
-              disabled={outOfStock || isAddingToCart}
-              className="lg:hidden w-8 h-8 rounded-full bg-brand-50 text-brand-800 flex items-center justify-center hover:bg-brand-100 transition-colors disabled:opacity-50"
-              aria-label="Add to cart"
-            >
-              {isAddingToCart ? (
-                <div className="w-3.5 h-3.5 border-2 border-brand-800 border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <ShoppingBag size={15} />
-              )}
-            </motion.button>
+            {/* Urgency indicator */}
+            <UrgencyIndicator stock={product.stock} className="mt-1.5" />
           </div>
+
+          {/* Mobile Add to Cart — Full-width button for better conversion */}
+          <motion.button
+            whileTap={buttonTap}
+            transition={SPRING_PRESS}
+            onClick={handleAddToCart}
+            disabled={outOfStock || isAddingToCart}
+            className="lg:hidden w-full mt-2.5 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed bg-brand-800 text-white hover:bg-brand-900 shadow-brand-sm"
+            aria-label={outOfStock ? 'Sold out' : 'Add to cart'}
+          >
+            {isAddingToCart ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <ShoppingBag size={15} aria-hidden="true" />
+            )}
+            {outOfStock ? 'Sold Out' : 'Add to Cart'}
+          </motion.button>
         </div>
       </motion.div>
 

@@ -44,7 +44,7 @@ vi.mock('@/app/lib/prisma', () => ({
 // ─── Helpers ─────────────────────────────────────────────
 const callRoute = async (body: Record<string, unknown>) => {
   const req = { json: vi.fn().mockResolvedValue(body) } as unknown as Request;
-  const { POST } = await import('/home/meet/Babar-Meet/hemasaree/app/api/(auth)/reset-password/route.tsx');
+  const { POST } = await import('@/app/api/(auth)/reset-password/route.tsx');
   return POST(req);
 };
 
@@ -102,7 +102,7 @@ describe('POST /api/auth/reset-password', () => {
       mockHash.mockResolvedValue('hashed_pw');
 
       await callRoute({ token: 'tok', password: 'MyNewPass1!' });
-      expect(mockHash).toHaveBeenCalledWith('MyNewPass1!', 10);
+      expect(mockHash).toHaveBeenCalledWith('MyNewPass1!', 12);
     });
 
     it('updates password, clears token and expiry on success', async () => {
@@ -118,7 +118,7 @@ describe('POST /api/auth/reset-password', () => {
 
       // update called with where + data
       expect(mockPrisma.user.update).toHaveBeenCalledTimes(1);
-      expect(mockHash).toHaveBeenCalledWith('NewPass1!', 10);
+      expect(mockHash).toHaveBeenCalledWith('NewPass1!', 12);
       expect(mockPrisma.user.update).toHaveBeenCalledWith({
         where: { id: 'u1' },
         data: expect.objectContaining({
@@ -209,7 +209,7 @@ describe('POST /api/auth/reset-password', () => {
 
       const res = await callRoute({ token: 'tok', password: longPW });
       expect(res.status).toBe(200);
-      expect(mockHash).toHaveBeenCalledWith(longPW, 10);
+      expect(mockHash).toHaveBeenCalledWith(longPW, 12);
     });
 
     it('supports Unicode characters in password', async () => {
@@ -395,7 +395,7 @@ describe('POST /api/auth/reset-password', () => {
 
     it('500 when JSON body parse throws', async () => {
       const req = { json: vi.fn().mockRejectedValue(new SyntaxError('bad json')) } as unknown as Request;
-      const { POST } = await import('/home/meet/Babar-Meet/hemasaree/app/api/(auth)/reset-password/route.tsx');
+      const { POST } = await import('@/app/api/(auth)/reset-password/route.tsx');
       const res = await POST(req);
       expect(res.status).toBe(500);
     });
@@ -405,7 +405,7 @@ describe('POST /api/auth/reset-password', () => {
   describe('Edge cases', () => {
     it('handles null body — validation rejects', async () => {
       const req = { json: vi.fn().mockResolvedValue(null) } as unknown as Request;
-      const { POST } = await import('/home/meet/Babar-Meet/hemasaree/app/api/(auth)/reset-password/route.tsx');
+      const { POST } = await import('@/app/api/(auth)/reset-password/route.tsx');
       const res = await POST(req);
       expect(res.status).toBe(400);
     });
@@ -458,3 +458,5 @@ describe('POST /api/auth/reset-password', () => {
     });
   });
 });
+
+

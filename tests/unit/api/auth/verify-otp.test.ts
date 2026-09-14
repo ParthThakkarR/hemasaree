@@ -38,7 +38,7 @@ vi.mock('@/lib/validators', () => ({
 // ─── Helper ──────────────────────────────────────────────
 const callRoute = async (rawBody: Record<string, unknown>) => {
   const req = { json: vi.fn().mockResolvedValue(rawBody) } as unknown as Request;
-  const { POST } = await import('/home/meet/Babar-Meet/hemasaree/app/api/(auth)/verify-otp/route.tsx');
+  const { POST } = await import('@/app/api/(auth)/verify-otp/route.tsx');
   return POST(req);
 };
 
@@ -363,7 +363,7 @@ describe('POST /api/auth/verify-otp', () => {
       const req = { json: vi.fn().mockRejectedValue(new SyntaxError('bad json')) } as unknown as Request;
       mockVerifySchema.safeParse.mockImplementation(() => { throw new Error('should not reach'); });
 
-      const { POST } = await import('/home/meet/Babar-Meet/hemasaree/app/api/(auth)/verify-otp/route.tsx');
+      const { POST } = await import('@/app/api/(auth)/verify-otp/route.tsx');
       const res = await POST(req);
       expect(res.status).toBe(500);
     });
@@ -470,16 +470,17 @@ it('handles OTP with Unicode digits (returned as string)', async () => {
 
     it('handles null body — validation rejects', async () => {
       const req = { json: vi.fn().mockResolvedValue(null) } as unknown as Request;
-      const { POST } = await import('/home/meet/Babar-Meet/hemasaree/app/api/(auth)/verify-otp/route.tsx');
+      const { POST } = await import('@/app/api/(auth)/verify-otp/route.tsx');
       const res = await POST(req);
       expect(res.status).toBe(400);
     });
 
     it('handles entire nullish response body', async () => {
       const req = { json: vi.fn().mockResolvedValue(undefined) } as unknown as Request;
-      const { POST } = await import('/home/meet/Babar-Meet/hemasaree/app/api/(auth)/verify-otp/route.tsx');
+      const { POST } = await import('@/app/api/(auth)/verify-otp/route.tsx');
       const res = await POST(req);
       expect(res.status).toBe(400);
     });
   });
 });
+

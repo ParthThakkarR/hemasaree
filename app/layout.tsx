@@ -31,6 +31,8 @@ import { WishlistProvider } from '@contexts/wishlist-context';
 import Navbar from '@components/navbar';
 import Footer from '@components/footer';
 import MobileNav from '@components/mobile-nav';
+import FloatingWhatsApp from '@components/ui/floating-whatsapp';
+import BackToTop from '@components/ui/back-to-top';
 import { Toaster } from 'react-hot-toast';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@lib/auth';
@@ -120,8 +122,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 </main>
                 <Footer />
                 <MobileNav />
+                <FloatingWhatsApp />
+                <BackToTop />
                 <Toaster
-                  position="top-right"
+                  position="bottom-center"
                   toastOptions={{
                     duration: 3000,
                     style: {
@@ -131,6 +135,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                       border: '1px solid #EDE0D0',
                       background: '#FDF8F3',  // chandan
                       color: '#1A1614',        // kajal
+                      marginBottom: '5rem',    // above mobile nav
                     },
                     success: { iconTheme: { primary: '#2D5A3D', secondary: '#fff' } }, // neem
                     error: { iconTheme: { primary: '#8B2635', secondary: '#fff' } },   // kumkum

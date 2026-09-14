@@ -16,7 +16,7 @@ const { mockPrisma } = vi.hoisted(() => ({
 
 vi.mock('@/app/lib/prisma', () => ({ prisma: mockPrisma }));
 
-import { GET } from '/home/meet/Babar-Meet/hemasaree/app/api/categories/route.tsx';
+import { GET } from '@/app/api/categories/route.tsx';
 
 describe('GET /api/categories', () => {
   beforeEach(() => { vi.clearAllMocks(); mockPrisma.category.findMany.mockReset(); });
@@ -78,3 +78,4 @@ describe('GET /api/categories', () => {
     expect(body[0].products).toHaveLength(100);
   });
 });
+

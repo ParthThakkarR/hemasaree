@@ -23,7 +23,7 @@ const { mockPrisma, mockUser } = vi.hoisted(() => ({
 vi.mock('@/app/lib/prisma', () => ({ prisma: mockPrisma }));
 vi.mock('@/app/lib/getUserFromToken', () => ({ getUserFromToken: vi.fn() }));
 
-import { GET, POST, PUT } from '/home/meet/Babar-Meet/hemasaree/app/api/me/route.tsx';
+import { GET, POST, PUT } from '@/app/api/me/route.tsx';
 import { getUserFromToken } from '@/app/lib/getUserFromToken';
 
 const makeReq = (body?: Record<string, unknown>) => ({
@@ -127,7 +127,7 @@ describe('POST /api/me (add address)', () => {
   it('returns 201 when address is added', async () => {
     vi.mocked(getUserFromToken).mockResolvedValue(mockUser);
     mockPrisma.address.create.mockResolvedValue({
-      id: 'addr1', streetAddress: '123 Main', city: 'Mumbai', state: 'MH', zipCode: '400001', label: 'Home', isDefault: false,
+      id: 'addr1', streetAddress: '123 Main', city: 'Mumbai', state: 'MH', zipCode: '400001', addressType: 'Home', isDefault: false,
     });
     const res = await POST(makeReq({
       streetAddress: '123 Main', city: 'Mumbai', state: 'MH', zipCode: '400001',
@@ -170,7 +170,7 @@ describe('POST /api/me (add address)', () => {
     mockPrisma.address.create.mockResolvedValue({ id: 'addr1' });
     await POST(makeReq({ streetAddress: '123 Main', city: 'Mumbai', state: 'MH', zipCode: '400001' }));
     expect(mockPrisma.address.create).toHaveBeenCalledWith(
-      expect.objectContaining({ data: expect.objectContaining({ label: 'Home' }) })
+      expect.objectContaining({ data: expect.objectContaining({ addressType: 'Home' }) })
     );
   });
 
@@ -179,7 +179,7 @@ describe('POST /api/me (add address)', () => {
     mockPrisma.address.create.mockResolvedValue({ id: 'addr1' });
     await POST(makeReq({ streetAddress: '123 Main', city: 'Mumbai', state: 'MH', zipCode: '400001', label: 'Office' }));
     expect(mockPrisma.address.create).toHaveBeenCalledWith(
-      expect.objectContaining({ data: expect.objectContaining({ label: 'Office' }) })
+      expect.objectContaining({ data: expect.objectContaining({ addressType: 'Office' }) })
     );
   });
 
@@ -381,3 +381,6 @@ describe('PUT /api/me (update profile)', () => {
     expect(res.status).toBe(200);
   });
 });
+
+
+

@@ -10,6 +10,9 @@ import { useWishlist } from '@contexts/wishlist-context';
 import { useAuth }     from '@contexts/auth-context';
 import { useRouter }   from 'next/navigation';
 import toast           from 'react-hot-toast';
+import BenefitReveal  from '@components/ui/BenefitReveal';
+import GuaranteeBadge from '@components/ui/GuaranteeBadge';
+import UrgencyIndicator from '@components/ui/UrgencyIndicator';
 
 interface QuickViewModalProps {
   product     : any;
@@ -38,8 +41,10 @@ export default function QuickViewModal({ product, onClose, getImageSrc, originRe
 
   const inWishlist    = isInWishlist(product.id);
   const outOfStock    = typeof product.stock === 'number' && product.stock <= 0;
-  const mrp           = product.mrp || Math.round(product.price * 1.25);
-  const discountPercent = mrp > product.price ? Math.round(((mrp - product.price) / mrp) * 100) : 0;
+  // Only show real MRP — no fake inflation
+  const hasRealMRP     = typeof product.mrp === 'number' && product.mrp > product.price;
+  const mrp            = hasRealMRP ? product.mrp : null;
+  const discountPercent = mrp ? Math.round(((mrp - product.price) / mrp) * 100) : 0;
 
   // Drag-down dismiss state
   const y            = useMotionValue(0);
@@ -319,24 +324,33 @@ export default function QuickViewModal({ product, onClose, getImageSrc, originRe
                 {/* Price */}
                 <div className="flex items-baseline gap-3 mb-1">
                   <span className="text-2xl font-bold text-ink">₹{product.price.toLocaleString('en-IN')}</span>
-                  {mrp > product.price && (
+                  {mrp && (
                     <>
                       <span className="text-base text-ink-faint line-through">₹{mrp.toLocaleString('en-IN')}</span>
                       <span className="text-sm font-bold text-dark-green">{discountPercent}% OFF</span>
                     </>
                   )}
                 </div>
-                <p className="text-xs text-ink-faint mb-5">Inclusive of all taxes</p>
+                <p className="text-xs text-ink-faint mb-4">Inclusive of all taxes</p>
 
-                {/* Stock Status */}
-                {outOfStock ? (
-                  <p className="text-sm font-semibold text-error mb-5">Currently out of stock</p>
-                ) : product.stock && product.stock <= 5 ? (
-                  <p className="text-sm font-semibold text-warning mb-5">Only {product.stock} left in stock!</p>
-                ) : (
-                  <p className="text-sm font-medium text-dark-green mb-5 flex items-center gap-1.5">
+                {/* Benefits */}
+                <BenefitReveal
+                  fabric={product.fabric}
+                  occasion={product.occasion}
+                  category={typeof product.category === 'object' ? product.category?.name : product.category}
+                  mode="inline"
+                  className="mb-4"
+                />
+
+                {/* Stock Status / Urgency */}
+                <UrgencyIndicator stock={product.stock} className="mb-4" />
+                {product.stock > 5 && (
+                  <p className="text-sm font-medium text-dark-green mb-4 flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-dark-green" /> In Stock
                   </p>
+                )}
+                {product.stock === 0 && (
+                  <p className="text-sm font-semibold text-error mb-4">Currently out of stock</p>
                 )}
 
                 {/* Description */}
@@ -371,6 +385,9 @@ export default function QuickViewModal({ product, onClose, getImageSrc, originRe
                       Buy Now
                     </motion.button>
                   </div>
+
+                  {/* Guarantee */}
+                  <GuaranteeBadge variant="full" />
 
                   <motion.button
                     whileTap={buttonTap}

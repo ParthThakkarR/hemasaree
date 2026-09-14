@@ -1,6 +1,5 @@
 import { prisma } from '@lib/prisma';
 import ProductsClient from './products-client';
-import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { getCategoryContent } from '@lib/category-content';
 
@@ -10,14 +9,23 @@ interface Props {
 
 import type { Metadata } from 'next';
 
+/** Parse comma-separated category param into an array */
+function parseCategoryParam(param: string | string[] | undefined): string[] {
+  if (!param) return [];
+  const raw = typeof param === 'string' ? param : param[0];
+  return raw.split(',').map(c => c.trim()).filter(Boolean);
+}
+
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
-  const category = typeof searchParams.category === 'string' ? searchParams.category : null;
+  const categories = parseCategoryParam(searchParams.category);
   const search = typeof searchParams.search === 'string' ? searchParams.search : null;
   const fabric = typeof searchParams.fabric === 'string' ? searchParams.fabric : null;
   const occasion = typeof searchParams.occasion === 'string' ? searchParams.occasion : null;
 
-  const title = category
-    ? `${category} Sarees — Buy ${category} Sarees Online | Hema Sarees`
+  const title = categories.length === 1
+    ? `${categories[0]} Sarees — Buy ${categories[0]} Sarees Online | Hema Sarees`
+    : categories.length > 1
+    ? `${categories.join(' & ')} Sarees — Shop Online | Hema Sarees`
     : search
     ? `Search: ${search} | Hema Sarees`
     : fabric
@@ -26,8 +34,10 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
     ? `Sarees for ${occasion} — ${occasion} Sarees Online | Hema Sarees`
     : 'Shop All Sarees — Silk, Bridal, Festive & More | Hema Sarees';
 
-  const description = category
-    ? `Explore our curated collection of premium ${category} sarees. Authentic craftsmanship and pan-India delivery at Hema Sarees.`
+  const description = categories.length === 1
+    ? `Explore our curated collection of premium ${categories[0]} sarees. Authentic craftsmanship and pan-India delivery at Hema Sarees.`
+    : categories.length > 1
+    ? `Shop ${categories.join(', ')} sarees online. Premium quality, handpicked designs at Hema Sarees.`
     : fabric
     ? `Shop beautiful ${fabric} sarees online. Premium quality, handpicked designs at Hema Sarees.`
     : occasion
@@ -53,7 +63,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 }
 
 export default async function ProductsPage({ searchParams }: Props) {
-  const category = typeof searchParams.category === 'string' ? searchParams.category : undefined;
+  const categories = parseCategoryParam(searchParams.category);
   const search = typeof searchParams.search === 'string' ? searchParams.search : undefined;
   const color = typeof searchParams.color === 'string' ? searchParams.color : undefined;
   const fabric = typeof searchParams.fabric === 'string' ? searchParams.fabric : undefined;
@@ -62,24 +72,50 @@ export default async function ProductsPage({ searchParams }: Props) {
   const maxPrice = typeof searchParams.maxPrice === 'string' ? Number(searchParams.maxPrice) : undefined;
   const sortPrice = typeof searchParams.sortPrice === 'string' ? searchParams.sortPrice : undefined;
 
-  // Build Prisma where clause matching the API's filter logic
+  // Build Prisma where clause — supports multi-category
   const where: any = { isDeleted: false };
 
-  if (category) {
-    const isValidObjectId = /^[a-f\d]{24}$/i.test(category);
+  if (categories.length === 1) {
+    const cat = categories[0];
+    const isValidObjectId = /^[a-f\d]{24}$/i.test(cat);
     if (isValidObjectId) {
-      where.categoryId = category;
+      where.categoryId = cat;
     } else {
-      where.category = { name: { equals: category, mode: 'insensitive' } };
+      where.category = { name: { equals: cat, mode: 'insensitive' } };
+    }
+  } else if (categories.length > 1) {
+    const objectIds: string[] = [];
+    const names: string[] = [];
+    for (const cat of categories) {
+      if (/^[a-f\d]{24}$/i.test(cat)) {
+        objectIds.push(cat);
+      } else {
+        names.push(cat);
+      }
+    }
+    const categoryConditions: any[] = [];
+    if (objectIds.length > 0) categoryConditions.push({ categoryId: { in: objectIds } });
+    if (names.length > 0) categoryConditions.push({ category: { name: { in: names, mode: 'insensitive' } } });
+    if (categoryConditions.length === 1) {
+      Object.assign(where, categoryConditions[0]);
+    } else if (categoryConditions.length > 1) {
+      where.OR = categoryConditions;
     }
   }
 
   if (search) {
-    where.OR = [
+    const searchConditions = [
       { name: { contains: search, mode: 'insensitive' } },
       { color: { contains: search, mode: 'insensitive' } },
       { occasion: { contains: search, mode: 'insensitive' } },
     ];
+    if (where.OR) {
+      const existingOr = where.OR;
+      delete where.OR;
+      where.AND = [{ OR: existingOr }, { OR: searchConditions }];
+    } else {
+      where.OR = searchConditions;
+    }
   }
 
   if (color) {
@@ -107,7 +143,10 @@ export default async function ProductsPage({ searchParams }: Props) {
   else if (sortPrice === 'newest') orderBy = { createdAt: 'desc' as const };
 
   // Server-side data fetch — products appear in HTML for SEO crawlers
-  const [products, categories, total] = await Promise.all([
+  // Fetch settings for multiCategoryBannerImage in parallel
+  const SettingsService = require('@/lib/services/settingsService').SettingsService;
+  
+  const [products, allCategories, total, settings] = await Promise.all([
     prisma.product.findMany({
       where,
       include: { category: { select: { id: true, name: true } } },
@@ -118,24 +157,30 @@ export default async function ProductsPage({ searchParams }: Props) {
       select: { id: true, name: true, image: true },
     }),
     prisma.product.count({ where }),
+    SettingsService.getSettings(),
   ]);
 
   // Serialize dates for client component hydration
   const serializedProducts = JSON.parse(JSON.stringify(products));
-  const serializedCategories = JSON.parse(JSON.stringify(categories));
+  const serializedCategories = JSON.parse(JSON.stringify(allCategories));
+  const multiCategoryBannerImage = settings?.multiCategoryBannerImage || null;
 
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://hemasaree.vercel.app';
-  const pageTitle = category ? `${category} Sarees` : 'All Sarees';
+  const pageTitle = categories.length === 1
+    ? `${categories[0]} Sarees`
+    : categories.length > 1
+    ? `${categories.join(' & ')} Sarees`
+    : 'All Sarees';
 
   // CollectionPage + ItemList structured data
   const collectionSchema = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
     name: pageTitle,
-    description: category
-      ? `Browse premium ${category} sarees at Hema Sarees.`
+    description: categories.length > 0
+      ? `Browse premium ${categories.join(', ')} sarees at Hema Sarees.`
       : 'Browse our complete collection of handpicked Indian sarees.',
-    url: `${baseUrl}/products${category ? `?category=${encodeURIComponent(category)}` : ''}`,
+    url: `${baseUrl}/products${categories.length > 0 ? `?category=${encodeURIComponent(categories.join(','))}` : ''}`,
     numberOfItems: total,
     provider: { '@type': 'Organization', name: 'Hema Sarees' },
     ...(products.length > 0 && {
@@ -160,14 +205,14 @@ export default async function ProductsPage({ searchParams }: Props) {
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Home', item: baseUrl },
       { '@type': 'ListItem', position: 2, name: 'Products', item: `${baseUrl}/products` },
-      ...(category
-        ? [{ '@type': 'ListItem', position: 3, name: `${category} Sarees` }]
+      ...(categories.length === 1
+        ? [{ '@type': 'ListItem', position: 3, name: `${categories[0]} Sarees` }]
         : []),
     ],
   };
 
-  // Category-specific SEO content
-  const categoryContent = category ? getCategoryContent(category) : null;
+  // Category-specific SEO content (only for single category)
+  const categoryContent = categories.length === 1 ? getCategoryContent(categories[0]) : null;
 
   // Category FAQ schema
   const categoryFaqSchema = categoryContent && categoryContent.faqs.length > 0 ? {
@@ -197,29 +242,14 @@ export default async function ProductsPage({ searchParams }: Props) {
         />
       )}
 
-      {/* Breadcrumb Navigation */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 lg:pt-36 pb-2">
-        <nav className="flex items-center gap-1 text-sm text-ink-muted" aria-label="Breadcrumb">
-          <Link href="/" className="hover:text-brand-800 transition-colors">Home</Link>
-          <ChevronRight size={14} aria-hidden="true" />
-          {category ? (
-            <>
-              <Link href="/products" className="hover:text-brand-800 transition-colors">Products</Link>
-              <ChevronRight size={14} aria-hidden="true" />
-              <span className="text-ink font-medium">{category} Sarees</span>
-            </>
-          ) : (
-            <span className="text-ink font-medium">All Sarees</span>
-          )}
-        </nav>
-      </div>
+      <div className="bg-surface min-h-screen pt-6 lg:pt-8">
 
-      {/* Category SEO Content */}
+      {/* Category SEO Content (only for single category) */}
       {categoryContent && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
           <div className="bg-surface-muted rounded-2xl p-6 lg:p-8 border border-surface-subtle">
             <h1 className="text-2xl md:text-3xl font-serif font-bold text-ink mb-4">
-              {category} Sarees Collection
+              {categories[0]} Sarees Collection
             </h1>
             <p className="text-sm text-ink-muted leading-relaxed mb-4">
               {categoryContent.intro}
@@ -230,7 +260,7 @@ export default async function ProductsPage({ searchParams }: Props) {
               </summary>
               <div className="mt-4 space-y-4 text-sm text-ink-muted leading-relaxed">
                 <div>
-                  <h3 className="font-semibold text-ink mb-2">How to Choose {category} Sarees</h3>
+                  <h3 className="font-semibold text-ink mb-2">How to Choose {categories[0]} Sarees</h3>
                   <p>{categoryContent.buyingGuide}</p>
                 </div>
                 <div>
@@ -247,13 +277,14 @@ export default async function ProductsPage({ searchParams }: Props) {
         initialProducts={serializedProducts}
         initialCategories={serializedCategories}
         initialTotal={total}
+        multiCategoryBannerImage={multiCategoryBannerImage}
       />
 
       {/* Category FAQ Section */}
       {categoryContent && categoryContent.faqs.length > 0 && (
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
           <h2 className="text-xl md:text-2xl font-serif font-bold text-ink mb-6 text-center">
-            {category} Sarees — Frequently Asked Questions
+            {categories[0]} Sarees — Frequently Asked Questions
           </h2>
           <div className="space-y-3">
             {categoryContent.faqs.map((faq, i) => (
@@ -270,6 +301,7 @@ export default async function ProductsPage({ searchParams }: Props) {
           </div>
         </div>
       )}
+      </div>
     </>
   );
 }

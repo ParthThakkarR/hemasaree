@@ -234,7 +234,7 @@ describe('OrderService.createOrder', () => {
     ],
   };
 
-  const mockAddress = { streetAddress: '123 MG Road', city: 'Surat', state: 'Gujarat', zipCode: '395001', country: 'India' };
+  const mockAddress = { houseNumber: '123', area: 'MG Road', city: 'Surat', state: 'Gujarat', pincode: '395001' };
 
   const setupCreateOrderMocks = (orderResult = { id: 'order1', totalAmount: 2080, deliveryCharge: 80 }) => {
     mocks.mockPrisma.cart.findFirst.mockResolvedValue(mockCart);
@@ -247,37 +247,24 @@ describe('OrderService.createOrder', () => {
 
   it('creates order with correct total including delivery charge', async () => {
     setupCreateOrderMocks();
-    const result = await OrderService.createOrder('user1', mockAddress, 80);
+    const result = await OrderService.createOrder('user1', mockAddress as any, 80);
     expect(result.totalAmount).toBe(2080);
     expect(result.deliveryCharge).toBe(80);
   });
 
   it('returns orderId', async () => {
     setupCreateOrderMocks({ id: 'order123', totalAmount: 2080, deliveryCharge: 80 });
-    const result = await OrderService.createOrder('user1', mockAddress, 80);
+    const result = await OrderService.createOrder('user1', mockAddress as any, 80);
     expect(result.orderId).toBe('order123');
   });
 
   it('formats shipping address correctly', async () => {
     setupCreateOrderMocks();
-    await OrderService.createOrder('user1', mockAddress, 80);
+    await OrderService.createOrder('user1', mockAddress as any, 80);
     expect(mocks.mockPrisma.order.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
-          shippingAddress: '123 MG Road, Surat, Gujarat - 395001, India',
-        }),
-      })
-    );
-  });
-
-  it('uses India as default country', async () => {
-    setupCreateOrderMocks();
-    const addressNoCountry = { streetAddress: '123 MG Road', city: 'Surat', state: 'Gujarat', zipCode: '395001' };
-    await OrderService.createOrder('user1', addressNoCountry, 80);
-    expect(mocks.mockPrisma.order.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({
-          shippingAddress: expect.stringContaining('India'),
+          shippingAddress: '123 MG Road, Surat, Gujarat - 395001',
         }),
       })
     );
@@ -479,5 +466,6 @@ describe('OrderService.updateOrderStatus', () => {
     expect(mocks.mockPrisma.$transaction).toHaveBeenCalled();
   });
 });
+
 
 

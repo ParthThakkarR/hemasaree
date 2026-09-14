@@ -17,7 +17,7 @@ export const searchProducts = async ({
     AND: [{ isDeleted: false }],
   };
 
-  if (query) {
+  if (query && query.trim() !== '') {
     where.AND.push({
       OR: [
         { name: { contains: query, mode: 'insensitive' } },
@@ -31,11 +31,11 @@ export const searchProducts = async ({
   if (color) where.AND.push({ color: { equals: color, mode: 'insensitive' } });
   if (occasion) where.AND.push({ occasion: { equals: occasion, mode: 'insensitive' } });
   
-  if (minPrice || maxPrice) {
+  if (minPrice !== undefined || maxPrice !== undefined) {
     where.AND.push({
       price: {
-        gte: minPrice || 0,
-        lte: maxPrice || 1000000,
+        gte: minPrice !== undefined ? minPrice : 0,
+        lte: maxPrice !== undefined ? maxPrice : 1000000,
       },
     });
   }

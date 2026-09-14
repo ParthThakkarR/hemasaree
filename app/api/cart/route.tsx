@@ -71,7 +71,8 @@ export async function POST(req: NextRequest) {
     if (!product || product.isDeleted) return NextResponse.json({ error: "Product not found" }, { status: 404 });
 
     // 🔒 Always use server-side price, never trust client-supplied price
-    const settings = await require('@/lib/services/settingsService').SettingsService.getSettings();
+    const { SettingsService } = await import('@/lib/services/settingsService');
+    const settings = await SettingsService.getSettings();
     const polishPrice = settings.isPolishEnabled ? settings.polishPrice : 450;
     const price = product.price + (withPolish ? polishPrice : 0);
 
@@ -227,5 +228,6 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: "Failed to remove item" }, { status: 500 });
   }
 }
+
 
 

@@ -8,7 +8,7 @@ const { mockJwtVerify } = vi.hoisted(() => ({
 
 vi.mock('jose', () => ({ jwtVerify: mockJwtVerify }));
 
-import { POST } from '/home/meet/Babar-Meet/hemasaree/app/api/(auth)/verify/route.tsx';
+import { POST } from '@/app/api/(auth)/verify/route.tsx';
 
 const makeReq = (token?: string) => ({
   headers: { get: vi.fn().mockReturnValue(token ? `Bearer ${token}` : null) },
@@ -102,3 +102,4 @@ describe('POST /api/(auth)/verify', () => {
     expect(res.status).toBe(401);
   });
 });
+

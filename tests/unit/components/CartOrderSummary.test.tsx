@@ -18,6 +18,13 @@ describe('CartOrderSummary Component', () => {
     isPlacingOrder: false,
     validateAddressAndProceed: vi.fn(),
     placeOrder: vi.fn(),
+    couponCode: '',
+    setCouponCode: vi.fn(),
+    appliedCoupon: null,
+    discount: 0,
+    isApplyingCoupon: false,
+    handleApplyCoupon: vi.fn(),
+    handleRemoveCoupon: vi.fn(),
   };
 
   it('renders order summary correctly for step 1', () => {

@@ -2,7 +2,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ProductQuerySchema } from "@lib/validators";
 import { ProductService } from "@/lib/services/productService";
-import { cache } from "@/lib/cache";
 
 // 🟢 Always serve fresh data
 export const dynamic = "force-dynamic";
@@ -14,16 +13,6 @@ export async function GET(req: NextRequest) {
   try {
     const url = req.nextUrl;
     const searchParams = url.searchParams;
-    const cacheKey = `products:${url.search}`;
-
-    // ✅ Try to get from cache
-    const cachedData = await cache.get<any>(cacheKey);
-    if (cachedData) {
-      console.log(`[PRODUCTS] Cache HIT: ${cacheKey}`);
-      return NextResponse.json(cachedData);
-    }
-
-    console.log(`[PRODUCTS] Cache MISS: ${cacheKey}`);
 
     // ✅ Validate pagination parameters with Zod
     const validation = ProductQuerySchema.safeParse({
@@ -40,17 +29,32 @@ export async function GET(req: NextRequest) {
 
     const { page, limit } = validation.data;
 
-    // Extract filters
+    // Extract filters — support comma-separated multi-category
+    const categoryParam = searchParams.get("category") || "";
+    const categoryList = categoryParam
+      .split(",")
+      .map(c => c.trim())
+      .filter(Boolean);
+
     const filters = {
-      categoryId: searchParams.get("category") || undefined,
+      categoryId: categoryList.length === 1 ? categoryList[0] : undefined,
+      categoryIds: categoryList.length > 1 ? categoryList : undefined,
       search: searchParams.get("search")?.trim() || undefined,
-      maxPrice: parseFloat(searchParams.get("maxPrice") || "10000"),
+      minPrice: searchParams.get("minPrice") ? parseFloat(searchParams.get("minPrice")!) : undefined,
+      maxPrice: searchParams.get("maxPrice") ? parseFloat(searchParams.get("maxPrice")!) : undefined,
+      color: searchParams.get("color")?.trim() || undefined,
+      fabric: searchParams.get("fabric")?.trim() || undefined,
+      occasion: searchParams.get("occasion")?.trim() || undefined,
     };
 
     const sortPrice = searchParams.get("sortPrice")?.trim();
-    const sortBy = 'price';
-    const sortOrder = sortPrice === "asc" ? "asc" : "desc";
+    let sortBy: 'price' | 'createdAt' = 'createdAt';
+    let sortOrder: 'asc' | 'desc' = 'desc';
+    if (sortPrice === 'low') { sortBy = 'price'; sortOrder = 'asc'; }
+    else if (sortPrice === 'high') { sortBy = 'price'; sortOrder = 'desc'; }
+    else if (sortPrice === 'newest') { sortBy = 'createdAt'; sortOrder = 'desc'; }
 
+    // ProductService.getProducts uses Read-Through cache internally (15 min TTL)
     const result = await ProductService.getProducts(filters, { page, limit, sortBy, sortOrder });
 
     const responseData = {
@@ -64,10 +68,13 @@ export async function GET(req: NextRequest) {
       updatedAt: new Date().toISOString(),
     };
 
-    // ✅ Set cache (15 minutes for product lists)
-    await cache.set(cacheKey, responseData, 900);
-
-    return NextResponse.json(responseData);
+    // Return with CDN-friendly cache headers (stale-while-revalidate)
+    return NextResponse.json(responseData, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+        'Vary': 'Accept-Encoding',
+      },
+    });
   } catch (err: any) {
     console.error("[PRODUCTS_GET_ERROR]", err);
     return NextResponse.json(
