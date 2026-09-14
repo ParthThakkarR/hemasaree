@@ -62,7 +62,7 @@ export default function FloatingWhatsApp({
           animate="visible"
           className="fixed z-50 right-4 sm:right-6"
           style={{
-            bottom: 'calc(var(--mobile-nav-height, 4.25rem) + 1rem + env(safe-area-inset-bottom, 0px))',
+            bottom: 'calc(env(safe-area-inset-bottom, 0px) + 1rem)',
           }}
         >
           {/* Tooltip */}

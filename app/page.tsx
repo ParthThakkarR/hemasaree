@@ -10,12 +10,10 @@ import NewsletterSection from '@components/home/newsletter-section';
 import TrustStrip from '@components/home/trust-strip';
 
 // Narrative components
-import StoryCard from '@components/ui/StoryCard';
-import OccasionCard from '@components/ui/OccasionCard';
+
 
 // Content
-import { artisanStories } from '@/lib/content/stories';
-import { occasions } from '@/lib/content/occasions';
+
 import { generateFAQSchema } from '@/lib/content/objections';
 
 // Data
@@ -144,46 +142,7 @@ export default async function Home() {
         </section>
       )}
 
-      {/* ════════════════════════════════════════
-          CHAPTER 1 — "This Season's Stories"
-          3 artisan narratives, not product cards
-          ════════════════════════════════════════ */}
-      <section className="chapter bg-chandan" aria-labelledby="chapter1-title">
-        <div className="container-editorial">
-          {/* Section header */}
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-12">
-            <div>
-              <p className="chapter-eyebrow mb-2">Chapter One</p>
-              <h2 id="chapter1-title" className="font-noto-serif text-3xl md:text-4xl font-bold text-kajal">
-              This season&apos;s stories
-              </h2>
-              <p className="section-subtitle mt-3">
-                Behind every saree is a woman who knows things about cloth that cannot be written down.
-              </p>
-              <div className="luxury-divider mt-5" style={{ maxWidth: '100px', margin: '1.25rem 0 0' }}>
-                <span className="luxury-divider-icon" />
-              </div>
-            </div>
-            <Link
-              href="/products"
-              className="self-start sm:self-auto text-sm font-semibold text-kumkum hover:text-kumkum-deep transition-colors whitespace-nowrap"
-            >
-              All sarees →
-            </Link>
-          </div>
 
-          {/* Story cards — horizontal on mobile (scroll), grid on desktop */}
-          <div className={`flex gap-5 overflow-x-auto pb-4 [&::-webkit-scrollbar]:hidden sm:grid sm:overflow-visible sm:pb-0 justify-center mx-auto ${
-            artisanStories.length === 1 ? 'sm:grid-cols-1 max-w-sm' :
-            artisanStories.length === 2 ? 'sm:grid-cols-2 max-w-3xl' :
-            'sm:grid-cols-3 w-full'
-          }`}>
-            {artisanStories.map((story, i) => (
-              <StoryCard key={story.id} story={story} index={i} className="min-w-[72vw] sm:min-w-0 sm:w-auto" />
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ════════════════════════════════════════
           New Arrivals — editorial product chapter
@@ -201,46 +160,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* ════════════════════════════════════════
-          CHAPTER 2 — "Occasions That Matter"
-          6 narrative occasions, not categories
-          ════════════════════════════════════════ */}
-      <section className="chapter bg-chandan" aria-labelledby="chapter2-title">
-        <div className="container-editorial">
-          <div className="mb-12">
-            <p className="chapter-eyebrow mb-2">Chapter Two</p>
-            <h2 id="chapter2-title" className="font-noto-serif text-3xl md:text-4xl font-bold text-kajal">
-              What is happening in your life?
-            </h2>
-            <p className="section-subtitle mt-3">
-              Not categories. Moments. The saree finds its way to the occasion that needs it.
-            </p>
-            <div className="luxury-divider mt-5" style={{ maxWidth: '100px', margin: '1.25rem 0 0' }}>
-              <span className="luxury-divider-icon" />
-            </div>
-          </div>
 
-          {/* Asymmetric editorial grid */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {/* First occasion — large, spans 2 rows */}
-            <OccasionCard
-              occasion={occasions[0]}
-              index={0}
-              className="col-span-2 md:col-span-1 md:row-span-2 md:h-auto h-60"
-              variant="portrait"
-            />
-            {/* Remaining 5 */}
-            {occasions.slice(1, 6).map((occ, i) => (
-              <OccasionCard
-                key={occ.id}
-                occasion={occ}
-                index={i + 1}
-                variant="portrait"
-              />
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Special Offers */}
       <OffersSection />
@@ -259,58 +179,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* ════════════════════════════════════════
-          CHAPTER 3 — "Woven By"
-          Artisan portraits — the faces behind the fabric
-          ════════════════════════════════════════ */}
-      <section className="chapter bg-midnight" aria-labelledby="chapter3-title">
-        <div className="container-editorial">
-          <div className="mb-12">
-            <p className="chapter-eyebrow mb-2" style={{ color: 'rgba(212,165,55,0.7)' }}>Chapter Three</p>
-            <h2
-              id="chapter3-title"
-              className="font-noto-serif text-3xl md:text-4xl font-bold"
-              style={{ color: 'var(--color-chandan)' }}
-            >
-              Woven by
-            </h2>
-            <p className="section-subtitle mt-3" style={{ color: 'rgba(253,248,243,0.55)' }}>
-              Her hands knew this pattern before her mother taught her.
-              These are not &ldquo;our artisans.&rdquo; They are the reason this exists.
-            </p>
-          </div>
 
-          <div className={`grid gap-6 justify-center mx-auto ${
-            artisanStories.length === 1 ? 'grid-cols-1 max-w-sm' :
-            artisanStories.length === 2 ? 'grid-cols-1 sm:grid-cols-2 max-w-3xl' :
-            'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 w-full'
-          }`}>
-            {artisanStories.map((story, i) => (
-              <Link
-                key={story.id}
-                href={`/products?category=${encodeURIComponent(story.categoryFilter)}`}
-                className="group relative block rounded-2xl overflow-hidden aspect-[4/5]"
-                aria-label={`Explore ${story.craft} sarees by ${story.name}`}
-              >
-                <Image
-                  src={story.portrait}
-                  alt={`${story.name}, ${story.craft} artisan from ${story.village}`}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  className="object-cover object-top transition-transform duration-700 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 vignette-bottom opacity-90" />
-                <div className="absolute bottom-0 left-0 right-0 p-6">
-                  <p className="text-haldi text-xs font-semibold uppercase tracking-widest mb-1.5">{story.craft}</p>
-                  <h3 className="font-noto-serif text-xl font-bold text-white leading-snug">{story.name}</h3>
-                  <p className="text-white/50 text-sm mt-0.5" lang="hi">{story.nameDevanagari}</p>
-                  <p className="text-white/45 text-xs mt-1">{story.village}, {story.state}</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Best Sellers */}
       <section className="section bg-chandan-deep" aria-labelledby="bestsellers-title">

@@ -45,6 +45,7 @@ function SignupContent() {
     state: '',
     zipCode: '',
     country: 'India',
+    acceptedTerms: false,
   });
 
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
@@ -227,6 +228,11 @@ function SignupContent() {
       return;
     }
 
+    if (!formData.acceptedTerms) {
+      setError('You must accept the Terms & Conditions to create an account.');
+      return;
+    }
+
     setIsLoading(true);
 
     const payload = {
@@ -242,6 +248,7 @@ function SignupContent() {
         zipCode: formData.zipCode,
         label: 'Home',
       },
+      acceptedTerms: formData.acceptedTerms,
     };
 
     try {
@@ -552,10 +559,31 @@ function SignupContent() {
                 <input type="text" name="zipCode" value={formData.zipCode} onChange={handleChange} placeholder="ZIP code" required className={inputClass} />
               </div>
 
+              {/* Terms & Conditions checkbox */}
+              <div className="flex items-start gap-3 mt-2 p-4 rounded-xl border border-brand-100 bg-surface-muted">
+                <input
+                  type="checkbox"
+                  id="acceptedTerms"
+                  checked={formData.acceptedTerms}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, acceptedTerms: e.target.checked }))}
+                  className="mt-0.5 w-4 h-4 rounded border-brand-300 text-brand-800 focus:ring-brand-800 cursor-pointer accent-[#8B2635]"
+                />
+                <label htmlFor="acceptedTerms" className="text-sm text-ink-muted leading-relaxed cursor-pointer">
+                  I agree to the{' '}
+                  <Link href="/terms" target="_blank" className="text-brand-800 hover:text-brand-900 font-semibold underline underline-offset-2">
+                    Terms &amp; Conditions
+                  </Link>{' '}
+                  and{' '}
+                  <Link href="/privacy-policy" target="_blank" className="text-brand-800 hover:text-brand-900 font-semibold underline underline-offset-2">
+                    Privacy Policy
+                  </Link>
+                </label>
+              </div>
+
               <button
                 type="submit"
-                disabled={isLoading}
-                className="w-full bg-brand-800 hover:bg-brand-900 text-white py-3.5 rounded-xl font-semibold shadow-md transition-all transform hover:-translate-y-0.5 disabled:opacity-60 flex items-center justify-center gap-2 mt-4"
+                disabled={isLoading || !formData.acceptedTerms}
+                className="w-full bg-brand-800 hover:bg-brand-900 text-white py-3.5 rounded-xl font-semibold shadow-md transition-all transform hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4"
               >
                 {isLoading ? <><Loader2 size={20} className="animate-spin" /> Creating Account...</> : 'Create Account'}
               </button>

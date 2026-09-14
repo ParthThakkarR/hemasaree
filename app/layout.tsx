@@ -38,6 +38,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@lib/auth';
 import NextTopLoader from 'nextjs-toploader';
 import { SiteSettingsProvider } from '@contexts/site-settings-context';
+import CookieConsent from '@components/cookie-consent';
 import { getSiteSettings } from '@/sanity/lib/queries';
 
 const rawSiteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXTAUTH_URL || 'https://hemasaree.vercel.app';
@@ -141,6 +142,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                     error: { iconTheme: { primary: '#8B2635', secondary: '#fff' } },   // kumkum
                   }}
                 />
+                <CookieConsent />
                 </WishlistProvider>
               </CartProvider>
             </AuthProvider>

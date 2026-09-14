@@ -50,6 +50,10 @@ export const SignUpSchema = z.object({
       label: z.string().optional(),
     })
     .optional(),
+  // ✅ Terms & Conditions must be explicitly accepted
+  acceptedTerms: z.literal(true, {
+    message: 'You must accept the Terms & Conditions to create an account',
+  }),
 });
   
 export const VerifyOtpSchema = z.object({
