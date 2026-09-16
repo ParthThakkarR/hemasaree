@@ -232,7 +232,7 @@ export default function HeroSection() {
 
             {/* Social proof + price anchor */}
             <p className="text-white/45 text-xs font-medium">
-              Starting from ₹999 · Easy 7-day returns
+              Starting from ₹999 · All sales final
             </p>
           </motion.div>
         </AnimatePresence>

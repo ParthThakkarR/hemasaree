@@ -1,8 +1,8 @@
-import { Truck, RotateCcw, ShieldCheck, Heart } from 'lucide-react';
+import { Truck, BadgeCheck, ShieldCheck, Heart } from 'lucide-react';
 
 const ITEMS = [
   { icon: Truck,   title: 'Free shipping over ₹999', sub: 'Across India' },
-  { icon: RotateCcw, title: 'Easy 7-day returns',     sub: 'No questions asked' },
+  { icon: BadgeCheck, title: 'All sales final', sub: 'No returns or exchanges' },
   { icon: ShieldCheck, title: 'Secure checkout',      sub: 'UPI · Cards · COD' },
   { icon: Heart,   title: 'Artisan direct',           sub: 'No middlemen' },
 ];

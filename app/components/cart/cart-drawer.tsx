@@ -200,7 +200,7 @@ export default function CartDrawer() {
                     Continue shopping
                   </button>
                   <p className="flex items-center justify-center gap-1.5 text-[11px] text-kajal-whisper font-medium">
-                    <ShieldCheck size={12} aria-hidden="true" /> Secure checkout · 7-day returns · 100% genuine
+                    <ShieldCheck size={12} aria-hidden="true" /> Secure checkout · Final sale · 100% genuine
                   </p>
                 </div>
               </>

@@ -111,16 +111,6 @@ export default function CookieConsent() {
     <AnimatePresence>
       {isVisible && (
         <motion.div
-          key="cookie-backdrop"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-[9998]"
-          onClick={() => {}} // Block clicks
-        />
-      )}
-      {isVisible && (
-        <motion.div
           key="cookie-banner"
           initial={{ y: 120, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -128,7 +118,7 @@ export default function CookieConsent() {
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
           className="fixed bottom-0 left-0 right-0 z-[9999] p-3 sm:p-4"
         >
-          <div className="max-w-3xl mx-auto rounded-2xl shadow-2xl border overflow-hidden"
+          <div className="max-w-3xl mx-auto rounded-2xl shadow-2xl border overflow-hidden max-h-[calc(100dvh-1.5rem)] overflow-y-auto overscroll-contain"
             style={{
               background: 'var(--color-chandan, #FDF8F3)',
               borderColor: 'var(--color-chandan-warm, #EDE0D0)',
@@ -225,11 +215,11 @@ export default function CookieConsent() {
                           >
                             {/* Category header */}
                             <div
-                              className="flex items-center justify-between p-3.5 cursor-pointer"
+                              className="flex items-center justify-between gap-3 p-3.5 cursor-pointer"
                               style={{ background: 'var(--color-chandan-deep, #F5EDE3)' }}
                               onClick={() => setExpandedCategory(isExpanded ? null : cat.id)}
                             >
-                              <div className="flex items-center gap-2.5">
+                              <div className="flex items-center gap-2.5 min-w-0">
                                 <Icon size={16} style={{ color: 'var(--color-haldi-deep, #B8860B)' }} />
                                 <span className="text-sm font-semibold" style={{ color: 'var(--color-kajal, #1A1614)' }}>
                                   {cat.label}
@@ -264,6 +254,8 @@ export default function CookieConsent() {
                                     toggleCategory(cat.id as "analytics" | "marketing");
                                   }}
                                   className="relative rounded-full transition-colors duration-200 flex-shrink-0"
+                                  role="switch"
+                                  aria-checked={isEnabled}
                                   style={{
                                     width: '40px',
                                     height: '22px',
@@ -274,9 +266,10 @@ export default function CookieConsent() {
                                   <span
                                     className="absolute top-0.5 rounded-full bg-white shadow-sm transition-transform duration-200"
                                     style={{
+                                      left: '2px',
                                       width: '18px',
                                       height: '18px',
-                                      transform: isEnabled ? 'translateX(20px)' : 'translateX(2px)',
+                                      transform: isEnabled ? 'translateX(18px)' : 'translateX(0)',
                                     }}
                                   />
                                 </button>

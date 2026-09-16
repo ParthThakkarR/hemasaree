@@ -1,4 +1,4 @@
-import { Truck, RotateCcw, ShieldCheck } from 'lucide-react';
+import { Truck, BadgeCheck, ShieldCheck } from 'lucide-react';
 
 export default function AnnouncementBar() {
   return (
@@ -12,8 +12,8 @@ export default function AnnouncementBar() {
         </p>
         <span className="w-px h-3.5 bg-brand-800" aria-hidden="true" />
         <p className="flex items-center gap-1.5 whitespace-nowrap">
-          <RotateCcw size={13} className="text-accent" aria-hidden="true" />
-          Easy 7-day returns
+          <BadgeCheck size={13} className="text-accent" aria-hidden="true" />
+          All sales final
         </p>
         <span className="hidden sm:block w-px h-3.5 bg-brand-800" aria-hidden="true" />
         <p className="hidden sm:flex items-center gap-1.5 whitespace-nowrap">

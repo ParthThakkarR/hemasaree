@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { Users, RotateCcw, Gem, BookOpen, Heart } from 'lucide-react';
+import { Users, BadgeCheck, Gem, BookOpen, Heart } from 'lucide-react';
 
 const WHY_US = [
   {
@@ -12,7 +12,7 @@ const WHY_US = [
     body: 'More of what you pay reaches the hands that made your saree.',
   },
   {
-    icon: RotateCcw,
+    icon: BadgeCheck,
     title: 'Respect the Craft',
     micro: 'All sales are final.',
     body: "To honor the countless hours and devotion poured into each handwoven piece, we do not accept returns.",

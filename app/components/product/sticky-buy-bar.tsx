@@ -116,7 +116,7 @@ export default function StickyBuyBar({
                     ? 'Currently out of stock'
                     : typeof product.stock === 'number' && product.stock <= 5
                       ? `Only ${product.stock} left · Free ship over ₹999`
-                      : 'In stock · 7-day returns'}
+                      : 'In stock · Final sale'}
                 </p>
               </div>
 

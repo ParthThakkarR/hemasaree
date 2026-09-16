@@ -15,7 +15,7 @@ const CATEGORY_LABELS: Record<ObjectionCategory | 'All', string> = {
   'All': 'All',
   'Fit & Sizing': 'Fit',
   'Fabric Feel': 'Fabric',
-  'Returns & Exchanges': 'Returns',
+  'Final Sale': 'Final Sale',
   'Shipping': 'Shipping',
   'Authenticity': 'Authenticity',
   'Care': 'Care',
@@ -88,7 +88,7 @@ export default function FAQSection() {
             />
             <input
               type="search"
-              placeholder="Search questions — e.g. returns, silk, sizing..."
+              placeholder="Search questions — e.g. final sale, silk, sizing..."
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);

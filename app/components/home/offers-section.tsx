@@ -46,11 +46,11 @@ const FALLBACK_OFFERS = [
     endsAt: undefined,
   },
   {
-    id: 'fallback-returnsvow',
-    code: 'EASYRETURN',
-    title: 'Seven days to fall in love',
+    id: 'fallback-mindfulchoice',
+    code: 'MINDFUL10',
+    title: 'Chosen mindfully, kept forever',
     description:
-      'Not sure yet? Easy, no-questions returns for 7 days with free pickup.',
+      'Every piece is inspected weave-by-weave before dispatch — because all sales are final, we get it right the first time.',
     categoryId: null,
     endsAt: undefined,
   },
@@ -184,7 +184,7 @@ export default function OffersSection() {
                     {/* Guarantee */}
                     <div className="flex items-center gap-1.5 text-white/50 text-[10px] font-medium">
                       <ShieldCheck size={11} aria-hidden="true" />
-                      Guaranteed quality · Easy 7-day returns
+                      Guaranteed quality · All sales final
                     </div>
                   </div>
                 </Link>

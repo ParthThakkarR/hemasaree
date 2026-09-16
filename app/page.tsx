@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ShieldCheck, Truck, RotateCcw, Heart } from 'lucide-react';
+import { ShieldCheck, Truck, BadgeCheck, Heart } from 'lucide-react';
 
 // Sections
 import HeroSection from '@components/home/hero-section';
@@ -37,9 +37,9 @@ const VOWS = [
     body: 'We work directly with weaver cooperatives. More of what you pay reaches the hands that made it.',
   },
   {
-    icon: RotateCcw,
-    vow: 'If it doesn\'t sing, return it',
-    body: 'Seven-day returns, no questions, free pickup. A saree should feel right the moment you drape it.',
+    icon: BadgeCheck,
+    vow: 'Made to be kept, not returned',
+    body: 'All sales are final. We describe every weave honestly and answer every question before you buy — so the saree you choose is the saree you love.',
   },
   {
     icon: Truck,

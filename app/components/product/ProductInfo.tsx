@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Heart, ShoppingBag, Check, Truck, ShieldCheck, Star, Lock, MessageCircle, CheckCircle2, Smartphone, CreditCard, Banknote, RotateCcw } from 'lucide-react';
+import { Heart, ShoppingBag, Check, Truck, ShieldCheck, Star, Lock, MessageCircle, CheckCircle2, Smartphone, CreditCard, Banknote, BadgeCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
 import BenefitReveal from '@components/ui/BenefitReveal';
 import GuaranteeBadge from '@components/ui/GuaranteeBadge';
@@ -141,11 +141,11 @@ export default function ProductInfo({
         </button>
       </div>
 
-      {/* Decision trust cluster — returns + payments at the CTA moment */}
+      {/* Decision trust cluster — assurances + payments at the CTA moment */}
       <div className="rounded-xl border border-chandan-warm bg-chandan-deep/60 px-4 py-3 space-y-2" aria-label="Purchase assurances">
         <p className="text-xs font-semibold text-kajal flex items-center gap-1.5">
-          <RotateCcw size={13} className="text-neem flex-shrink-0" aria-hidden="true" />
-          Free shipping over ₹999 · 7-day easy returns
+          <BadgeCheck size={13} className="text-neem flex-shrink-0" aria-hidden="true" />
+          Free shipping over ₹999 · All sales final
         </p>
         <div className="flex items-center gap-4 text-kajal-whisper">
           <span className="inline-flex items-center gap-1 text-[11px] font-medium">

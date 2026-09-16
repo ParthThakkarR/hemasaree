@@ -275,9 +275,9 @@ const DEFAULT_BENEFITS: [BenefitSet, BenefitSet, BenefitSet] = [
     sub: 'Every saree is made by a person, in a place, with a name. Not a factory floor.',
   },
   {
-    icon: '↩️',
-    headline: '7-day free returns, no questions',
-    sub: "If it doesn't feel right when you drape it, return it. Free pickup, zero hassle.",
+    icon: '✅',
+    headline: 'Inspected before dispatch',
+    sub: 'Checked weave-by-weave and photographed — because every sale is final, we get it right the first time.',
   },
   {
     icon: '📦',

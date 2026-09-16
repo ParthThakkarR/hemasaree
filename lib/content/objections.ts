@@ -6,14 +6,13 @@
  *
  * Used by:
  * - FAQSection (homepage) — category tabs + search
- * - ProductAccordion — "Returns & Guarantee" section
- * - Quick-view modal — pre-checkout objection clearing
+ * - Homepage FAQ JSON-LD schema (via generateFAQSchema)
  */
 
 export type ObjectionCategory =
   | 'Fit & Sizing'
   | 'Fabric Feel'
-  | 'Returns & Exchanges'
+  | 'Final Sale'
   | 'Shipping'
   | 'Authenticity'
   | 'Care'
@@ -68,7 +67,7 @@ export const OBJECTIONS: Objection[] = [
     category: 'Fabric Feel',
     question: "How do I know the fabric will feel as good as it looks in photos?",
     answer:
-      'This is the most honest question you can ask. Photos flatten texture. We know that. So we do three things: our product descriptions specify thread count, weight, and finish in plain language (not marketing speak); we have a 7-day free return policy — if the fabric does not feel right, return it at no cost; and our customer reviews often include texture notes from real buyers. We would rather you trust the returns process than guess from a screen.',
+      'This is the most honest question you can ask. Photos flatten texture. We know that — and because every sale is final, we do two things instead of making promises: our product descriptions specify thread count, weight, and finish in plain language (not marketing speak); and our customer reviews often include texture notes from real buyers. Still unsure? Ask us on WhatsApp before you buy — we will describe exactly how a saree feels.',
     schema: true,
   },
   {
@@ -80,26 +79,26 @@ export const OBJECTIONS: Objection[] = [
     schema: true,
   },
 
-  // ── Returns & Exchanges ─────────────────────────────────────────────────
+  // ── Final Sale ──────────────────────────────────────────────────────────
   {
     id: 'return-policy',
-    category: 'Returns & Exchanges',
+    category: 'Final Sale',
     question: 'What is your return policy?',
     answer:
-      'We offer a 7-day return window from the date of delivery. If the saree does not feel right when you drape it — wrong shade, unexpected texture, any reason at all — we will arrange a free pickup. No questions asked. Refunds are processed within 5-7 business days of receiving the return. The saree must be in its original, unworn condition with tags intact.',
+      'All HemaSaree purchases are final — we do not accept returns, exchanges, or refunds once an order is placed and confirmed. Because every sale is final, we photograph and describe each saree honestly (fabric, weight, finish) and our team will answer any question on WhatsApp before you buy. The only exception: if your order arrives damaged or is the wrong product, we will replace it free of charge.',
     schema: true,
   },
   {
     id: 'exchange',
-    category: 'Returns & Exchanges',
+    category: 'Final Sale',
     question: 'Can I exchange for a different colour or saree?',
     answer:
-      'Yes. Within 7 days of delivery, you can request an exchange for any available product. The price difference (if any) is charged or refunded. Contact us via WhatsApp or email with your order number and the replacement product you want. We handle the pickup and redelivery at no extra cost.',
+      'We do not offer exchanges — all sales are final once an order is confirmed. Torn between two sarees? Message us on WhatsApp with the product links and we will help you compare shade, fabric, and drape before you decide.',
     schema: true,
   },
   {
     id: 'damaged-delivery',
-    category: 'Returns & Exchanges',
+    category: 'Final Sale',
     question: 'What if my saree arrives damaged or is the wrong product?',
     answer:
       'We inspect every saree before dispatch. But if something goes wrong in transit or a wrong item was sent, we will replace it immediately — no return required in most cases. Send us a photo of the damage within 48 hours of delivery via WhatsApp (+91 94294 75736) and we will arrange a replacement at zero cost.',
@@ -208,7 +207,7 @@ export const OBJECTIONS: Objection[] = [
 export const ALL_CATEGORIES: ObjectionCategory[] = [
   'Fit & Sizing',
   'Fabric Feel',
-  'Returns & Exchanges',
+  'Final Sale',
   'Shipping',
   'Authenticity',
   'Care',

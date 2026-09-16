@@ -137,7 +137,7 @@ export default function ContactPage() {
                   <option value="order">Order Inquiry</option>
                   <option value="product">Product Question</option>
                   <option value="styling">Styling Advice</option>
-                  <option value="returns">Returns & Exchange</option>
+                  <option value="damaged">Damaged / Wrong Item</option>
                   <option value="other">Other</option>
                 </select>
               </div>

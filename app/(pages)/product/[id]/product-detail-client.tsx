@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import { ChevronRight, Home, Share2, MessageCircle, Link2, ShieldCheck, Truck, RotateCcw, CheckCircle, MapPin } from 'lucide-react';
+import { ChevronRight, Home, Share2, MessageCircle, Link2, ShieldCheck, Truck, BadgeCheck, CheckCircle, MapPin } from 'lucide-react';
 import { useCart } from '@contexts/cart-context';
 import { useWishlist } from '@contexts/wishlist-context';
 import { useAuth } from '@contexts/auth-context';
@@ -210,7 +210,7 @@ export default function ProductDetailClient({
               {[
                 { icon: ShieldCheck, label: 'Secure Payment', sublabel: '100% protected' },
                 { icon: Truck, label: 'Free Shipping', sublabel: 'Orders above ₹999' },
-                { icon: RotateCcw, label: '7-Day Returns', sublabel: 'No questions asked' },
+                { icon: BadgeCheck, label: 'Final Sale', sublabel: 'All sales final' },
                 { icon: CheckCircle, label: 'Authentic Handloom', sublabel: 'Artisan verified' },
               ].map(({ icon: Icon, label, sublabel }) => (
                 <div key={label} className="flex items-center gap-2.5 p-3 rounded-xl bg-chandan-deep border border-chandan-warm">
