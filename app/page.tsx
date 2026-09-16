@@ -19,7 +19,8 @@ import { generateFAQSchema } from '@/lib/content/objections';
 // Data
 import { ProductService } from '@/lib/services/productService';
 import { prisma } from '@lib/prisma';
-import ProductSection from '@components/home/product-section';
+import MiniTrustBar from '@components/home/mini-trust-bar';
+import ProductTabs from '@components/home/product-tabs';
 import OffersSection from '@components/home/offers-section';
 import ReviewsSection from '@components/home/reviews-section';
 
@@ -51,7 +52,13 @@ export default async function Home() {
   // Parallel data fetch
   const [categories, newArrivals, trending, bestSellers] = await Promise.all([
     prisma.category.findMany({
-      select: { id: true, name: true, description: true, image: true },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        image: true,
+        _count: { select: { products: { where: { isDeleted: false } } } },
+      },
     }).catch(() => []),
     ProductService.getProducts({}, { page: 1, limit: 4, sortBy: 'createdAt', sortOrder: 'desc' })
       .then(r => r.products).catch(() => []),
@@ -89,6 +96,7 @@ export default async function Home() {
           Full-viewport artisan story carousel
           ════════════════════════════════════════ */}
       <HeroSection />
+      <MiniTrustBar />
 
       {/* ════════════════════════════════════════
           SHOP BY CATEGORY — Visual entry points
@@ -131,9 +139,11 @@ export default async function Home() {
                   <div className="absolute inset-0 bg-gradient-to-t from-kajal/70 via-transparent to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-4">
                     <h3 className="font-noto-serif text-lg font-bold text-white">{cat.name}</h3>
-                    {cat.description && (
-                      <p className="text-white/60 text-xs mt-0.5 line-clamp-1">{cat.description}</p>
-                    )}
+                    <p className="text-white/70 text-xs font-medium mt-0.5">
+                      {cat._count.products > 0
+                        ? `${cat._count.products} handpicked ${cat._count.products === 1 ? 'piece' : 'pieces'}`
+                        : 'Explore the collection'}
+                    </p>
                   </div>
                 </Link>
               ))}
@@ -142,59 +152,21 @@ export default async function Home() {
         </section>
       )}
 
-
-
       {/* ════════════════════════════════════════
-          New Arrivals — editorial product chapter
+          SHOP — tabbed product chapter
+          New / Worn this week / Always chosen
           ════════════════════════════════════════ */}
-      <section className="section bg-chandan-deep" aria-labelledby="new-arrivals-title">
-        <div className="container-editorial">
-          <ProductSection
-            title="New arrivals"
-            subtitle="The most recently woven — straight from the loom to you."
-            products={newArrivals}
-            isLoading={false}
-            viewAllHref="/products?sortBy=createdAt&sortOrder=desc"
-            bgClassName=""
-          />
-        </div>
-      </section>
+      <ProductTabs
+        newArrivals={newArrivals}
+        trending={trending}
+        bestSellers={bestSellers}
+      />
 
-
+      {/* Social proof early — reviews right after the shop */}
+      <ReviewsSection />
 
       {/* Special Offers */}
       <OffersSection />
-
-      {/* Trending */}
-      <section className="section bg-chandan" aria-labelledby="trending-title">
-        <div className="container-editorial">
-          <ProductSection
-            title="Worn this week"
-            subtitle="What our community is reaching for right now."
-            products={trending}
-            isLoading={false}
-            viewAllHref="/products"
-            bgClassName=""
-          />
-        </div>
-      </section>
-
-
-
-      {/* Best Sellers */}
-      <section className="section bg-chandan-deep" aria-labelledby="bestsellers-title">
-        <div className="container-editorial">
-          <ProductSection
-            title="Always chosen"
-            subtitle="The ones women reach for again — and gift to their daughters."
-            products={bestSellers}
-            isLoading={false}
-            viewAllHref="/products"
-            badge="Beloved"
-            bgClassName=""
-          />
-        </div>
-      </section>
 
       {/* ════════════════════════════════════════
           CHAPTER 4 — "The Promise"
@@ -237,8 +209,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Customer reviews, FAQ, Newsletter, Trust strip */}
-      <ReviewsSection />
+      {/* FAQ, Newsletter, Trust strip */}
       <FAQSection />
       <NewsletterSection />
       <TrustStrip />

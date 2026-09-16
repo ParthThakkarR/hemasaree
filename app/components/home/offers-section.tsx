@@ -33,6 +33,29 @@ const BONUS_LABELS = [
 const SPRING_UI   = { type: 'spring' as const, bounce: 0, duration: 0.4  };
 const SPRING_CARD = { type: 'spring' as const, bounce: 0, duration: 0.35 };
 
+// Dignified fallback shown when /api/offers is unavailable or empty —
+// the section should never silently vanish.
+const FALLBACK_OFFERS = [
+  {
+    id: 'fallback-freeshipping',
+    code: 'WELCOMEHOME',
+    title: 'Welcome home, priced with heart',
+    description:
+      'Free shipping across India on every order over ₹999 — no code needed, no fine print.',
+    categoryId: null,
+    endsAt: undefined,
+  },
+  {
+    id: 'fallback-returnsvow',
+    code: 'EASYRETURN',
+    title: 'Seven days to fall in love',
+    description:
+      'Not sure yet? Easy, no-questions returns for 7 days with free pickup.',
+    categoryId: null,
+    endsAt: undefined,
+  },
+];
+
 export default function OffersSection() {
   const [offers, setOffers] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -41,13 +64,18 @@ export default function OffersSection() {
   React.useEffect(() => {
     fetch('/api/offers')
       .then(res => res.json())
-      .then(data => { if (Array.isArray(data)) setOffers(data); })
-      .catch(console.error)
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) setOffers(data);
+        else setOffers(FALLBACK_OFFERS);
+      })
+      .catch(err => {
+        console.error('Offers unavailable, showing fallback:', err);
+        setOffers(FALLBACK_OFFERS);
+      })
       .finally(() => setLoading(false));
   }, []);
 
   if (loading) return null;
-  if (offers.length === 0) return null;
 
   const cardHover = prefersReducedMotion ? {} : { y: -4, scale: 1.01 };
   const cardTap   = prefersReducedMotion ? {} : { scale: 0.97 };
@@ -156,7 +184,7 @@ export default function OffersSection() {
                     {/* Guarantee */}
                     <div className="flex items-center gap-1.5 text-white/50 text-[10px] font-medium">
                       <ShieldCheck size={11} aria-hidden="true" />
-                      Respect the Craft · All Sales Final
+                      Guaranteed quality · Easy 7-day returns
                     </div>
                   </div>
                 </Link>

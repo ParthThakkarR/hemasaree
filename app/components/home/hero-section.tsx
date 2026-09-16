@@ -23,7 +23,7 @@ const SPRING_BTN   = { type: 'spring' as const, bounce: 0, duration: 0.3 };
 
 export default function HeroSection() {
   const [current, setCurrent]       = useState(0);
-  const [isPaused, setIsPaused]     = useState(false);
+  const [isPaused, setIsPaused]     = useState(true);
   const [isDragging, setIsDragging] = useState(false);
   const prefersReducedMotion = useReducedMotion();
   const { settings }         = useSiteSettings();
@@ -117,7 +117,6 @@ export default function HeroSection() {
       aria-roledescription="carousel"
       aria-label="Featured artisan stories"
       onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
@@ -229,20 +228,11 @@ export default function HeroSection() {
                   <ArrowRight size={18} className="group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />
                 </Link>
               </motion.div>
-              <motion.div whileTap={{ scale: 0.96 }} transition={SPRING_BTN}>
-                <Link
-                  href="/products"
-                  className="inline-flex items-center gap-2 text-white/80 hover:text-white border border-white/25 hover:border-white/50 px-7 py-3.5 rounded-xl font-medium text-base backdrop-blur-sm transition-colors"
-                  onClick={(e) => { if (isDragging) e.preventDefault(); }}
-                >
-                  All sarees
-                </Link>
-              </motion.div>
             </div>
 
             {/* Social proof + price anchor */}
             <p className="text-white/45 text-xs font-medium">
-              Starting from ₹999 · Trusted by thousands of women across India
+              Starting from ₹999 · Easy 7-day returns
             </p>
           </motion.div>
         </AnimatePresence>

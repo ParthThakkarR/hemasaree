@@ -29,6 +29,7 @@ import { AuthProvider } from '@contexts/auth-context';
 import { CartProvider } from '@contexts/cart-context';
 import { WishlistProvider } from '@contexts/wishlist-context';
 import Navbar from '@components/navbar';
+import AnnouncementBar from '@components/announcement-bar';
 import Footer from '@components/footer';
 import MobileNav from '@components/mobile-nav';
 import CartDrawer from '@components/cart/cart-drawer';
@@ -118,6 +119,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <AuthProvider session={session}>
               <CartProvider>
                 <WishlistProvider>
+                  <AnnouncementBar />
                   <Navbar />
                 <main className="pb-mobile-nav lg:pb-0">
                   {children}
