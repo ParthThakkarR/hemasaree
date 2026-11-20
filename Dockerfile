@@ -4,7 +4,8 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-RUN npm ci
+COPY prisma ./prisma/
+RUN npm install --legacy-peer-deps
 
 # Stage 2: Builder
 FROM node:20-alpine AS builder
@@ -14,6 +15,11 @@ COPY . .
 
 # Generate Prisma Client
 RUN npx prisma generate
+
+# Provide a dummy DATABASE_URL for build-time Prisma Client initialization
+# The actual database connection is only needed at runtime
+ARG DATABASE_URL="mongodb://localhost:27017/hemasaree"
+ENV DATABASE_URL=${DATABASE_URL}
 
 ENV NEXT_TELEMETRY_DISABLED 1
 ENV NEXT_OUTPUT_STANDALONE 1
